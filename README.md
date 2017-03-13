@@ -1,2 +1,2 @@
 # stamplines
-Simple "stamp + line" drawing utility built on paper.js
+Simple "stamp + line" drawing library for paper.js

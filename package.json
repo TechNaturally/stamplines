@@ -1,0 +1,19 @@
+{
+  "name": "stamplines",
+  "version": "0.0.1",
+  "description": "Simple \"stamp + line\" drawing library for paper.js",
+  "main": "src/stamplines.js",
+  "directories": {
+    "example": "examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TechNaturally/stamplines.git"
+  },
+  "author": "Pat Long (plong0)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TechNaturally/stamplines/issues"
+  },
+  "homepage": "https://github.com/TechNaturally/stamplines#readme"
+}
