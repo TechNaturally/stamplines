@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>StampLines - Simple Example</title>
+
+		<!-- Load the Paper.js library -->
+		<script type="text/javascript" src="../../bower_components/paper/dist/paper-full.js"></script>
+
+		<!-- load jquery -->
+		<script type="text/javascript" src="../../bower_components/jquery/dist/jquery.js"></script>
+
+		<!-- load the StampLines library -->
+		<script type="text/javascript" src="../../src/stamplines.js"></script>
+
+		<script type="text/javascript">
+		$(function documentReady(){
+			var path = window.location.pathname;
+			if(window.location.pathname.slice(-1) != '/'){
+				var pathSplit = path.split('/');
+				path = pathSplit.slice(0, pathSplit.length-1).join('/')+'/';
+			}
+
+			var sl = stamplines.getInstance('#demoCanvas');
+			var stamps = [
+				'triangle-1',
+				'rectangle-1',
+				'rectangle-2',
+				'rectangle-3',
+				'rectangle-4',
+				'circle-1'
+			];
+			sl.loadStamps(stamps, path+'stamps/', function stampsLoaded(){
+				console.log('Stamps Loaded => ', sl.stamps, sl.canvas);
+			});
+		});
+		</script>
+
+
+		<!-- Load external PaperScript and associate it with myCanvas -->
+		<!-- script type="text/paperscript" canvas="myCanvas">
+//            console.log('HELLO myCanvas paperScript... ['+(stamplines?'HAS':'NO')+' StampLines] ['+(propject?'HAS':'NO')+' project]');
+var topLeft = new Point(10, 20);
+var rectSize = new Size(200, 100);
+var rect = new Path.Rectangle(topLeft, rectSize);
+console.log(rect); // { x: 10, y: 20, width: 200, height: 100 }
+console.log(rect.point); // { x: 10, y: 20 }
+console.log(rect.size); // { width: 200, height: 100 }
+			rect.fillColor = 'red';
+		</script -->
+
+		<style type="text/css">
+			canvas {
+				border: 1px solid #999;
+			}
+			svg {
+			}
+		</style>
+	</head>
+	<body>
+		<canvas width="800" height="600" id="demoCanvas"></canvas>
+
+<!--
+		<img src="stamps/rectangle-1.svg" />
+		<img src="stamps/rectangle-2.svg" />
+		<img src="stamps/rectangle-3.svg" />
+		<img src="stamps/rectangle-4.svg" />
+		<img src="stamps/circle-1.svg" />
+		<img src="stamps/triangle-1.svg" />
+		-->
+
+	</body>
+</html>
