@@ -28,6 +28,8 @@ var stamplines = (function() {
 					'grid.show': true,
 					'grid.size': 25,
 					'grid.snap': true,
+					'rotate.slices': (360/45),
+					'rotate.snap': true,
 					'selection.padding': 10
 				}, config);
 
@@ -307,6 +309,8 @@ var stamplines = (function() {
 				};
 				selector.mode = selector.MODES.SELECT;
 				selector.ui = {};
+				selector.Hover = {};
+				selector.Drag = {};
 
 				selector.setMode = function(mode){
 					if(this.mode != mode && Object.values(this.MODES).indexOf(mode) != -1){
@@ -316,7 +320,10 @@ var stamplines = (function() {
 				};
 
 				selector.refreshMode = function(){
-					if(this.hoverSelected && !this.hoverUnselected && (!this.hoverSelectedChild || !this.multiSelect)){
+					if(this.Hover.rotateHandle){
+						this.setMode(this.MODES.ROTATE);
+					}
+					else if(this.Hover.selected && !this.Hover.unselected && (!this.Hover.targetSelected || !this.multiSelect)){
 						this.setMode(this.MODES.MOVE);
 					}
 					else{
@@ -333,11 +340,126 @@ var stamplines = (function() {
 						}
 						this.ui.outline.selectedColor = ((this.selection.children.length > 1) ? '#00EC9D' : '#009DEC');
 						this.ui.outline.set({position: this.selection.bounds.center, size: this.selection.bounds.size.add(SL.config('selection.padding'))});
+
+
+						var rotateActive = false || (this.mode == this.MODES.ROTATE);
+						if(!this.ui.rotate){
+							this.ui.rotate = new paper.Group();
+							paper.project.activeLayer.addChild(this.ui.rotate);
+						}
+
+						var rotateSlices = SL.config('rotate.slices');
+						var rotateLength = SL.config('rotate.radius') || 100;
+						var rotateColor = SL.config('rotate.color') || '#AAAAAA';
+						var rotateWidth = 1;
+
+						var rotateVector = new paper.Point({angle: 0, length: rotateLength});
+						var rotateVectorFrom = this.selection.bounds.center;
+						var rotateVectorTo = rotateVectorFrom.add(rotateVector);
+
+						// the rotation grid (slices)
+						if(rotateSlices){
+							if(!this.ui.rotateGrid){
+								this.ui.rotateGrid = new paper.Group();
+								this.ui.rotate.addChild(this.ui.rotateGrid);
+							}
+							this.ui.rotateGrid.removeChildren();
+
+							var rotateAngle = 360.0 / rotateSlices;
+							for(var i=0; i < rotateSlices; i++){
+								rotateVector.angle = i * rotateAngle;
+								rotateVectorFrom = this.selection.bounds.center;
+								rotateVectorTo = rotateVectorFrom.add(rotateVector);
+
+								var newLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
+								newLine.data.locked = true;
+								newLine.strokeWidth = rotateWidth;
+								newLine.strokeColor = rotateColor;
+								this.ui.rotateGrid.addChild(newLine);
+							}
+
+							this.ui.rotateGrid.visible = rotateActive;
+						}
+						else if(this.ui.rotateGrid){
+							this.ui.rotateGrid.remove();
+							this.ui.rotateGrid = undefined;
+						}
+
+						// interactive handle
+						rotateLength = SL.config('rotate.current.radius') || SL.config('rotate.radius') || 100;
+						rotateColor = SL.config('rotate.current.color') || '#999999';
+						rotateWidth = SL.config('rotate.current.width') || 3;
+
+						var handleSize = SL.config('rotate.handle.size') || 15;
+
+						if(rotateActive){
+							rotateColor = SL.config('rotate.current.color.active') || '#333333';
+							rotateWidth = SL.config('rotate.current.width.active') || 3;
+						}
+
+						rotateVector.angle = this.selection.rotation - 90.0;
+						if(!this.ui.rotateCurrent){
+							this.ui.rotateCurrent = new paper.Group();
+							this.ui.rotate.addChild(this.ui.rotateCurrent);
+						}
+
+
+						rotateVectorFrom = this.selection.bounds.center;
+						rotateVectorTo = rotateVectorFrom.add(rotateVector);
+						var rotateLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
+
+						if(!this.ui.rotateCurrentLine){
+							this.ui.rotateCurrentLine = rotateLine;
+							this.ui.rotateCurrentLine.data.locked = true;
+							this.ui.rotateCurrent.addChild(this.ui.rotateCurrentLine);
+						}
+						this.ui.rotateCurrentLine.strokeWidth = rotateWidth;
+						this.ui.rotateCurrentLine.strokeColor = rotateColor;
+						this.ui.rotateCurrentLine.copyContent(rotateLine);
+
+						if(!this.ui.rotateHandle){
+							this.ui.rotateHandle = new paper.Shape.Rectangle(rotateVectorTo.subtract(handleSize/2.0), handleSize);
+							this.ui.rotateHandle.data.locked = true;
+							this.ui.rotateCurrent.addChild(this.ui.rotateHandle);
+						}
+						this.ui.rotateHandle.strokeWidth = 1;
+						this.ui.rotateHandle.strokeColor = rotateColor;
+						this.ui.rotateHandle.bounds.center = rotateVectorTo;
+						this.ui.rotateHandle.bringToFront();
+
+						this.ui.rotateCurrent.bringToFront();
+
+						//this.ui.rotateCurrent
+
+
+						this.ui.rotate.bringToFront();
 					}
-					else if(this.ui.outline){
-						this.ui.outline.selected = false;
-						this.ui.outline.remove();
-						this.ui.outline = undefined;
+					else{
+						if(this.ui.outline){
+							this.ui.outline.selected = false;
+							this.ui.outline.remove();
+							this.ui.outline = undefined;
+						}
+						if(this.ui.rotate){
+							this.ui.rotate.remove();
+							this.ui.rotate = undefined;
+						}
+						if(this.ui.rotateHandle){
+							this.ui.rotateHandle.remove();
+							this.ui.rotateHandle = undefined;
+						}
+						if(this.ui.rotateCurrentLine){
+							this.ui.rotateCurrentLine.remove();
+							this.ui.rotateCurrentLine = undefined;
+						}
+						if(this.ui.rotateCurrent){
+							this.ui.rotateCurrent.remove();
+							this.ui.rotateCurrent = undefined;
+						}
+						if(this.ui.rotateGrid){
+							this.ui.rotateGrid.remove();
+							this.ui.rotateGrid = undefined;
+						}
 					}
 
 					if(SL.Canvas.isSet()){
@@ -346,12 +468,11 @@ var stamplines = (function() {
 							cursor = 'move';
 						}
 						else if(this.mode == this.MODES.ROTATE){
-							cursor = 'grab';
+							cursor = 'crosshair';
 						}
 						else if(this.mode == this.MODES.TEXT){
 							cursor = 'text';
 						}
-
 						self.canvas.css('cursor', cursor);
 					}
 				};
@@ -370,14 +491,13 @@ var stamplines = (function() {
 				};
 				selector.onMouseDown = function(event){
 					this.dragged = false;
-					var target = paper.project.hitTest(event.point);
-					if(target && target.item && target.item.data && target.item.data.locked){
-						target = null;
-					}
-					var hasTarget = (target && target.item);
-					var hitOutline = (this.ui.outline && this.ui.outline.contains(event.point));
-					var newSelect = ((!this.multiSelect || !hasTarget) 
-										&& (!hitOutline || (hasTarget && !this.selection.isChild(target.item)))
+
+					var target = this.Hover.target;
+					var targetSelected = this.Hover.targetSelected;
+					var hitOutline = this.Hover.selected;
+
+					var newSelect = ((!this.multiSelect || !target) 
+										&& (!hitOutline || (target && !targetSelected))
 									);
 
 					if(newSelect && this.selection){
@@ -389,14 +509,14 @@ var stamplines = (function() {
 						}
 					}
 					
-					if(hasTarget){
-						if(!this.selection.isChild(target.item)){
-							this.selection.appendBottom(target.item);
+					if(target){
+						if(!targetSelected){
+							this.selection.appendBottom(target);
 						}
-						else if(this.multiSelect && this.selection.isChild(target.item) && (this.selection.children.length > 1)){
-							target.item.selected = false;
-							target.item.remove();
-							paper.project.activeLayer.addChild(target.item);
+						else if(this.multiSelect && targetSelected && (this.selection.children.length > 1)){
+							target.selected = false;
+							target.remove();
+							paper.project.activeLayer.addChild(target);
 						}
 					}
 
@@ -417,18 +537,24 @@ var stamplines = (function() {
 				};
 				selector.onMouseMove = function(event){
 					var target = paper.project.hitTest(event.point);
-					var hitOutline = (this.ui.outline && this.ui.outline.contains(event.point));
 
-					this.hoverSelected = hitOutline;
-					this.hoverSelectedChild = (target && target.item && this.selection.isChild(target.item));
-					this.hoverUnselected = (target && target.item && !this.hoverSelectedChild);
+					// special handling for possibly locked targets
+					this.Hover.rotateHandle = (this.ui.rotateHandle && this.ui.rotateHandle.strokeBounds.contains(event.point));
+
+					if(target && target.item && target.item.data && target.item.data.locked){
+						target = null;
+					}
+					this.Hover.target = ((target && target.item) ? target.item : null);
+					this.Hover.targetSelected = (this.Hover.target ? this.selection.isChild(this.Hover.target) : false);
+					this.Hover.selected = (this.ui.outline && this.ui.outline.contains(event.point));
+					this.Hover.unselected = (this.Hover.target && !this.Hover.targetSelected);
 
 					this.refreshMode();
 				};
 				selector.onMouseUp = function(event){
 					if(this.dragged && this.selection.hasChildren()){
 						var position = this.selection.position;
-						position = Util.Bound.position(position, this.selection, 2.0);
+						position = Util.Bound.position(position, this.selection);
 						this.selection.set({position: position})
 						this.refreshUI();
 					}
@@ -476,10 +602,7 @@ var stamplines = (function() {
 			Bound: {
 				position: function(point, item, padding, interactive){
 					if(item){
-						var bounds = item.bounds.clone();
-						if(item.strokeWidth){
-							bounds = bounds.expand(item.strokeWidth);
-						}
+						var bounds = item.strokeBounds.clone();
 						if(padding){
 							bounds = bounds.expand(padding);
 						}
@@ -530,7 +653,7 @@ var stamplines = (function() {
 			Calc: {
 				halfSize: function(item){
 					if(item){
-						return new paper.Size( item.bounds ).add(item.strokeWidth).divide(2.0);
+						return new paper.Size( item.strokeBounds ).divide(2.0);
 					}
 				}
 			},
