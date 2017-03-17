@@ -1,0 +1,71 @@
+/** StampLines Dock **/
+.sl-dock {
+}
+.sl-dock ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.sl-dock .sl-dock-scroll {
+	display: block;
+	overflow: auto;
+}
+
+/** Tools Panel **/
+.sl-dock .sl-tools {
+	display: block;
+	max-width: 100%;
+	padding: 4px 8px;
+}
+.sl-dock .sl-tools .sl-tool {
+	display: inline-block;
+}
+.sl-dock .sl-tools .sl-tool .sl-tool-button {
+	display: block;
+	width: 32px;
+	height: 32px;
+	border: 3px groove #777;
+	cursor: pointer;
+}
+.sl-dock .sl-tools .sl-tool .sl-tool-button:hover {
+	border-color: #80CEF6;
+}
+
+/** Stamps Panel **/
+.sl-dock .sl-stamps {
+	display: table-row;
+}
+.sl-dock .sl-stamps .sl-stamp {
+	display: table-cell;
+	padding: 8px;
+	vertical-align: top;
+}
+
+.sl-dock .sl-stamps .sl-stamp .sl-stamp-button {
+	display: block;
+	line-height: 0;
+	border: 3px solid transparent;
+	padding: 5px 8px;
+	text-align: center;
+	cursor: pointer;
+}
+.sl-dock .sl-stamps .sl-stamp .sl-stamp-button:hover {
+	border-color: #80CEF6;
+}
+.sl-dock .sl-stamps .sl-stamp .sl-stamp-button .sl-stamp-img {
+	height: 50px;
+	line-height: 50px;
+}
+.sl-dock .sl-stamps .sl-stamp .sl-stamp-button .sl-stamp-img img {
+	max-height: 100%;
+	vertical-align: middle;
+}
+.sl-dock .sl-stamps .sl-stamp .sl-stamp-button span {
+	display: block;
+	line-height: normal;
+	white-space: nowrap;
+}
+.sl-dock .sl-stamps .sl-stamp .sl-stamp-button .sl-stamp-content + .sl-stamp-content {
+	margin-top: 8px;
+}
