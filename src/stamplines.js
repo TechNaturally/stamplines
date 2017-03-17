@@ -1,5 +1,5 @@
 var stamplines = (function() {
-	function StampLines(canvas){
+	function StampLines(canvas, config){
 		var self = this;
 
 		var SL = {
@@ -11,20 +11,25 @@ var stamplines = (function() {
 				return false;
 			},
 			config: function(setting, value){
+				if(value === undefined){
+					return self.config[setting];
+				}
 				self.config[setting] = value;
 			},
 			error: function(message){
 				console.error('StampLines: '+message);
 			},
-			init: function(canvas){
+			init: function(canvas, config){
 				self.canvas = $(canvas);
 				self.stamps = [];
 				self.tools = {};
 
-				self.config = {
+				self.config = $.extend({
+					'grid.show': true,
 					'grid.size': 25,
-					'grid.snap': true
-				};
+					'grid.snap': true,
+					'selection.padding': 10
+				}, config);
 
 				if(SL.Canvas.isSet()){
 					self.canvasID = self.canvas.attr('id');
@@ -33,18 +38,58 @@ var stamplines = (function() {
 				if(SL.assertPaper()){
 					if(SL.Canvas.isSet()){
 						paper.setup(self.canvas[0]);
+						SL.Canvas.init();
 					}
 
+					Util.init();
 					UI.init();
 					Tools.init();
 				}
 			},
 			Canvas: {
+				callbacks: {
+					resize: {}
+				},
+				init: function(){
+					paper.view.onResize = SL.Canvas.resized;
+				},
 				isResizeable: function() {
 					return (SL.Canvas.isSet() && self.canvas.attr('resize') != undefined);
 				},
 				isSet: function(){
 					return (self.canvas && self.canvas.length);
+				},
+				offResize: function(handlerID){
+					if(handlerID && this.callbacks.resize[handlerID]){
+						this.callbacks.resize[handlerID] = undefined;
+					}
+				},
+				onResize: function(handlerID, callback){
+					if(handlerID){
+						this.callbacks.resize[handlerID] = callback;
+					}
+				},
+				resized: function(event){
+					console.log('CANVAS RESIZED =>', event);
+					for(var handlerID in this.callbacks.resize){
+						var callback = this.callbacks.resize[handlerID];
+						if(typeof callback == 'function'){
+							callback(event);
+						}
+					}
+				},
+				size: function(){
+					if(!this.canvasSize){
+						this.canvasSize = new paper.Size();
+					}
+					var width = 0;
+					var height = 0;
+					if(SL.Canvas.isSet()){
+						width = self.canvas.width();
+						height = self.canvas.height();
+					}
+					this.canvasSize.set(width, height);
+					return this.canvasSize;
 				}
 			}
 		};
@@ -52,28 +97,29 @@ var stamplines = (function() {
 		var Stamps = {
 			add: function(stamp, position){
 				if(stamp.symbol){
-					var halfStroke = stamp.symbol.item.style.strokeWidth/2.0;
-					var radX = Math.ceil(stamp.symbol.item.bounds.width/2.0)+halfStroke;
-					var radY = Math.ceil(stamp.symbol.item.bounds.height/2.0)+halfStroke;
-
+					var halfSize = Util.Calc.halfSize(stamp.symbol.item);
+					var canvasSize = SL.Canvas.size();
 					if(!position){
 						var min, max;
 
 						// random x
-						min = radX;
-						max = (SL.Canvas.isSet() ? (self.canvas.width() - radX) : radX);
+						min = halfSize.width;
+						max = (canvasSize.width ? (canvasSize.width - halfSize.width) : min);
 						var x = Math.floor(Math.random() * (max - min + 1)) + min;
 
 						// random y
-						min = radY;
-						max = (SL.Canvas.isSet() ? (self.canvas.height() - radY) : radY);
+						min = halfSize.height;
+						max = (canvasSize.height ? (canvasSize.height - halfSize.width) : min);
 						var y = Math.floor(Math.random() * (max - min + 1)) + min;
 
 						position = new paper.Point(x, y);
 					}
 					else{
-						position = position.add(new paper.Point(radX, radY));
+						position = position.add(new paper.Point(halfSize.width, halfSize.height));
 					}
+
+					// lock it to whatever Bounding filters are active
+					position = Util.Bound.position(position, stamp.symbol.item);
 
 					// place an instance of the symbol
 					stamp.symbol.place(position);
@@ -286,7 +332,7 @@ var stamplines = (function() {
 							paper.project.activeLayer.addChild(this.ui.outline);
 						}
 						this.ui.outline.selectedColor = ((this.selection.children.length > 1) ? '#00EC9D' : '#009DEC');
-						this.ui.outline.set({position: this.selection.bounds.center, size: this.selection.bounds.size.add(10)});
+						this.ui.outline.set({position: this.selection.bounds.center, size: this.selection.bounds.size.add(SL.config('selection.padding'))});
 					}
 					else if(this.ui.outline){
 						this.ui.outline.selected = false;
@@ -323,7 +369,11 @@ var stamplines = (function() {
 					}
 				};
 				selector.onMouseDown = function(event){
+					this.dragged = false;
 					var target = paper.project.hitTest(event.point);
+					if(target && target.item && target.item.data && target.item.data.locked){
+						target = null;
+					}
 					var hasTarget = (target && target.item);
 					var hitOutline = (this.ui.outline && this.ui.outline.contains(event.point));
 					var newSelect = ((!this.multiSelect || !hasTarget) 
@@ -357,11 +407,12 @@ var stamplines = (function() {
 					this.refreshUI();
 				};
 				selector.onMouseDrag = function(event){
-					if(this.selection){
-						this.selection.translate(event.delta);
-						if(this.ui.outline){
-							this.ui.outline.translate(event.delta);
-						}
+					this.dragged = true;
+					if(this.selection.hasChildren()){
+						var position = this.selection.position.add(event.delta);
+						position = Util.Bound.position(position, this.selection, SL.config('selection.padding'), true);
+						this.selection.set({position: position})
+						this.refreshUI();
 					}
 				};
 				selector.onMouseMove = function(event){
@@ -374,12 +425,16 @@ var stamplines = (function() {
 
 					this.refreshMode();
 				};
+				selector.onMouseUp = function(event){
+					if(this.dragged && this.selection.hasChildren()){
+						var position = this.selection.position;
+						position = Util.Bound.position(position, this.selection, 2.0);
+						this.selection.set({position: position})
+						this.refreshUI();
+					}
+				};
 
 				self.tools.selector = selector;
-
-				Tools.addButton('selector', 'pointer', function toolSelector(){
-					console.log('SELECTOR TOOL');
-				});
 			}
 		};
 
@@ -400,9 +455,10 @@ var stamplines = (function() {
 							UI.dock.addClass('sl-dock-'+self.canvasID);
 						}
 
-						if(SL.Canvas.isResizeable()){
-							// TODO: handle resize on window resize
-						}
+						SL.Canvas.onResize('resizeDock', function resizeDock(event){
+							console.log('RESIZE THE DOCK =>', event);
+							// TODO: resize dock
+						});
 					
 						self.canvas.after(UI.dock);
 					}
@@ -413,18 +469,147 @@ var stamplines = (function() {
 			}
 		};
 
+		var Util = {
+			init: function(){
+				Util.Grid.init();
+			},
+			Bound: {
+				position: function(point, item, padding, interactive){
+					if(item){
+						var bounds = item.bounds.clone();
+						if(item.strokeWidth){
+							bounds = bounds.expand(item.strokeWidth);
+						}
+						if(padding){
+							bounds = bounds.expand(padding);
+						}
+
+						// handle snap to grid
+						if(!interactive && SL.config('grid.snap')){
+							// shift to the new point
+							bounds.center = point;
+
+							// bound to grid
+							var gridSize = SL.config('grid.size');
+							var origX = bounds.left;
+							var origY = bounds.top;
+							var check;
+
+							check = Math.round(origX / gridSize) * gridSize;
+							if(check != origX){
+								point.x += (check - origX);
+							}
+
+							check = Math.round(origY / gridSize) * gridSize;
+							if(check != origY){
+								point.y += (check - origY);
+							}
+						}
+
+						// shift to the new point
+						bounds.center = point;
+
+						// bound to canvas
+						var canvasSize = SL.Canvas.size();
+						if(bounds.left < 0){
+							point.x -= bounds.left;
+						}
+						else if(bounds.right > canvasSize.width){
+							point.x -= (bounds.right - canvasSize.width);
+						}
+						if(bounds.top < 0){
+							point.y -= bounds.top;
+						}
+						else if(bounds.bottom > canvasSize.height){
+							point.y -= (bounds.bottom - canvasSize.height);
+						}
+					}
+					return point;
+				}
+			},
+			Calc: {
+				halfSize: function(item){
+					if(item){
+						return new paper.Size( item.bounds ).add(item.strokeWidth).divide(2.0);
+					}
+				}
+			},
+			Grid: {
+				init: function(){
+					this.drawGrid();
+					SL.Canvas.onResize('drawGrid', this.drawGrid);
+					if(SL.config('grid.show')){
+						this.enable();
+					}
+					else{
+						this.disable();
+					}
+				},
+				disable: function(){
+					this.enabled = false;
+					if(Util.grid){
+						Util.grid.visible = false;
+					}
+				},
+				enable: function(){
+					this.enabled = true;
+					if(Util.grid){
+						Util.grid.visible = true;
+					}
+				},
+				drawGrid: function(){
+					if(!Util.grid){
+						Util.grid = new paper.Group();
+						paper.project.activeLayer.addChild(Util.grid);
+						Util.grid.sendToBack();
+					}
+					Util.grid.removeChildren();
+
+					var gridWidth = SL.config('grid.width') || 1.0;
+					var gridColor = SL.config('grid.color') || '#DDDDDD';
+					var gridSize = SL.config('grid.size') || 25;
+
+					var canvasSize = SL.Canvas.size();
+					var pos1 = new paper.Point(0, 0);
+					var pos2 = new paper.Point(0, canvasSize.height);
+
+					while(pos1.x <= canvasSize.width){
+						var newLine = new paper.Path.Line(pos1, pos2);
+						newLine.data.locked = true;
+						newLine.strokeWidth = gridWidth;
+						newLine.strokeColor = gridColor;
+						Util.grid.addChild(newLine);
+						pos1.x += gridSize;
+						pos2.x += gridSize;
+					}
+
+					pos1.set(0, 0);
+					pos2.set(canvasSize.width, 0);
+					while(pos1.y <= canvasSize.height){
+						var newLine = new paper.Path.Line(pos1, pos2);
+						newLine.data.locked = true;
+						newLine.strokeWidth = gridWidth;
+						newLine.strokeColor = gridColor;
+						Util.grid.addChild(newLine);
+						pos1.y += gridSize;
+						pos2.y += gridSize;
+					}
+				}
+			}
+		};
+
 		// Public
 		this.config = SL.config;
 		this.addStamp = Stamps.add;
 		this.loadStamps = Stamps.load;
 
 		// constructor
-		SL.init(canvas);
+		SL.init(canvas, config);
 	}
 
 	return {
-		init: function(canvas){
-			return new StampLines(canvas);
+		init: function(canvas, config){
+			return new StampLines(canvas, config);
 		}
 	};
 }());
