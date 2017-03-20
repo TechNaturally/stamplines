@@ -316,23 +316,27 @@ var stamplines = (function() {
 					if(this.mode != mode && Object.values(this.MODES).indexOf(mode) != -1){
 						this.mode = mode;
 						this.refreshUI();
+						return true;
 					}
+					return false;
 				};
 
 				selector.refreshMode = function(){
 					if(this.Hover.rotateHandle){
-						this.setMode(this.MODES.ROTATE);
+						return this.setMode(this.MODES.ROTATE);
 					}
 					else if(this.Hover.selected && !this.Hover.unselected && (!this.Hover.targetSelected || !this.multiSelect)){
-						this.setMode(this.MODES.MOVE);
+						return this.setMode(this.MODES.MOVE);
 					}
 					else{
-						this.setMode(this.MODES.SELECT);
+						return this.setMode(this.MODES.SELECT);
 					}
+					return false;
 				};
 
 				selector.refreshUI = function(){
 					if(this.selection.hasChildren()){
+						// draw the selection outline
 						if(!this.ui.outline){
 							this.ui.outline = new paper.Shape.Rectangle();
 							this.ui.outline.selected = true;
@@ -341,7 +345,7 @@ var stamplines = (function() {
 						this.ui.outline.selectedColor = ((this.selection.children.length > 1) ? '#00EC9D' : '#009DEC');
 						this.ui.outline.set({position: this.selection.bounds.center, size: this.selection.bounds.size.add(SL.config('selection.padding'))});
 
-
+						// draw the rotation UI
 						var rotateActive = false || (this.mode == this.MODES.ROTATE);
 						if(!this.ui.rotate){
 							this.ui.rotate = new paper.Group();
@@ -385,7 +389,7 @@ var stamplines = (function() {
 							this.ui.rotateGrid = undefined;
 						}
 
-						// interactive handle
+						// interactive rotation handle
 						rotateLength = SL.config('rotate.current.radius') || SL.config('rotate.radius') || 100;
 						rotateColor = SL.config('rotate.current.color') || '#999999';
 						rotateWidth = SL.config('rotate.current.width') || 3;
@@ -403,13 +407,12 @@ var stamplines = (function() {
 							this.ui.rotate.addChild(this.ui.rotateCurrent);
 						}
 
-
 						rotateVectorFrom = this.selection.bounds.center;
 						rotateVectorTo = rotateVectorFrom.add(rotateVector);
 						var rotateLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
 
 						if(!this.ui.rotateCurrentLine){
-							this.ui.rotateCurrentLine = rotateLine;
+							this.ui.rotateCurrentLine = rotateLine.clone();
 							this.ui.rotateCurrentLine.data.locked = true;
 							this.ui.rotateCurrent.addChild(this.ui.rotateCurrentLine);
 						}
@@ -426,12 +429,7 @@ var stamplines = (function() {
 						this.ui.rotateHandle.strokeColor = rotateColor;
 						this.ui.rotateHandle.bounds.center = rotateVectorTo;
 						this.ui.rotateHandle.bringToFront();
-
 						this.ui.rotateCurrent.bringToFront();
-
-						//this.ui.rotateCurrent
-
-
 						this.ui.rotate.bringToFront();
 					}
 					else{
@@ -462,18 +460,26 @@ var stamplines = (function() {
 						}
 					}
 
+					// set the cursor
 					if(SL.Canvas.isSet()){
 						var cursor = 'default';
-						if(this.mode == this.MODES.MOVE){
+						if(this.mode == this.MODES.SELECT){
+							if(this.multiSelect && this.Hover.target){
+								cursor = (this.Hover.targetSelected 
+											? ((this.selection.children.length > 1) ? 'minus' : 'move') 
+											: 'plus');
+							}
+						}
+						else if(this.mode == this.MODES.MOVE){
 							cursor = 'move';
 						}
 						else if(this.mode == this.MODES.ROTATE){
-							cursor = 'crosshair';
+							cursor = 'rotate';
 						}
 						else if(this.mode == this.MODES.TEXT){
 							cursor = 'text';
 						}
-						self.canvas.css('cursor', cursor);
+						UI.Cursor.activate(cursor);
 					}
 				};
 
@@ -549,7 +555,9 @@ var stamplines = (function() {
 					this.Hover.selected = (this.ui.outline && this.ui.outline.contains(event.point));
 					this.Hover.unselected = (this.Hover.target && !this.Hover.targetSelected);
 
-					this.refreshMode();
+					if(!this.refreshMode()){
+						this.refreshUI();
+					}
 				};
 				selector.onMouseUp = function(event){
 					if(this.dragged && this.selection.hasChildren()){
@@ -571,6 +579,66 @@ var stamplines = (function() {
 						UI.Dock.init();
 					}
 				}
+
+				UI.Cursor.config('plus', {awesomeCursor:{}});
+				UI.Cursor.config('minus', {awesomeCursor:{}});
+				UI.Cursor.config('rotate', {awesomeCursor:{icon:'rotate-right'}});
+				UI.Cursor.config('move', {awesomeCursor:{icon:'arrows'}});
+				UI.Cursor.config('expand-nesw', {awesomeCursor:{icon:'expand'}});
+				UI.Cursor.config('expand-senw', {awesomeCursor:{icon:'expand',flip: 'horizontal'}});
+				UI.Cursor.config('expand-ns', {awesomeCursor:{icon:'arrows-v'}});
+				UI.Cursor.config('expand-ew', {awesomeCursor:{icon:'arrows-h'}});
+			},
+			Cursor: {
+				active: 'default',
+				custom: {},
+				activate: function(name){
+					if(!name){
+						name = 'default';
+					}
+					if(this.active == name){
+						return;
+					}
+					if(SL.Canvas.isSet()){
+						var value;
+						if(this.custom[name]){
+							if(this.custom[name].awesomeCursor){
+								var awesome = this.custom[name].awesomeCursor;
+								self.canvas.awesomeCursor(
+									(awesome.icon || name), 
+									awesome
+								);
+							}
+							else if(this.custom[name].value){
+								value = this.custom[name].value;
+							}
+						}
+						else{
+							value = name;
+						}
+						if(value){
+							self.canvas.css('cursor', value);
+						}
+						this.active = name;
+					}
+				},
+				config: function(name, config){
+					if(name){
+						if(!config){
+							config = {};
+						}
+						if(config.awesomeCursor){
+							$.extend(config.awesomeCursor, {
+								font: {
+									family: 'icomoon',
+									cssClass: 'icon icon-%s'
+								},
+								hotspot: 'center'
+							});
+						}
+						this.custom[name] = config;
+					}
+				}
 			},
 			Dock: {
 				init: function(){
@@ -585,7 +653,7 @@ var stamplines = (function() {
 							console.log('RESIZE THE DOCK =>', event);
 							// TODO: resize dock
 						});
-					
+
 						self.canvas.after(UI.dock);
 					}
 				},
@@ -736,3 +804,5 @@ var stamplines = (function() {
 		}
 	};
 }());
+// Object.values shim
+Object.values = Object.values || (obj => Object.keys(obj).map(key => obj[key]));
