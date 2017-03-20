@@ -281,10 +281,9 @@ var stamplines = (function() {
 						UI.dock.prepend(self.toolsPanel);
 					}
 
-					Tools.initSelector();
-
-					if(self.tools.selector){
-						self.tools.selector.activate();
+					Tools.initMaster();
+					if(self.tools.master){
+						self.tools.master.activate();
 					}
 				}
 			},
@@ -298,277 +297,310 @@ var stamplines = (function() {
 					self.toolsPanel.append(newTool);
 				}
 			},
-			initSelector: function(){
-				var selector = new paper.Tool();
-				selector.selection = new paper.Group();
-				selector.MODES = {
-					SELECT: 0,
-					MOVE: 	1,
-					ROTATE: 2,
-					TEXT: 	3
-				};
-				selector.mode = selector.MODES.SELECT;
-				selector.ui = {};
-				selector.Hover = {};
-				selector.Drag = {};
-
-				selector.setMode = function(mode){
-					if(this.mode != mode && Object.values(this.MODES).indexOf(mode) != -1){
-						this.mode = mode;
-						this.refreshUI();
-						return true;
-					}
-					return false;
-				};
-
-				selector.refreshMode = function(){
-					if(this.Hover.rotateHandle){
-						return this.setMode(this.MODES.ROTATE);
-					}
-					else if(this.Hover.selected && !this.Hover.unselected && (!this.Hover.targetSelected || !this.multiSelect)){
-						return this.setMode(this.MODES.MOVE);
-					}
-					else{
-						return this.setMode(this.MODES.SELECT);
-					}
-					return false;
-				};
-
-				selector.refreshUI = function(){
-					if(this.selection.hasChildren()){
-						// draw the selection outline
-						if(!this.ui.outline){
-							this.ui.outline = new paper.Shape.Rectangle();
-							this.ui.outline.selected = true;
-							paper.project.activeLayer.addChild(this.ui.outline);
+			initMaster: function(){
+				var MT = new paper.Tool();
+				MT.Mouse = { Hover: {} };
+				MT.Selection = {
+					Group: new paper.Group(),
+					add: function(item){
+						if(item && !this.contains(item)){
+							this.Group.appendBottom(item);
+							this.refresh();
+							return true;
 						}
-						this.ui.outline.selectedColor = ((this.selection.children.length > 1) ? '#00EC9D' : '#009DEC');
-						this.ui.outline.set({position: this.selection.bounds.center, size: this.selection.bounds.size.add(SL.config('selection.padding'))});
-
-						// draw the rotation UI
-						var rotateActive = false || (this.mode == this.MODES.ROTATE);
-						if(!this.ui.rotate){
-							this.ui.rotate = new paper.Group();
-							paper.project.activeLayer.addChild(this.ui.rotate);
-						}
-
-						var rotateSlices = SL.config('rotate.slices');
-						var rotateLength = SL.config('rotate.radius') || 100;
-						var rotateColor = SL.config('rotate.color') || '#AAAAAA';
-						var rotateWidth = 1;
-
-						var rotateVector = new paper.Point({angle: 0, length: rotateLength});
-						var rotateVectorFrom = this.selection.bounds.center;
-						var rotateVectorTo = rotateVectorFrom.add(rotateVector);
-
-						// the rotation grid (slices)
-						if(rotateSlices){
-							if(!this.ui.rotateGrid){
-								this.ui.rotateGrid = new paper.Group();
-								this.ui.rotate.addChild(this.ui.rotateGrid);
+					},
+					contains: function(item){
+						return (item && this.Group.isChild(item));
+					},
+					count: function(){
+						return this.Group.children.length;
+					},
+					refresh: function(){
+						this.Group.selected = (this.count() > 1);
+						if(this.count()){
+							if(!MT.UI.outline){
+								MT.UI.outline = new paper.Shape.Rectangle();
 							}
-							this.ui.rotateGrid.removeChildren();
+							MT.UI.outline.selected = true;
+							MT.UI.outline.selectedColor = ((this.count() > 1) ? '#00EC9D' : '#009DEC');
+							MT.UI.outline.set({position: this.Group.bounds.center, size: this.Group.bounds.size.add(SL.config('selection.padding'))});
+							MT.UI.enable(MT.UI.outline);
 
-							var rotateAngle = 360.0 / rotateSlices;
-							for(var i=0; i < rotateSlices; i++){
-								rotateVector.angle = i * rotateAngle;
-								rotateVectorFrom = this.selection.bounds.center;
-								rotateVectorTo = rotateVectorFrom.add(rotateVector);
-
-								var newLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
-								newLine.data.locked = true;
-								newLine.strokeWidth = rotateWidth;
-								newLine.strokeColor = rotateColor;
-								this.ui.rotateGrid.addChild(newLine);
-							}
-
-							this.ui.rotateGrid.visible = rotateActive;
+							this.Group.bringToFront();
+							MT.UI.Group.bringToFront();
 						}
-						else if(this.ui.rotateGrid){
-							this.ui.rotateGrid.remove();
-							this.ui.rotateGrid = undefined;
+						else{
+							MT.UI.disable(MT.UI.outline);
+							MT.UI.outline = undefined;
 						}
-
-						// interactive rotation handle
-						rotateLength = SL.config('rotate.current.radius') || SL.config('rotate.radius') || 100;
-						rotateColor = SL.config('rotate.current.color') || '#999999';
-						rotateWidth = SL.config('rotate.current.width') || 3;
-
-						var handleSize = SL.config('rotate.handle.size') || 15;
-
-						if(rotateActive){
-							rotateColor = SL.config('rotate.current.color.active') || '#333333';
-							rotateWidth = SL.config('rotate.current.width.active') || 3;
-						}
-
-						rotateVector.angle = this.selection.rotation - 90.0;
-						if(!this.ui.rotateCurrent){
-							this.ui.rotateCurrent = new paper.Group();
-							this.ui.rotate.addChild(this.ui.rotateCurrent);
-						}
-
-						rotateVectorFrom = this.selection.bounds.center;
-						rotateVectorTo = rotateVectorFrom.add(rotateVector);
-						var rotateLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
-
-						if(!this.ui.rotateCurrentLine){
-							this.ui.rotateCurrentLine = rotateLine.clone();
-							this.ui.rotateCurrentLine.data.locked = true;
-							this.ui.rotateCurrent.addChild(this.ui.rotateCurrentLine);
-						}
-						this.ui.rotateCurrentLine.strokeWidth = rotateWidth;
-						this.ui.rotateCurrentLine.strokeColor = rotateColor;
-						this.ui.rotateCurrentLine.copyContent(rotateLine);
-
-						if(!this.ui.rotateHandle){
-							this.ui.rotateHandle = new paper.Shape.Rectangle(rotateVectorTo.subtract(handleSize/2.0), handleSize);
-							this.ui.rotateHandle.data.locked = true;
-							this.ui.rotateCurrent.addChild(this.ui.rotateHandle);
-						}
-						this.ui.rotateHandle.strokeWidth = 1;
-						this.ui.rotateHandle.strokeColor = rotateColor;
-						this.ui.rotateHandle.bounds.center = rotateVectorTo;
-						this.ui.rotateHandle.bringToFront();
-						this.ui.rotateCurrent.bringToFront();
-						this.ui.rotate.bringToFront();
-					}
-					else{
-						if(this.ui.outline){
-							this.ui.outline.selected = false;
-							this.ui.outline.remove();
-							this.ui.outline = undefined;
-						}
-						if(this.ui.rotate){
-							this.ui.rotate.remove();
-							this.ui.rotate = undefined;
-						}
-						if(this.ui.rotateHandle){
-							this.ui.rotateHandle.remove();
-							this.ui.rotateHandle = undefined;
-						}
-						if(this.ui.rotateCurrentLine){
-							this.ui.rotateCurrentLine.remove();
-							this.ui.rotateCurrentLine = undefined;
-						}
-						if(this.ui.rotateCurrent){
-							this.ui.rotateCurrent.remove();
-							this.ui.rotateCurrent = undefined;
-						}
-						if(this.ui.rotateGrid){
-							this.ui.rotateGrid.remove();
-							this.ui.rotateGrid = undefined;
-						}
-					}
-
-					// set the cursor
-					if(SL.Canvas.isSet()){
-						var cursor = 'default';
-						if(this.mode == this.MODES.SELECT){
-							if(this.multiSelect && this.Hover.target){
-								cursor = (this.Hover.targetSelected 
-											? ((this.selection.children.length > 1) ? 'minus' : 'move') 
-											: 'plus');
+					},
+					remove: function(item){
+						if(item){
+							item.selected = false;
+							if(this.contains(item)){
+								item.remove();
+								paper.project.activeLayer.addChild(item);
+								this.refresh();
 							}
 						}
-						else if(this.mode == this.MODES.MOVE){
-							cursor = 'move';
-						}
-						else if(this.mode == this.MODES.ROTATE){
-							cursor = 'rotate';
-						}
-						else if(this.mode == this.MODES.TEXT){
-							cursor = 'text';
-						}
-						UI.Cursor.activate(cursor);
-					}
-				};
-
-				selector.onKeyDown = function(event){
-					if(event.key == 'shift'){
-						this.multiSelect = true;
-						this.refreshMode();
-					}
-				};
-				selector.onKeyUp = function(event){
-					if(event.key == 'shift'){
-						this.multiSelect = false;
-						this.refreshMode();
-					}
-				};
-				selector.onMouseDown = function(event){
-					this.dragged = false;
-
-					var target = this.Hover.target;
-					var targetSelected = this.Hover.targetSelected;
-					var hitOutline = this.Hover.selected;
-
-					var newSelect = ((!this.multiSelect || !target) 
-										&& (!hitOutline || (target && !targetSelected))
-									);
-
-					if(newSelect && this.selection){
-						var unselectedItems = this.selection.removeChildren();
+					},
+					reset: function(){
+						var unselectedItems = this.Group.removeChildren();
 						for(var i=0; i < unselectedItems.length; i++){
 							var unselected = unselectedItems[i];
 							unselected.selected = false;
 							paper.project.activeLayer.addChild(unselected);
 						}
+						this.refresh();
 					}
-					
-					if(target){
-						if(!targetSelected){
-							this.selection.appendBottom(target);
+				};
+				MT.UI = {
+					Group: new paper.Group(),
+					add: function(item){
+						if(item && !this.contains(item)){
+							this.Group.appendTop(item);
+							return true;
 						}
-						else if(this.multiSelect && targetSelected && (this.selection.children.length > 1)){
-							target.selected = false;
-							target.remove();
-							paper.project.activeLayer.addChild(target);
+					},
+					contains: function(item){
+						return (item && this.Group.isChild(item));
+					},
+					disable: function(item){
+						if(item){
+							item.selected = false;
+							item.visible = false;
+							item.remove();
+						}
+					},
+					enable: function(item){
+						if(item){
+							item.visible = true;
+							this.add(item);
+						}
+					},
+					remove: function(item){
+						if(item && this.contains(item)){
+							item.remove();
+							paper.project.activeLayer.addChild(item);
 						}
 					}
-
-					this.selection.selected = (this.selection.children.length > 1);
-					if(this.selection.hasChildren()){
-						this.selection.bringToFront();
-					}
-					this.refreshUI();
 				};
-				selector.onMouseDrag = function(event){
-					this.dragged = true;
-					if(this.selection.hasChildren()){
-						var position = this.selection.position.add(event.delta);
-						position = Util.Bound.position(position, this.selection, SL.config('selection.padding'), true);
-						this.selection.set({position: position})
-						this.refreshUI();
-					}
-				};
-				selector.onMouseMove = function(event){
-					var target = paper.project.hitTest(event.point);
 
-					// special handling for possibly locked targets
-					this.Hover.rotateHandle = (this.ui.rotateHandle && this.ui.rotateHandle.strokeBounds.contains(event.point));
-
-					if(target && target.item && target.item.data && target.item.data.locked){
-						target = null;
-					}
-					this.Hover.target = ((target && target.item) ? target.item : null);
-					this.Hover.targetSelected = (this.Hover.target ? this.selection.isChild(this.Hover.target) : false);
-					this.Hover.selected = (this.ui.outline && this.ui.outline.contains(event.point));
-					this.Hover.unselected = (this.Hover.target && !this.Hover.targetSelected);
-
-					if(!this.refreshMode()){
-						this.refreshUI();
+				MT.activate = function(util){
+					if(this.active != util){
+						if(this.active){
+							this.active.active = false;
+							if(typeof this.active.deactivate == 'function'){
+								this.active.deactivate();
+							}
+						}
+						this.active = util;
+						if(this.active){
+							this.active.active = true;
+							if(typeof this.active.activate == 'function'){
+								this.active.activate();
+							}
+						}
 					}
 				};
-				selector.onMouseUp = function(event){
-					if(this.dragged && this.selection.hasChildren()){
-						var position = this.selection.position;
-						position = Util.Bound.position(position, this.selection);
-						this.selection.set({position: position})
-						this.refreshUI();
+				MT.utilsHandle = function(func, args){
+					for(var name in this.Utils){
+						var util = this.Utils[name];
+						if(typeof util[func] == 'function'){
+							return util[func](args);
+						}
+					}
+				};
+				MT.utilsHandleActive = function(func, args){
+					if(this.active && typeof this.active[func] == 'function'){
+						this.active[func](args);
 					}
 				};
 
-				self.tools.selector = selector;
+				MT.Utils = {
+					Select: {
+						activate: function(){
+							this.refreshCursor();
+						},
+						activatePriority: function(point){
+							return 10;
+						},
+						refreshCursor: function(){
+							if(this.active){
+								var cursor = 'default';
+								if(this.multi && !MT.Mouse.Hover.targetLocked){
+									if(MT.Mouse.Hover.targetSelected && MT.Selection.count() > 1){
+										cursor = 'minus';
+									}
+									else if(MT.Mouse.Hover.targetItem && !MT.Mouse.Hover.targetSelected){
+										cursor = 'plus';
+									}
+								}
+								UI.Cursor.activate(cursor);
+							}
+						},
+						onKeyDown: function(event){
+							if(event.key == 'shift'){
+								this.multi = true;
+								this.refreshCursor();
+								MT.checkActive();
+							}
+						},
+						onKeyUp: function(event){
+							if(event.key == 'shift'){
+								this.multi = false;
+								this.refreshCursor();
+								MT.checkActive();
+							}
+						},
+						onMouseMove: function(event){
+							MT.Mouse.Hover.targetSelected = (MT.Mouse.Hover.targetItem && MT.Selection.contains(MT.Mouse.Hover.targetItem));
+							MT.Mouse.Hover.targetUnselected = (MT.Mouse.Hover.targetItem && !MT.Mouse.Hover.targetSelected);
+
+							MT.Mouse.Hover.selection = (MT.Mouse.point && MT.UI.outline && MT.UI.outline.contains(MT.Mouse.point));
+
+							this.refreshCursor();
+							MT.checkActive();
+						},
+						onMouseDown: function(event){
+							if(this.active){
+								if(MT.Mouse.Hover.targetItem && !MT.Mouse.Hover.targetLocked){
+									if(!MT.Mouse.Hover.targetSelected){
+										if(!this.multi){
+											MT.Selection.reset();
+										}
+										MT.Selection.add(MT.Mouse.Hover.targetItem);
+										this.onMouseMove(event);
+									}
+									else if(this.multi && MT.Mouse.Hover.targetSelected && MT.Selection.count() > 1){
+										MT.Selection.remove(MT.Mouse.Hover.targetItem);
+										this.onMouseMove(event);
+									}
+								}
+								else{
+									MT.Selection.reset();
+								}
+							}
+						}
+					},
+					Move: {
+						activate: function(){
+							this.refreshCursor();
+						},
+						activatePriority: function(point){
+							if(MT.Mouse.Hover.selection && !MT.Utils.Select.multi){
+								return 5;
+							}
+							return -1;
+						},
+						refreshCursor: function(){
+							if(this.active){
+								UI.Cursor.activate('move');
+							}
+						},
+						onMouseDrag: function(event){
+							if(this.active){
+								var position = MT.Selection.Group.position.add(event.delta);
+								position = Util.Bound.position(position, MT.Selection.Group, SL.config('selection.padding'), true);
+								MT.Selection.Group.set({position: position});
+								MT.UI.Group.set({position: position});
+							}
+						},
+						onMouseUp: function(event){
+							if(MT.Mouse.drag){
+								var position = MT.Selection.Group.position;
+								position = Util.Bound.position(position, MT.Selection.Group);
+								MT.Selection.Group.set({position: position});
+								MT.UI.Group.set({position: position});
+							}
+						}
+					},
+					Rotate: {
+						activate: function(){
+							this.refreshCursor();
+						},
+						activatePriority: function(point){
+							return -1;
+						},
+						refreshCursor: function(){
+							if(this.active){
+								UI.Cursor.activate('rotate');
+							}
+						}
+					},
+					Text: {
+						activate: function(){
+							this.refreshCursor();
+						},
+						activatePriority: function(point){
+							return -1;
+						},
+						refreshCursor: function(){
+							if(this.active){
+								UI.Cursor.activate('text');
+							}
+						}
+					}
+				};
+				MT.activate(MT.Utils.Select);
+
+				MT.checkActive = function(){
+					if(this.Mouse.point){
+						var activate;
+						for(var name in this.Utils){
+							if(typeof this.Utils[name].activatePriority == 'function'){
+								var priority = this.Utils[name].activatePriority(this.Mouse.point);
+								if(priority >= 0 && (!activate || priority <= activate.priority)){
+									if(!activate){
+										activate = {};
+									}
+									activate.util = this.Utils[name];
+									activate.priority = priority;
+								}
+							}
+						}
+						if(activate && activate.util){
+							this.activate(activate.util);
+						}
+					}
+				};
+
+				MT.checkTarget = function(){
+					if(this.Mouse.point){
+						var target = paper.project.hitTest(this.Mouse.point);
+						this.Mouse.Hover.target = target;
+						this.Mouse.Hover.targetItem = ((target && target.item) ? target.item : null);
+						this.Mouse.Hover.targetLocked = (target && target.item && target.item.data && target.item.data.locked);
+					}
+				};
+
+				MT.onKeyDown = function(event){
+					this.utilsHandle('onKeyDown', event);
+				};
+				MT.onKeyUp = function(event){
+					this.utilsHandle('onKeyUp', event);
+				};
+				MT.onMouseMove = function(event){
+					this.Mouse.point = event.point;
+					this.checkTarget();
+					this.checkActive();
+					this.utilsHandle('onMouseMove', event);
+				};
+				MT.onMouseDown = function(event){
+					this.Mouse.down = true;
+					this.utilsHandle('onMouseDown', event);
+				};
+				MT.onMouseUp = function(event){
+					this.Mouse.down = false;
+					this.utilsHandle('onMouseUp', event);
+					this.Mouse.drag = false;
+				};
+				MT.onMouseDrag = function(event){
+					this.Mouse.drag = true;
+					this.utilsHandle('onMouseDrag', event);
+				};
+
+				self.tools.master = MT;
 			}
 		};
 
