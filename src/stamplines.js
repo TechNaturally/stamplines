@@ -30,6 +30,7 @@ var stamplines = (function() {
 					'grid.snap': true,
 					'rotate.slices': (360/45),
 					'rotate.snap': true,
+					'scale.edgeSize': 6,
 					'selection.padding': 10
 				}, config);
 
@@ -123,8 +124,14 @@ var stamplines = (function() {
 					// lock it to whatever Bounding filters are active
 					position = Util.Bound.position(position, stamp.symbol.item);
 
+					var size = stamp.symbol.item.bounds.clone();
+					size = Util.Bound.size(size);
+
 					// place an instance of the symbol
-					stamp.symbol.place(position);
+					var newStamp = stamp.symbol.place(position);
+					if(newStamp.bounds.width && newStamp.bounds.height){
+						newStamp.scale(size.width/newStamp.bounds.width, size.height/newStamp.bounds.height, newStamp.bounds.topLeft);
+					}
 				}
 			},
 			load: function(stampNames, stampPath, callback){
@@ -689,6 +696,173 @@ var stamplines = (function() {
 							this.refreshUI();
 						}
 					},
+					Scale: {
+						activate: function(){
+							this.refreshCursor();
+						},
+						activatePriority: function(point){
+							if(MT.Mouse.Hover.selectionEdge && (
+								MT.Mouse.Hover.selectionEdge.top || MT.Mouse.Hover.selectionEdge.bottom || 
+								MT.Mouse.Hover.selectionEdge.left || MT.Mouse.Hover.selectionEdge.right
+								)){
+								return 1;
+							}
+							return -1;
+						},
+						refreshCursor: function(){
+							if(this.active && MT.Mouse.Hover.selectionEdge && MT.Mouse.Hover.selectionEdge.direction){
+								switch(MT.Mouse.Hover.selectionEdge.direction){
+									case 'N':
+									case 'S':
+										UI.Cursor.activate('expand-ns');
+										break;
+									case 'E':
+									case 'W':
+										UI.Cursor.activate('expand-ew');
+										break;
+									case 'NE':
+									case 'SW':
+										UI.Cursor.activate('expand-nesw');
+										break;
+									case 'SE':
+									case 'NW':
+										UI.Cursor.activate('expand-senw');
+										break;
+								}
+							}
+						},
+						onMouseDrag: function(event){
+							if(this.active && MT.Mouse.Hover.selectionEdge && MT.Mouse.Hover.selectionEdge.direction){
+								var bounds = MT.Selection.Group.bounds;
+								var scale = new paper.Point(0,0);
+								var point;
+								switch(MT.Mouse.Hover.selectionEdge.direction){
+									case 'N':
+										scale.x = 1.0;
+										scale.y = (bounds.height-event.delta.y)/bounds.height;
+										point = bounds.bottomLeft;
+										break;
+									case 'S':
+										scale.x = 1.0;
+										scale.y = (bounds.height+event.delta.y)/bounds.height;
+										point = bounds.topLeft;
+										break;
+									case 'E':
+										scale.x = (bounds.width+event.delta.x)/bounds.width;
+										scale.y = 1.0;
+										point = bounds.topLeft;
+										break;
+									case 'W':
+										scale.x = (bounds.width-event.delta.x)/bounds.width;
+										scale.y = 1.0;
+										point = bounds.topRight;
+										break;
+									case 'NE':
+										scale.x = (bounds.width+event.delta.x)/bounds.width;
+										scale.y = (bounds.height-event.delta.y)/bounds.height;
+										point = bounds.bottomLeft;
+										break;
+									case 'SW':
+										scale.x = (bounds.width-event.delta.x)/bounds.width;
+										scale.y = (bounds.height+event.delta.y)/bounds.height;
+										point = bounds.topRight;
+										break;
+									case 'SE':
+										scale.x = (bounds.width+event.delta.x)/bounds.width;
+										scale.y = (bounds.height+event.delta.y)/bounds.height;
+										point = bounds.topLeft;
+										break;
+									case 'NW':
+										scale.x = (bounds.width-event.delta.x)/bounds.width;
+										scale.y = (bounds.height-event.delta.y)/bounds.height;
+										point = bounds.bottomRight;
+										break;
+								}
+								if(scale.x && scale.y && point){
+									var size = bounds.clone();
+									size = size.scale(scale.x, scale.y, point);
+									size = Util.Bound.size(size, true);
+									MT.Selection.Group.scale(size.width/bounds.width, size.height/bounds.height, point);
+									MT.Selection.refresh();
+									MT.utilsHandle('refreshUI');
+								}
+							}
+						},
+						onMouseUp: function(event){
+							if(this.active && MT.Mouse.drag && MT.Selection.count()){
+								for(var i=0; i < MT.Selection.Group.children.length; i++){
+									var item = MT.Selection.Group.children[i];
+									Util.Bound.lockToGrid(item);
+								}
+								MT.Selection.refresh();
+								MT.utilsHandle('refreshUI');
+							}
+						},
+						onMouseMove: function(event){
+							var edgeSize = SL.config('scale.edgeSize') || 6;
+
+							if(!MT.Mouse.Hover.selectionEdge){
+								MT.Mouse.Hover.selectionEdge = {};
+							}
+							MT.Mouse.Hover.selectionEdge.top = false;
+							MT.Mouse.Hover.selectionEdge.bottom = false;
+							MT.Mouse.Hover.selectionEdge.left = false;
+							MT.Mouse.Hover.selectionEdge.right = false;
+							MT.Mouse.Hover.selectionEdge.direction = undefined;
+
+							if(MT.Mouse.point && MT.Selection.UI.outline && MT.Selection.UI.outline.visible){
+								var checkBounds = MT.Selection.UI.outline.handleBounds.expand(edgeSize);
+								if(checkBounds.contains(MT.Mouse.point)){
+									var checkRect = new paper.Rectangle();
+									var checkPoint = new paper.Point();
+
+									checkPoint.set(checkBounds.right, checkBounds.top+edgeSize);
+									checkRect.set(checkBounds.topLeft, checkPoint);
+									MT.Mouse.Hover.selectionEdge.top = checkRect.contains(MT.Mouse.point);
+
+									checkPoint.set(checkBounds.left, checkBounds.bottom-edgeSize);
+									checkRect.set(checkPoint, checkBounds.bottomRight);
+									MT.Mouse.Hover.selectionEdge.bottom = checkRect.contains(MT.Mouse.point);
+
+									checkPoint.set(checkBounds.left+edgeSize, checkBounds.bottom);
+									checkRect.set(checkBounds.topLeft, checkPoint);
+									MT.Mouse.Hover.selectionEdge.left = checkRect.contains(MT.Mouse.point);
+
+									checkPoint.set(checkBounds.right-edgeSize, checkBounds.top);
+									checkRect.set(checkPoint, checkBounds.bottomRight);
+									MT.Mouse.Hover.selectionEdge.right = checkRect.contains(MT.Mouse.point);
+								}
+							}
+
+							if(MT.Mouse.Hover.selectionEdge.top && MT.Mouse.Hover.selectionEdge.right){
+								MT.Mouse.Hover.selectionEdge.direction = 'NE';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.bottom && MT.Mouse.Hover.selectionEdge.right){
+								MT.Mouse.Hover.selectionEdge.direction = 'SE';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.bottom && MT.Mouse.Hover.selectionEdge.left){
+								MT.Mouse.Hover.selectionEdge.direction = 'SW';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.top && MT.Mouse.Hover.selectionEdge.left){
+								MT.Mouse.Hover.selectionEdge.direction = 'NW';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.top){
+								MT.Mouse.Hover.selectionEdge.direction = 'N';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.right){
+								MT.Mouse.Hover.selectionEdge.direction = 'E';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.bottom){
+								MT.Mouse.Hover.selectionEdge.direction = 'S';
+							}
+							else if(MT.Mouse.Hover.selectionEdge.left){
+								MT.Mouse.Hover.selectionEdge.direction = 'W';
+							}
+
+							this.refreshCursor();
+							MT.checkActive();
+						}
+					},
 					Text: {
 						activate: function(){
 							this.refreshCursor();
@@ -865,6 +1039,18 @@ var stamplines = (function() {
 				Util.Grid.init();
 			},
 			Bound: {
+				lockToGrid: function(item){
+					var bounds = item.bounds;
+					var size = bounds.clone();
+					size = Util.Bound.size(size);
+					item.scale(size.width/bounds.width, size.height/bounds.height);
+
+					var position = item.position.clone();
+					position = Util.Bound.position(position, item);
+
+					var delta = position.subtract(item.position);
+					item.translate(delta);
+				},
 				position: function(point, item, padding, interactive){
 					if(item){
 						var bounds = item.strokeBounds.clone();
@@ -921,6 +1107,14 @@ var stamplines = (function() {
 						angle = Math.round(angle / rotateAngle) * rotateAngle;
 					}
 					return angle;
+				},
+				size: function(size, interactive){
+					var gridSize = SL.config('grid.size');
+					if(gridSize && !interactive){
+						size.width = Math.round(size.width / gridSize) * gridSize;
+						size.height = Math.round(size.height / gridSize) * gridSize;
+					}
+					return size;
 				}
 			},
 			Calc: {
