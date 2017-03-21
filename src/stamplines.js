@@ -168,7 +168,9 @@ var stamplines = (function() {
 						.done(function stampImageLoaded(svg){
 							if(SL.assertPaper()){
 								// import the loaded SVG into a symbol
-								this.stamp.symbol = new paper.Symbol( paper.project.importSVG(svg) );
+								var symbolItem = paper.project.importSVG(svg);
+								symbolItem.style.strokeScaling = false;
+								this.stamp.symbol = new paper.Symbol( symbolItem );
 							}
 						})
 						.fail(function stampImageNotFound(){
