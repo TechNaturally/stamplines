@@ -300,12 +300,17 @@ var stamplines = (function() {
 			initMaster: function(){
 				var MT = new paper.Tool();
 				MT.Mouse = { Hover: {} };
+
 				MT.Selection = {
 					Group: new paper.Group(),
+					UI: {
+						outline: undefined
+					},
+					rotation: 0,
 					add: function(item){
 						if(item && !this.contains(item)){
 							this.Group.appendBottom(item);
-							this.refresh();
+							this.refresh(true);
 							return true;
 						}
 					},
@@ -315,23 +320,25 @@ var stamplines = (function() {
 					count: function(){
 						return this.Group.children.length;
 					},
-					refresh: function(){
+					refresh: function(changed){
 						this.Group.selected = (this.count() > 1);
 						if(this.count()){
-							if(!MT.UI.outline){
-								MT.UI.outline = new paper.Shape.Rectangle();
+							if(!this.UI.outline){
+								this.UI.outline = new paper.Shape.Rectangle();
 							}
-							MT.UI.outline.selected = true;
-							MT.UI.outline.selectedColor = ((this.count() > 1) ? '#00EC9D' : '#009DEC');
-							MT.UI.outline.set({position: this.Group.bounds.center, size: this.Group.bounds.size.add(SL.config('selection.padding'))});
-							MT.UI.enable(MT.UI.outline);
+							this.UI.outline.selected = true;
+							this.UI.outline.selectedColor = ((this.count() > 1) ? '#00EC9D' : '#009DEC');
+							this.UI.outline.set({position: this.Group.bounds.center, size: this.Group.bounds.size.add(SL.config('selection.padding'))});
+							MT.UI.enable(this.UI.outline);
 
 							this.Group.bringToFront();
 							MT.UI.Group.bringToFront();
 						}
 						else{
-							MT.UI.disable(MT.UI.outline);
-							MT.UI.outline = undefined;
+							MT.UI.disable(this.UI.outline);
+						}
+						if(changed){
+							MT.onSelectionChange();
 						}
 					},
 					remove: function(item){
@@ -340,7 +347,7 @@ var stamplines = (function() {
 							if(this.contains(item)){
 								item.remove();
 								paper.project.activeLayer.addChild(item);
-								this.refresh();
+								this.refresh(true);
 							}
 						}
 					},
@@ -351,7 +358,7 @@ var stamplines = (function() {
 							unselected.selected = false;
 							paper.project.activeLayer.addChild(unselected);
 						}
-						this.refresh();
+						this.refresh(true);
 					}
 				};
 				MT.UI = {
@@ -407,7 +414,7 @@ var stamplines = (function() {
 					for(var name in this.Utils){
 						var util = this.Utils[name];
 						if(typeof util[func] == 'function'){
-							return util[func](args);
+							util[func](args);
 						}
 					}
 				};
@@ -457,7 +464,7 @@ var stamplines = (function() {
 							MT.Mouse.Hover.targetSelected = (MT.Mouse.Hover.targetItem && MT.Selection.contains(MT.Mouse.Hover.targetItem));
 							MT.Mouse.Hover.targetUnselected = (MT.Mouse.Hover.targetItem && !MT.Mouse.Hover.targetSelected);
 
-							MT.Mouse.Hover.selection = (MT.Mouse.point && MT.UI.outline && MT.UI.outline.contains(MT.Mouse.point));
+							MT.Mouse.Hover.selection = (MT.Mouse.point && MT.Selection.UI.outline && MT.Selection.UI.outline.visible && MT.Selection.UI.outline.contains(MT.Mouse.point));
 
 							this.refreshCursor();
 							MT.checkActive();
@@ -502,30 +509,184 @@ var stamplines = (function() {
 							if(this.active){
 								var position = MT.Selection.Group.position.add(event.delta);
 								position = Util.Bound.position(position, MT.Selection.Group, SL.config('selection.padding'), true);
-								MT.Selection.Group.set({position: position});
-								MT.UI.Group.set({position: position});
+
+								var delta = position.subtract(MT.Selection.Group.position);
+								MT.Selection.Group.translate(delta);
+								MT.UI.Group.translate(delta);
 							}
 						},
 						onMouseUp: function(event){
 							if(MT.Mouse.drag){
-								var position = MT.Selection.Group.position;
+								var position = MT.Selection.Group.position.clone();
 								position = Util.Bound.position(position, MT.Selection.Group);
-								MT.Selection.Group.set({position: position});
-								MT.UI.Group.set({position: position});
+
+								var delta = position.subtract(MT.Selection.Group.position);
+								MT.Selection.Group.translate(delta);
+								MT.UI.Group.translate(delta);
 							}
 						}
 					},
 					Rotate: {
+						UI: {
+							Group: undefined,
+							Current: undefined,
+							currentHandle: undefined,
+							currentLine: undefined,
+							grid: undefined
+						},
 						activate: function(){
+							this.refreshUI();
 							this.refreshCursor();
 						},
+						deactivate: function(){
+							this.refreshUI();
+						},
 						activatePriority: function(point){
+							if(MT.Mouse.Hover.rotateHandle){
+								return 1;
+							}
 							return -1;
 						},
 						refreshCursor: function(){
 							if(this.active){
 								UI.Cursor.activate('rotate');
 							}
+						},
+						refreshUI: function(){
+							if(MT.Selection.count()){
+								if(MT.Selection.UI.outline && MT.Selection.UI.outline.visible){
+									if(!this.UI.Group){
+										this.UI.Group = new paper.Group();
+										this.UI.Group.remove();
+									}
+
+									var rotateSlices = SL.config('rotate.slices');
+									var rotateLength = SL.config('rotate.radius') || 100;
+									var rotateColor = SL.config('rotate.color') || '#AAAAAA';
+									var rotateWidth = 1;
+
+									var rotateVector = new paper.Point({angle: 0, length: rotateLength});
+									var rotateVectorFrom = MT.Selection.Group.bounds.center;
+									var rotateVectorTo = rotateVectorFrom.add(rotateVector);
+
+									if(rotateSlices){
+										if(!this.UI.grid){
+											this.UI.grid = new paper.Group();
+											this.UI.grid.remove();
+											this.UI.Group.appendBottom(this.UI.grid);
+										}
+
+										if(this.UI.grid.children.length != rotateSlices){
+											this.UI.grid.removeChildren();
+
+											var rotateAngle = 360.0 / rotateSlices;
+											rotateVector.length = rotateLength;
+											for(var i=0; i < rotateSlices; i++){
+												rotateVector.angle = i * rotateAngle;
+												rotateVectorFrom = MT.Selection.Group.bounds.center
+												rotateVectorTo = rotateVectorFrom.add(rotateVector);
+
+												var newLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
+												newLine.data.locked = true;
+												newLine.strokeWidth = rotateWidth;
+												newLine.strokeColor = rotateColor;
+												this.UI.grid.addChild(newLine);
+											}
+										}
+
+										this.UI.grid.set({position: rotateVectorFrom});
+
+										this.UI.grid.sendToBack();
+									}
+									else if(this.UI.grid){
+										this.UI.grid.remove();
+										this.UI.grid = undefined;
+									}
+
+									// interactive rotation handle
+									rotateLength = SL.config('rotate.current.radius') || SL.config('rotate.radius') || 100;
+									rotateColor = SL.config('rotate.current.color') || '#999999';
+									rotateWidth = SL.config('rotate.current.width') || 3;
+
+									var handleSize = SL.config('rotate.handle.size') || 15;
+
+									if(this.active){
+										rotateColor = SL.config('rotate.current.color.active') || '#333333';
+										rotateWidth = SL.config('rotate.current.width.active') || 3;
+									}
+
+									rotateVector.angle = MT.Selection.rotation - 90.0; //MT.Selection.Group.rotation - 90.0;
+									rotateVectorFrom = MT.Selection.Group.bounds.center
+									rotateVectorTo = rotateVectorFrom.add(rotateVector);
+
+									if(!this.UI.Current){
+										this.UI.Current = new paper.Group();
+										this.UI.Current.remove();
+										this.UI.Group.appendTop(this.UI.Current);
+									}
+
+									var rotateLine = new paper.Path.Line(rotateVectorFrom, rotateVectorTo);
+									if(!this.UI.currentLine){
+										this.UI.currentLine = rotateLine.clone();
+										this.UI.currentLine.data.locked = true;
+										this.UI.Current.addChild(this.UI.currentLine);
+									}
+									this.UI.currentLine.strokeWidth = rotateWidth;
+									this.UI.currentLine.strokeColor = rotateColor;
+									this.UI.currentLine.copyContent(rotateLine);
+
+
+									if(!this.UI.currentHandle){
+										this.UI.currentHandle = new paper.Shape.Rectangle(rotateVectorTo.subtract(handleSize/2.0), handleSize);
+										this.UI.currentHandle.data.locked = true;
+										this.UI.Current.addChild(this.UI.currentHandle);
+									}
+									this.UI.currentHandle.strokeWidth = 1;
+									this.UI.currentHandle.strokeColor = rotateColor;
+									this.UI.currentHandle.bounds.center = rotateVectorTo;
+									
+									this.UI.currentLine.bringToFront();
+									this.UI.currentHandle.bringToFront();
+									this.UI.Current.bringToFront();
+									MT.UI.enable(this.UI.Group);
+								}
+							}
+							else{
+								MT.UI.disable(this.UI.Group);
+							}
+
+							if(this.UI.grid){
+								this.UI.grid.visible = this.active;
+							}
+						},
+						onMouseDrag: function(event){
+							if(this.active){
+								var rotateVectorFrom = MT.Selection.Group.bounds.center;
+								var rotateVector = event.point.subtract(rotateVectorFrom);
+								var angle = rotateVector.angle + 90;
+								if(angle > 180){
+									angle -= 360.0;
+								}
+								angle = Util.Bound.rotation(angle);
+
+								var delta = angle - MT.Selection.rotation;
+
+								MT.Selection.Group.rotate(delta);
+								MT.Selection.rotation = angle;
+								MT.Selection.refresh();
+								this.refreshUI();
+							}
+						},
+						onMouseMove: function(event){
+							MT.Mouse.Hover.rotateHandle = (this.UI.Group && this.UI.Group.visible && this.UI.currentHandle && this.UI.currentHandle.strokeBounds.contains(event.point));
+
+							this.refreshCursor();
+							MT.checkActive();
+						},
+						onSelectionChange: function(){
+							MT.Selection.rotation = (MT.Selection.count() == 1) ? MT.Selection.Group.children[0].rotation : 0;
+							
+							this.refreshUI();
 						}
 					},
 					Text: {
@@ -598,6 +759,10 @@ var stamplines = (function() {
 				MT.onMouseDrag = function(event){
 					this.Mouse.drag = true;
 					this.utilsHandle('onMouseDrag', event);
+				};
+
+				MT.onSelectionChange = function(){
+					this.utilsHandle('onSelectionChange');
 				};
 
 				self.tools.master = MT;
@@ -748,6 +913,14 @@ var stamplines = (function() {
 						}
 					}
 					return point;
+				},
+				rotation: function(angle, interactive){
+					var rotateSlices = SL.config('rotate.slices');
+					if(rotateSlices && !interactive){
+						var rotateAngle = 360.0 / rotateSlices;
+						angle = Math.round(angle / rotateAngle) * rotateAngle;
+					}
+					return angle;
 				}
 			},
 			Calc: {
