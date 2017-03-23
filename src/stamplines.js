@@ -329,6 +329,13 @@ var stamplines = (function() {
 					count: function(){
 						return this.Group.children.length;
 					},
+					eachItem: function(callback, data){
+						if(typeof callback == 'function'){
+							for(var i=0; i < this.Group.children.length; i++){
+								callback(this.Group.children[i], i, data);
+							}
+						}
+					},
 					refresh: function(changed){
 						this.Group.selected = (this.count() > 1);
 						if(this.count()){
@@ -735,56 +742,117 @@ var stamplines = (function() {
 						},
 						onMouseDrag: function(event){
 							if(this.active && MT.Mouse.Hover.selectionEdge && MT.Mouse.Hover.selectionEdge.direction){
-								var bounds = MT.Selection.Group.bounds;
-								var scale = new paper.Point(0,0);
-								var point;
+								// resolve direction to represent the edge or corner that is being dragged
+								var direction = new paper.Point(0, 0);
 								switch(MT.Mouse.Hover.selectionEdge.direction){
 									case 'N':
-										scale.x = 1.0;
-										scale.y = (bounds.height-event.delta.y)/bounds.height;
-										point = bounds.bottomLeft;
+										direction.x = 0.0;
+										direction.y = -1.0;
 										break;
 									case 'S':
-										scale.x = 1.0;
-										scale.y = (bounds.height+event.delta.y)/bounds.height;
-										point = bounds.topLeft;
+										direction.x = 0.0;
+										direction.y = 1.0;
 										break;
 									case 'E':
-										scale.x = (bounds.width+event.delta.x)/bounds.width;
-										scale.y = 1.0;
-										point = bounds.topLeft;
+										direction.x = 1.0;
+										direction.y = 0.0;
 										break;
 									case 'W':
-										scale.x = (bounds.width-event.delta.x)/bounds.width;
-										scale.y = 1.0;
-										point = bounds.topRight;
+										direction.x = -1.0;
+										direction.y = 0.0;
 										break;
 									case 'NE':
-										scale.x = (bounds.width+event.delta.x)/bounds.width;
-										scale.y = (bounds.height-event.delta.y)/bounds.height;
-										point = bounds.bottomLeft;
+										direction.x = 1.0;
+										direction.y = -1.0;
 										break;
 									case 'SW':
-										scale.x = (bounds.width-event.delta.x)/bounds.width;
-										scale.y = (bounds.height+event.delta.y)/bounds.height;
-										point = bounds.topRight;
+										direction.x = -1.0;
+										direction.y = 1.0;
 										break;
 									case 'SE':
-										scale.x = (bounds.width+event.delta.x)/bounds.width;
-										scale.y = (bounds.height+event.delta.y)/bounds.height;
-										point = bounds.topLeft;
+										direction.x = 1.0;
+										direction.y = 1.0;
 										break;
 									case 'NW':
-										scale.x = (bounds.width-event.delta.x)/bounds.width;
-										scale.y = (bounds.height-event.delta.y)/bounds.height;
-										point = bounds.bottomRight;
+										direction.x = -1.0;
+										direction.y = -1.0;
 										break;
 								}
-								if(scale.x && scale.y && point){
-									var size = bounds.clone();
-									size = size.scale(scale.x, scale.y, point);
-									size = Util.Bound.size(size, true);
-									MT.Selection.Group.scale(size.width/bounds.width, size.height/bounds.height, point);
+								if(direction.x || direction.y){
+									direction.length = 1.0;
+									var delta = event.delta.clone();
+
+									var data = {
+										delta: delta,
+										direction: direction
+									};
+									MT.Selection.eachItem(function scaleItem(item, idx, data){
+										var delta = data.delta;
+										var direction = data.direction.clone();
+										var scale = new paper.Point(delta.x, delta.y);
+
+										// rotate the item back to its original position
+										// this avoids the item being skewed if scaled while rotated
+										var rotation = item.rotation;
+										if(rotation){
+											item.rotate(-rotation);
+											
+											scale = scale.rotate(-rotation);
+											scale.x = Util.Calc.round(scale.x, 0.0);
+											scale.y = Util.Calc.round(scale.y, 0.0);
+											
+											direction = direction.rotate(-rotation);
+											direction.x = Util.Calc.round(direction.x, 0.0);
+											direction.y = Util.Calc.round(direction.y, 0.0);
+										}
+
+										// lock for single-axis scaling
+										if(direction.x == 0.0){
+											scale.x = 0.0;
+										}
+										if(direction.y == 0.0){
+											scale.y = 0.0;
+										}
+
+										var bounds = item.bounds;
+										var origBounds = bounds.clone();
+
+										// determine the point to base the scaling on
+										// this is a point on the edge opposite the dragged edge
+										var opPoint = bounds.center.clone();
+										if(direction.x < 0){
+											opPoint.x = bounds.right;
+										}
+										else if(direction.x > 0){
+											opPoint.x = bounds.left;
+										}
+										if(direction.y < 0){
+											opPoint.y = bounds.bottom;
+										}
+										else if(direction.y > 0){
+											opPoint.y = bounds.top;
+										}
+
+										// flip scaling for N+W stretches
+										if(direction.x < 0){
+											scale.x *= -1.0;
+										}
+										if(direction.y < 0){
+											scale.y *= -1.0;
+										}
+
+										// calculate the new size
+										var size = bounds.clone();
+										size = size.scale( ((bounds.width+scale.x)/bounds.width) , ((bounds.height+scale.y)/bounds.height), opPoint );
+
+										// scale the item
+										item.scale((size.width/bounds.width), (size.height/bounds.height), opPoint);
+
+										if(rotation){
+											item.rotate(rotation, origBounds.center);
+										}
+									}, data);
+
 									MT.Selection.refresh();
 									MT.utilsHandle('refreshUI');
 								}
@@ -1042,10 +1110,17 @@ var stamplines = (function() {
 			},
 			Bound: {
 				lockToGrid: function(item){
-					var bounds = item.bounds;
+					var rotation = item.rotation;
+					if(rotation){
+						item.rotate(-rotation);
+					}
+					var bounds = item.bounds.clone();
 					var size = bounds.clone();
 					size = Util.Bound.size(size);
 					item.scale(size.width/bounds.width, size.height/bounds.height);
+					if(rotation){
+						item.rotate(rotation);
+					}
 
 					var position = item.position.clone();
 					position = Util.Bound.position(position, item);
@@ -1124,6 +1199,28 @@ var stamplines = (function() {
 					if(item){
 						return new paper.Size( item.strokeBounds ).divide(2.0);
 					}
+				},
+				round: function(value, around, precision){
+					if(!precision){
+						precision = 12;
+					}
+					var threshold = Math.pow(10, -precision);
+					if(value >= (around-threshold) && value <= (around+threshold)){
+						return around;
+					}
+					return value;
+				},
+				roundMatch: function(value, around, precision){
+					return (this.round(value, around, precision) == around);
+				},
+				unitVector: function(vector){
+					vector.length = 1.0;
+					vector.x = this.round(vector.x, 0.0);
+					vector.x = this.round(vector.x, 1.0);
+					vector.x = this.round(vector.x, -1.0);
+					vector.y = this.round(vector.y, 0.0);
+					vector.y = this.round(vector.y, 1.0);
+					vector.y = this.round(vector.y, -1.0);
 				}
 			},
 			Grid: {
