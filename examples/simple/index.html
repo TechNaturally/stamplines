@@ -23,16 +23,10 @@
 			}
 
 			var sl = stamplines.init('#demoCanvas');
-			var stamps = [
-				'triangle-1',
-				'rectangle-1',
-				'rectangle-2',
-				'rectangle-3',
-				'rectangle-4',
-				'circle-1'
-			];
-			sl.loadStamps(stamps, path+'stamps/', function stampsLoaded(){
-				console.log('Stamps Loaded =>', sl.stamps);
+			sl.loadPalette(path+'StampLines.json', function StampLinesReady(){
+				console.log('StampLines Ready!');
+				console.log('| Stamps => ', sl.stamps);
+				console.log('| Lines => ', sl.lines);
 			});
 		});
 		</script>

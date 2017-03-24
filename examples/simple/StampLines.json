@@ -1,0 +1,34 @@
+{
+	"name": "Simple Example",
+	"Stamp": {
+		"path": "stamps"
+	},
+	"stamps": [
+		{
+			"id": "circle-1",
+			"name": "Circle One"
+		},
+		{
+			"id": "rectangle-1",
+			"name": "Rectangle One"
+		},
+		{
+			"id": "rectangle-2",
+			"name": "Rectangle Two"
+		},
+		{
+			"id": "rectangle-3"
+		},
+		{
+			"id": "rectangle-4",
+			"name": "Rectangle Four",
+			"image": "rectangle-Four.svg"
+		},
+		{
+			"id": "triangle-1",
+			"name": "Triangle One"
+		}
+	],
+	"lines": [
+	]
+}

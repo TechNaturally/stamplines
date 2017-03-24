@@ -22,6 +22,7 @@ var stamplines = (function() {
 			init: function(canvas, config){
 				self.canvas = $(canvas);
 				self.stamps = [];
+				self.lines = [];
 				self.tools = {};
 
 				self.config = $.extend({
@@ -97,75 +98,86 @@ var stamplines = (function() {
 			}
 		};
 
-		var Stamps = {
-			add: function(stamp, position){
-				if(stamp.symbol){
-					var halfSize = Util.Calc.halfSize(stamp.symbol.item);
-					var canvasSize = SL.Canvas.size();
-					if(!position){
-						var min, max;
-
-						// random x
-						min = halfSize.width;
-						max = (canvasSize.width ? (canvasSize.width - halfSize.width) : min);
-						var x = Math.floor(Math.random() * (max - min + 1)) + min;
-
-						// random y
-						min = halfSize.height;
-						max = (canvasSize.height ? (canvasSize.height - halfSize.width) : min);
-						var y = Math.floor(Math.random() * (max - min + 1)) + min;
-
-						position = new paper.Point(x, y);
+		var Palette = {
+			load: function(path, callback){
+				$.ajax( path )
+				.done(function paletteLoaded(data){
+					if(!data){
+						data = {};
 					}
-					else{
-						position = position.add(new paper.Point(halfSize.width, halfSize.height));
+					Palette.name = data.name;
+					Palette.Stamps.path = '';
+
+					if(data.Stamp){
+						if(data.Stamp.path){
+							Palette.Stamps.path = data.Stamp.path;
+						}
 					}
 
-					// lock it to whatever Bounding filters are active
-					position = Util.Bound.position(position, stamp.symbol.item);
-
-					var size = stamp.symbol.item.bounds.clone();
-					size = Util.Bound.size(size);
-
-					// place an instance of the symbol
-					var newStamp = stamp.symbol.place(position);
-					if(newStamp.bounds.width && newStamp.bounds.height){
-						newStamp.scale(size.width/newStamp.bounds.width, size.height/newStamp.bounds.height, newStamp.bounds.topLeft);
+					var basePath = '';
+					var lastSlash = path.lastIndexOf('/');
+					if(lastSlash != -1){
+						basePath = path.substr(0, lastSlash+1);
 					}
+					if(Palette.Stamps.path && Palette.Stamps.path != '/' && basePath){
+						Palette.Stamps.path = basePath+Palette.Stamps.path;
+					}
+					if(Palette.Stamps.path && Palette.Stamps.path != '/'){
+						Palette.Stamps.path += '/';
+					}
+
+					if(data.stamps){
+						Palette.Stamps.load(data.stamps, undefined, function stampsLoaded(){
+							if(typeof callback == 'function'){
+								callback();
+							}
+						});
+					}
+				});
+			},
+
+			Lines: {
+				load: function(lines){
+
 				}
 			},
-			load: function(stampNames, stampPath, callback){
-				var processed = [];
-				for(var i=0; i < stampNames.length; i++){
-					var stampName = stampNames[i];
-					$.ajax(stampPath+stampName+'.json', {
-						context: {
-							name: stampName,
-							path: stampPath
-						}
-					})
-					.done(function stampLoaded(data){
-						if(data){
-							if(data.id){
-								delete data.id;
-							}
-							if(data.image){
-								data.image = this.path+data.image;
-							}
-						}
-						var stamp = $.extend(
-							{
-								id: this.name,
-								name: this.name,
-								image: this.path+this.name+'.svg'
-							}, data);
 
-						$.ajax(stamp.image, {
+			Stamps: {
+				load: function(stamps, path, callback){
+					if(path == undefined){
+						path = Palette.Stamps.path;
+					}
+					var stampIDs = [];
+					var processed = [];
+					var targetCount = stamps.length;
+					for(var i=0; i < stamps.length; i++){
+						var stamp = stamps[i];
+						if(!stamp.id){
+							targetCount--;
+							continue;
+						}
+						if(!stamp.name){
+							stamp.name = stamp.id;
+						}
+						if(!stamp.image){
+							stamp.image = stamp.id+'.svg';
+						}
+
+						stampIDs.push(stamp.id);
+
+						// load the image
+						var imagePath = stamp.image;
+						if(imagePath.charAt(0) != '/'){
+							imagePath = path+((path.slice(-1)!='/')?'/':'')+imagePath;
+						}
+						$.ajax(imagePath, {
 							context: {
-								stamp: stamp
+								stamp: stamp,
+								path: imagePath
 							}
 						})
 						.done(function stampImageLoaded(svg){
+							this.stamp.imagePath = this.path;
 							if(SL.assertPaper()){
 								// import the loaded SVG into a symbol
 								var symbolItem = paper.project.importSVG(svg);
@@ -174,113 +186,144 @@ var stamplines = (function() {
 							}
 						})
 						.fail(function stampImageNotFound(){
-							SL.error('Could not load stamp: "'+stamp.id+'" image => "'+stamp.image+'"');
+							SL.error('Could not load stamp: "'+this.stamp.id+'" image => "'+this.stamp.image+'"');
 							this.stamp.image = undefined;
 						})
 						.always(function stampImageProcessed(){
+							processed.push(this.stamp.id);
 							self.stamps.push(this.stamp);
-							Stamps.sort(stampNames);
-						});
-					})
-					.fail(function stampNotFound(){
-						SL.error('Could not load stamp: "'+this.name+'.json"');
-					})
-					.always(function stampProcessed(){
-						processed.push(this.name);
-						if(processed.length >= stampNames.length){
-							if(typeof callback == 'function'){
-								callback();
+							Palette.Stamps.sort(stampIDs);
+							if(processed.length >= targetCount){
+								if(typeof callback == 'function'){
+									callback();
+								}
 							}
+						});
+					}
+				},
+				new: function(stamp, position){
+					if(stamp.symbol){
+						var halfSize = Util.Calc.halfSize(stamp.symbol.item);
+						var canvasSize = SL.Canvas.size();
+						if(!position){
+							var min, max;
+
+							// random x
+							min = halfSize.width;
+							max = (canvasSize.width ? (canvasSize.width - halfSize.width) : min);
+							var x = Math.floor(Math.random() * (max - min + 1)) + min;
+
+							// random y
+							min = halfSize.height;
+							max = (canvasSize.height ? (canvasSize.height - halfSize.width) : min);
+							var y = Math.floor(Math.random() * (max - min + 1)) + min;
+
+							position = new paper.Point(x, y);
 						}
+						else{
+							position = position.add(new paper.Point(halfSize.width, halfSize.height));
+						}
+
+						// lock it to whatever Bounding filters are active
+						position = Util.Bound.position(position, stamp.symbol.item);
+
+						var size = stamp.symbol.item.bounds.clone();
+						size = Util.Bound.size(size);
+
+						// place an instance of the symbol
+						var newStamp = stamp.symbol.place(position);
+						if(newStamp.bounds.width && newStamp.bounds.height){
+							newStamp.scale(size.width/newStamp.bounds.width, size.height/newStamp.bounds.height, newStamp.bounds.topLeft);
+						}
+					}
+				},
+				refreshPanel: function(){
+					if(UI.Dock.isSet()){
+						if(!self.stampsPanel){
+							self.stampsPanel = $('<ul class="sl-stamps"></ul>');
+							var stampsPanelWrap = $('<div class="sl-stamps-wrap sl-dock-scroll"></div>');
+							stampsPanelWrap.append(self.stampsPanel);
+							UI.dock.append(stampsPanelWrap);
+						}
+						self.stampsPanel.empty();
+						for(var i=0; i < self.stamps.length; i++){
+							var stamp = self.stamps[i];
+							var newStampButton = $('<a class="sl-stamp-button"></a>');
+							newStampButton.data('stamp', stamp);
+							newStampButton.click(function stampButtonClicked(){
+								Palette.Stamps.new($(this).data('stamp'));
+							});
+
+							var newStampContent = $('<div class="sl-stamp-content sl-stamp-img" draggable="true"></div>');
+							if(stamp.imagePath){
+								newStampContent.append($('<img src="'+stamp.imagePath+'" />'));
+							}
+							newStampContent.on('dragstart', function stampImageDragStart(event){
+								var elemBounds = this.getBoundingClientRect();
+								var elemPoint = new paper.Point(elemBounds.left, elemBounds.top);
+								$(this).data('dragOffset', elemPoint.subtract(new paper.Point(event.clientX, event.clientY)));
+							});
+							newStampContent.on('dragend', function stampImageDragEnd(event){
+								var target = $(this).closest('.sl-stamp-button');
+								var stamp = target.data('stamp');
+								if(stamp && stamp.id && stamp.symbol){
+									var dropOffset = new paper.Point(0, 0);
+									var dragImg = $(this).find('img').first();
+									if(dragImg.length){
+										dropOffset.set($(this)[0].offsetLeft-dragImg[0].offsetLeft, $(this)[0].offsetTop-dragImg[0].offsetTop);
+									}
+
+									var dropPoint = new paper.Point(event.clientX, event.clientY);
+									var canvasPoint = new paper.Point(0, 0);
+
+									if(SL.Canvas.isSet()){
+										var canvasBounds = self.canvas[0].getBoundingClientRect();
+										canvasPoint.set(canvasBounds.left, canvasBounds.top);
+									}
+
+									var spawnPoint = dropPoint.subtract(canvasPoint).subtract(dropOffset);
+
+									var offsetPoint = $(this).data('dragOffset');
+									if(offsetPoint){
+										spawnPoint = spawnPoint.add(offsetPoint);
+									}
+
+									Palette.Stamps.new(stamp, spawnPoint);
+								}
+							});
+							newStampButton.append(newStampContent);
+
+							newStampContent = $('<span class="sl-stamp-content">'+(stamp.name || stamp.id)+'</span>');
+							newStampButton.append(newStampContent);
+
+
+							var newStampItem = $('<li class="sl-stamp"></li>');
+							newStampItem.append(newStampButton);
+
+							self.stampsPanel.append(newStampItem);
+						}
+					}
+				},
+				sort: function(idOrder){
+					self.stamps.sort(function(a, b){
+						var idxA = idOrder.indexOf(a.id);
+						var idxB = idOrder.indexOf(b.id);
+						if(idxA == -1 && idxB == -1){
+							return 0;
+						}
+						else if(idxA == -1){
+							return 1;
+						}
+						else if(idxB == -1){
+							return -1;
+						}
+						return (idxA - idxB);
 					});
+					Palette.Stamps.refreshPanel();
 				}
-			},
-			refreshPanel: function(){
-				if(UI.Dock.isSet()){
-					if(!self.stampsPanel){
-						self.stampsPanel = $('<ul class="sl-stamps"></ul>');
-						var stampsPanelWrap = $('<div class="sl-stamps-wrap sl-dock-scroll"></div>');
-						stampsPanelWrap.append(self.stampsPanel);
-						UI.dock.append(stampsPanelWrap);
-					}
-					self.stampsPanel.empty();
-					for(var i=0; i < self.stamps.length; i++){
-						var stamp = self.stamps[i];
-						var newStampButton = $('<a class="sl-stamp-button"></a>');
-						newStampButton.data('stamp', stamp);
-						newStampButton.click(function stampButtonClicked(){
-							Stamps.add($(this).data('stamp'));
-						});
-
-						var newStampContent = $('<div class="sl-stamp-content sl-stamp-img" draggable="true"></div>');
-						if(stamp.image){
-							newStampContent.append($('<img src="'+stamp.image+'" />'));
-						}
-						newStampContent.on('dragstart', function stampImageDragStart(event){
-							var elemBounds = this.getBoundingClientRect();
-							var elemPoint = new paper.Point(elemBounds.left, elemBounds.top);
-							$(this).data('dragOffset', elemPoint.subtract(new paper.Point(event.clientX, event.clientY)));
-						});
-						newStampContent.on('dragend', function stampImageDragEnd(event){
-							var target = $(this).closest('.sl-stamp-button');
-							var stamp = target.data('stamp');
-							if(stamp && stamp.id && stamp.symbol){
-								var dropOffset = new paper.Point(0, 0);
-								var dragImg = $(this).find('img').first();
-								if(dragImg.length){
-									dropOffset.set($(this)[0].offsetLeft-dragImg[0].offsetLeft, $(this)[0].offsetTop-dragImg[0].offsetTop);
-								}
-
-								var dropPoint = new paper.Point(event.clientX, event.clientY);
-								var canvasPoint = new paper.Point(0, 0);
-
-								if(SL.Canvas.isSet()){
-									var canvasBounds = self.canvas[0].getBoundingClientRect();
-									canvasPoint.set(canvasBounds.left, canvasBounds.top);
-								}
-
-								var spawnPoint = dropPoint.subtract(canvasPoint).subtract(dropOffset);
-
-								var offsetPoint = $(this).data('dragOffset');
-								if(offsetPoint){
-									spawnPoint = spawnPoint.add(offsetPoint);
-								}
-
-								Stamps.add(stamp, spawnPoint);
-							}
-						});
-						newStampButton.append(newStampContent);
-
-						newStampContent = $('<span class="sl-stamp-content">'+(stamp.name || stamp.id)+'</span>');
-						newStampButton.append(newStampContent);
-
-
-						var newStampItem = $('<li class="sl-stamp"></li>');
-						newStampItem.append(newStampButton);
-
-						self.stampsPanel.append(newStampItem);
-					}
-				}
-			},
-			sort: function(idOrder){
-				self.stamps.sort(function(a, b){
-					var idxA = idOrder.indexOf(a.id);
-					var idxB = idOrder.indexOf(b.id);
-					if(idxA == -1 && idxB == -1){
-						return 0;
-					}
-					else if(idxA == -1){
-						return 1;
-					}
-					else if(idxB == -1){
-						return -1;
-					}
-					return (idxA - idxB);
-				});
-				Stamps.refreshPanel();
 			}
-
 		};
+
 
 		var Tools = {
 			init: function(){
@@ -1289,8 +1332,9 @@ var stamplines = (function() {
 
 		// Public
 		this.config = SL.config;
-		this.addStamp = Stamps.add;
-		this.loadStamps = Stamps.load;
+		this.loadPalette = Palette.load;
+//		this.addStamp = Stamps.add;
+//		this.loadStamps = Stamps.load;
 
 		// constructor
 		SL.init(canvas, config);
