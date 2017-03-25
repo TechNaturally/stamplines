@@ -24,6 +24,7 @@ var stamplines = (function() {
 				self.stamps = [];
 				self.lines = [];
 				self.tools = {};
+				self.ui = {};
 
 				self.config = $.extend({
 					'grid.show': true,
@@ -37,6 +38,9 @@ var stamplines = (function() {
 
 				if(SL.Canvas.isSet()){
 					self.canvasID = self.canvas.attr('id');
+					self.canvas.bind('contextmenu', function(e){
+						return false;
+					});
 				}
 
 				if(SL.assertPaper()){
@@ -47,6 +51,7 @@ var stamplines = (function() {
 					Util.init();
 					UI.init();
 					Tools.init();
+					Tools.activateDefault();
 				}
 			},
 			Canvas: {
@@ -98,6 +103,10 @@ var stamplines = (function() {
 		};
 
 		var Palette = {
+			initTools: function(){
+				this.Lines.initTools();
+
+			},
 			load: function(path){
 				var defer = $.Deferred();
 				$.ajax( path )
@@ -148,6 +157,29 @@ var stamplines = (function() {
 
 			Lines: {
 				config: {},
+				initTools: function(){
+					if(SL.assertPaper()){
+						var LT = new paper.Tool();
+
+						LT.deactivate = function(){
+							Tools.activateDefault();
+						};
+
+						LT.onKeyDown = function(event){
+							if(event.key == 'escape'){
+								LT.deactivate();
+							}
+						};
+
+						LT.onMouseDown = function(event){
+							if(event.event.button == 2){
+								LT.deactivate();
+							}
+						};
+
+						Tools.addTool('lines', LT);
+					}
+				},
 				load: function(lines){
 					var defer = $.Deferred();
 					for(var i=0; i < lines.length; i++){
@@ -190,8 +222,8 @@ var stamplines = (function() {
 							var line = self.lines[i];
 							var newLineButton = $('<a class="sl-palette-button sl-line-button"></a>');
 							newLineButton.data('line', line);
-							newLineButton.click(function lineButtonClicked(){
-								Palette.Lines.new($(this).data('line'));
+							newLineButton.mousedown(function lineButtonClicked(){
+								self.tools.lines.activate();
 							});
 
 							var width = (this.config.preview && this.config.preview.width ) || 50;
@@ -411,26 +443,32 @@ var stamplines = (function() {
 		var Tools = {
 			init: function(){
 				if(SL.assertPaper()){
-					if(UI.Dock.isSet() && !self.toolsPanel){
-						self.toolsPanel = $('<ul class="sl-tools"></ul>');
-						UI.dock.prepend(self.toolsPanel);
+					if(UI.Dock.isSet() && !self.ui.toolsPanel){
+						self.ui.toolsPanel = $('<ul class="sl-tools"></ul>');
+						UI.dock.prepend(self.ui.toolsPanel);
 					}
 
 					Tools.initMaster();
-					if(self.tools.master){
-						self.tools.master.activate();
-					}
+				}
+				Palette.initTools();
+			},
+			activateDefault: function(){
+				if(Tools.defaultTool){
+					Tools.defaultTool.activate();
 				}
 			},
 			addButton: function(toolID, icon, callback){
-				if(self.toolsPanel){
+				if(self.ui.toolsPanel){
 					var newButton = $('<a class="sl-tool-button"></a>');
 					newButton.click(callback);
 					newButton.append($('<span class="sl-tool-icon icon-'+icon+'"></span>'));
 					var newTool = $('<li class="sl-tool sl-tool-'+toolID+'"></li>');
 					newTool.append(newButton);
-					self.toolsPanel.append(newTool);
+					self.ui.toolsPanel.append(newTool);
 				}
+			},
+			addTool: function(toolID, tool){
+				self.tools[toolID] = tool;
 			},
 			initMaster: function(){
 				var MT = new paper.Tool();
@@ -535,7 +573,7 @@ var stamplines = (function() {
 					}
 				};
 
-				MT.activate = function(util){
+				MT.activateUtil = function(util){
 					if(this.active != util){
 						if(this.active){
 							this.active.active = false;
@@ -1073,7 +1111,7 @@ var stamplines = (function() {
 						}
 					}
 				};
-				MT.activate(MT.Utils.Select);
+				MT.activateUtil(MT.Utils.Select);
 
 				MT.checkActive = function(){
 					if(this.Mouse.point){
@@ -1091,7 +1129,7 @@ var stamplines = (function() {
 							}
 						}
 						if(activate && activate.util){
-							this.activate(activate.util);
+							this.activateUtil(activate.util);
 						}
 					}
 				};
@@ -1135,7 +1173,8 @@ var stamplines = (function() {
 					this.utilsHandle('onSelectionChange');
 				};
 
-				self.tools.master = MT;
+				Tools.addTool('master', MT);
+				Tools.defaultTool = MT;
 			}
 		};
 
@@ -1413,12 +1452,12 @@ var stamplines = (function() {
 			}
 		};
 
-		// Public
-		this.config = SL.config;
-		this.loadPalette = Palette.load;
-
 		// constructor
 		SL.init(canvas, config);
+
+		// Public
+		this.loadPalette = Palette.load;
+		this.tools.activateDefault = Tools.activateDefault;
 	}
 
 	return {
