@@ -30,5 +30,31 @@
 		}
 	],
 	"lines": [
+		{
+			"id": "solid-1",
+			"name": "Solid",
+			"style": {
+				"strokeColor": "black",
+				"strokeWidth": 6
+			}
+		},
+		{
+			"id": "dashed-1",
+			"name": "Dashed",
+			"style": {
+				"strokeColor": "black",
+				"strokeWidth": 6,
+				"dashArray": [20, 10]
+			}
+		},
+		{
+			"id": "dotted-1",
+			"name": "Dotted",
+			"style": {
+				"strokeColor": "black",
+				"strokeWidth": 6,
+				"dashArray": [6, 6]
+			}
+		}
 	]
 }

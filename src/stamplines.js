@@ -147,8 +147,43 @@ var stamplines = (function() {
 			Lines: {
 				load: function(lines){
 					var defer = $.Deferred();
+					for(var i=0; i < lines.length; i++){
+						var line = lines[i];
+						if(!line.id){
+							continue;
+						}
+
+						if(SL.assertPaper()){
+							line.Group = new paper.Group();
+							paper.project.activeLayer.addChild(line.Group);
+
+							var pt1 = new paper.Point( 100.0 + i*100.0,  200 );
+							var pt2 = new paper.Point( 125.0 + i*125.0,  500 );
+
+							var testLine = new paper.Path.Line(pt1, pt2);
+							line.Group.addChild(testLine);
+							line.Group.set(line.style);
+
+							pt1.x += 10;
+							pt2.x += 10;
+							testLine = new paper.Path.Line(pt1, pt2);
+							testLine.set(line.style);
+							line.Group.addChild(testLine);
+						}
+
+						self.lines.push(line);
+					}
 					defer.resolve();
 					return defer;
+				},
+				new: function(line, point1, point2){
+					if(line && line.Group){
+						var newLine = new paper.Path.Line(point1, point2);
+						if(line.style){
+							newLine.set(line.style);
+						}
+						line.Group.addChild(newLine);
+					}
 				}
 			},
 
@@ -162,7 +197,6 @@ var stamplines = (function() {
 					for(var i=0; i < stamps.length; i++){
 						var stamp = stamps[i];
 						if(!stamp.id){
-							targetCount--;
 							continue;
 						}
 						if(!stamp.name){
