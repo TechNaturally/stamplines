@@ -23,7 +23,7 @@
 			}
 
 			var sl = stamplines.init('#demoCanvas');
-			sl.loadPalette(path+'StampLines.json', function StampLinesReady(){
+			sl.loadPalette(path+'StampLines.json').done( function StampLinesReady(){
 				console.log('StampLines Ready!');
 				console.log('| Stamps => ', sl.stamps);
 				console.log('| Lines => ', sl.lines);

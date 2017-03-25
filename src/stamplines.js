@@ -99,57 +99,66 @@ var stamplines = (function() {
 		};
 
 		var Palette = {
-			load: function(path, callback){
+			load: function(path){
+				var defer = $.Deferred();
 				$.ajax( path )
-				.done(function paletteLoaded(data){
-					if(!data){
-						data = {};
-					}
-					Palette.name = data.name;
-					Palette.Stamps.path = '';
-
-					if(data.Stamp){
-						if(data.Stamp.path){
-							Palette.Stamps.path = data.Stamp.path;
+					.done(function paletteLoaded(data){
+						if(!data){
+							data = {};
 						}
-					}
+						var loaders = [];
 
-					var basePath = '';
-					var lastSlash = path.lastIndexOf('/');
-					if(lastSlash != -1){
-						basePath = path.substr(0, lastSlash+1);
-					}
-					if(Palette.Stamps.path && Palette.Stamps.path != '/' && basePath){
-						Palette.Stamps.path = basePath+Palette.Stamps.path;
-					}
-					if(Palette.Stamps.path && Palette.Stamps.path != '/'){
-						Palette.Stamps.path += '/';
-					}
+						Palette.name = data.name;
+						Palette.Stamps.path = '';
 
-					if(data.stamps){
-						Palette.Stamps.load(data.stamps, undefined, function stampsLoaded(){
-							if(typeof callback == 'function'){
-								callback();
+						if(data.Stamp){
+							if(data.Stamp.path){
+								Palette.Stamps.path = data.Stamp.path;
 							}
+						}
+
+						var basePath = '';
+						var lastSlash = path.lastIndexOf('/');
+						if(lastSlash != -1){
+							basePath = path.substr(0, lastSlash+1);
+						}
+						if(Palette.Stamps.path && Palette.Stamps.path != '/' && basePath){
+							Palette.Stamps.path = basePath+Palette.Stamps.path;
+						}
+						if(Palette.Stamps.path && Palette.Stamps.path != '/'){
+							Palette.Stamps.path += '/';
+						}
+
+						if(data.stamps){
+							loaders.push( Palette.Stamps.load(data.stamps) );
+						}
+
+						if(data.lines){
+							loaders.push( Palette.Lines.load(data.lines) );
+						}
+
+						$.when.apply($, loaders).always(function PaletteLoaded(){
+							defer.resolve();
 						});
-					}
-				});
+					});
+				return defer;
 			},
 
 			Lines: {
 				load: function(lines){
-
+					var defer = $.Deferred();
+					defer.resolve();
+					return defer;
 				}
 			},
 
 			Stamps: {
-				load: function(stamps, path, callback){
+				load: function(stamps, path){
 					if(path == undefined){
 						path = Palette.Stamps.path;
 					}
+					var loaders = [];
 					var stampIDs = [];
-					var processed = [];
-					var targetCount = stamps.length;
 					for(var i=0; i < stamps.length; i++){
 						var stamp = stamps[i];
 						if(!stamp.id){
@@ -170,7 +179,7 @@ var stamplines = (function() {
 						if(imagePath.charAt(0) != '/'){
 							imagePath = path+((path.slice(-1)!='/')?'/':'')+imagePath;
 						}
-						$.ajax(imagePath, {
+						loaders.push($.ajax(imagePath, {
 							context: {
 								stamp: stamp,
 								path: imagePath
@@ -190,16 +199,11 @@ var stamplines = (function() {
 							this.stamp.image = undefined;
 						})
 						.always(function stampImageProcessed(){
-							processed.push(this.stamp.id);
 							self.stamps.push(this.stamp);
 							Palette.Stamps.sort(stampIDs);
-							if(processed.length >= targetCount){
-								if(typeof callback == 'function'){
-									callback();
-								}
-							}
-						});
+						}));
 					}
+					return $.when.apply($, loaders);
 				},
 				new: function(stamp, position){
 					if(stamp.symbol){
