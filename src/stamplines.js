@@ -50,7 +50,11 @@ var stamplines = (function() {
 						SL.Canvas.init();
 					}
 					Util.init();
-					UI.init();
+					UI.init({
+						Mouse: {
+							dragMaxPoints: 2
+						}
+					});
 					Tools.init();
 					Tools.activateDefault();
 				}
@@ -1209,6 +1213,8 @@ var stamplines = (function() {
 				UI.Cursor.config('link', {awesomeCursor:{}});
 				UI.Cursor.config('unlink', {awesomeCursor:{}});
 				UI.Cursor.config('crosshairs', {awesomeCursor:{}});
+
+				UI.Mouse.init(config.Mouse);
 			},
 			Cursor: {
 				active: 'crosshair',
@@ -1280,6 +1286,75 @@ var stamplines = (function() {
 				},
 				isSet: function(){
 					return (UI.dock);
+				}
+			},
+			Mouse: {
+				State: {
+					position: new paper.Point(0, 0),
+					button: {}
+				},
+				init: function(config){
+					if(!config){
+						config: {};
+					}
+					UI.Mouse.config = config;
+					var Handle = {};
+					Handle.onMouseEnter = function(event){
+						UI.Mouse.State.active = true;
+					};
+					Handle.onMouseLeave = function(event){
+						UI.Mouse.State.active = false;
+					};
+					Handle.onMouseMove = function(event){
+						UI.Mouse.State.position.x = event.point.x;
+						UI.Mouse.State.position.y = event.point.y;
+					};
+					Handle.onMouseDown = function(event){
+						UI.Mouse.State.button.active = event.event.button;
+						UI.Mouse.State.button.down = event.point;
+					};
+					Handle.onMouseUp = function(event){
+						UI.Mouse.State.button.active = undefined;
+						UI.Mouse.State.button.down = undefined;
+						UI.Mouse.State.button.drag = undefined;
+					};
+					Handle.onMouseDrag = function(event){
+						UI.Mouse.State.position.x = event.point.x;
+						UI.Mouse.State.position.y = event.point.y;
+						if(!UI.Mouse.State.button.drag){
+							// create a new drag with first point where the mouse was pressed
+							UI.Mouse.State.button.drag = {
+								points: [ UI.Mouse.State.button.down ]
+							};
+						}
+						UI.Mouse.State.button.drag.points.push(event.point);
+						if(UI.Mouse.config && UI.Mouse.config.dragMaxPoints != undefined){
+							if(UI.Mouse.State.button.drag.points.length > UI.Mouse.config.dragMaxPoints){
+								UI.Mouse.State.button.drag.points.splice(0, (UI.Mouse.State.button.drag.points.length-UI.Mouse.config.dragMaxPoints));
+							}
+						}
+					};
+					UI.Mouse.Handlers = Handle;
+
+					if(paper.view){
+						UI.Mouse.attachView(paper.view);
+					}
+				},
+				attachView: function(view){
+					if(view){
+						for(var handler in UI.Mouse.Handlers){
+							view[handler] = UI.Mouse.Handlers[handler];
+						}
+					}
+				},
+				detachView: function(view){
+					if(view){
+						for(var handler in UI.Mouse.Handlers){
+							if(view[handler] == UI.Mouse.Handlers[handler]){
+								view[handler] = undefined;
+							}
+						}
+					}
 				}
 			}
 		};
