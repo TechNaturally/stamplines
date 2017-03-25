@@ -1,5 +1,9 @@
 @import '../libs/icomoon/style.css';
 
+canvas.stamplines {
+	cursor: crosshair;
+}
+
 /** StampLines Dock **/
 .sl-dock {
 }

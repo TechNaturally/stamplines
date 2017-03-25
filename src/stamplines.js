@@ -7,7 +7,7 @@ var stamplines = (function() {
 				if(paper != undefined){
 					return true;
 				}
-				SL.error('Could not find Paper.js library');
+				SL.error('Could not find Paper.js library!');
 				return false;
 			},
 			config: function(setting, value){
@@ -37,6 +37,7 @@ var stamplines = (function() {
 				}, config);
 
 				if(SL.Canvas.isSet()){
+					self.canvas.addClass('stamplines');
 					self.canvasID = self.canvas.attr('id');
 					self.canvas.bind('contextmenu', function(e){
 						return false;
@@ -163,6 +164,10 @@ var stamplines = (function() {
 
 						LT.deactivate = function(){
 							Tools.activateDefault();
+						};
+
+						LT.onActivate = function(event){
+							UI.Cursor.activate('crosshairs');
 						};
 
 						LT.onKeyDown = function(event){
@@ -614,7 +619,7 @@ var stamplines = (function() {
 						},
 						refreshCursor: function(){
 							if(this.active){
-								var cursor = 'default';
+								var cursor;
 								if(this.multi && !MT.Mouse.Hover.targetLocked){
 									if(MT.Mouse.Hover.targetSelected && MT.Selection.count() > 1){
 										cursor = 'minus';
@@ -1143,6 +1148,10 @@ var stamplines = (function() {
 					}
 				};
 
+				MT.onActivate = function(event){
+					MT.checkActive();
+				};
+
 				MT.onKeyDown = function(event){
 					this.utilsHandle('onKeyDown', event);
 				};
@@ -1179,7 +1188,10 @@ var stamplines = (function() {
 		};
 
 		var UI = {
-			init: function(){
+			init: function(config){
+				if(!config){
+					config = {};
+				}
 				if(SL.Canvas.isSet()){
 					if(!UI.Dock.isSet()){
 						UI.Dock.init();
@@ -1194,13 +1206,16 @@ var stamplines = (function() {
 				UI.Cursor.config('expand-senw', {awesomeCursor:{icon:'expand',flip: 'horizontal'}});
 				UI.Cursor.config('expand-ns', {awesomeCursor:{icon:'arrows-v'}});
 				UI.Cursor.config('expand-ew', {awesomeCursor:{icon:'arrows-h'}});
+				UI.Cursor.config('link', {awesomeCursor:{}});
+				UI.Cursor.config('unlink', {awesomeCursor:{}});
+				UI.Cursor.config('crosshairs', {awesomeCursor:{}});
 			},
 			Cursor: {
-				active: 'default',
+				active: 'crosshair',
 				custom: {},
 				activate: function(name){
 					if(!name){
-						name = 'default';
+						name = 'crosshair';
 					}
 					if(this.active == name){
 						return;
