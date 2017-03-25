@@ -44,7 +44,6 @@ var stamplines = (function() {
 						paper.setup(self.canvas[0]);
 						SL.Canvas.init();
 					}
-
 					Util.init();
 					UI.init();
 					Tools.init();
@@ -109,24 +108,27 @@ var stamplines = (function() {
 						var loaders = [];
 
 						Palette.name = data.name;
-						Palette.Stamps.path = '';
+						Palette.Stamps.config = $.extend({
+							path: ''
+						}, data.Stamp);
 
-						if(data.Stamp){
-							if(data.Stamp.path){
-								Palette.Stamps.path = data.Stamp.path;
+						Palette.Lines.config = $.extend({
+							preview: {
+								width: 50,
+								height: 50
 							}
-						}
+						}, data.Line);
 
 						var basePath = '';
 						var lastSlash = path.lastIndexOf('/');
 						if(lastSlash != -1){
 							basePath = path.substr(0, lastSlash+1);
 						}
-						if(Palette.Stamps.path && Palette.Stamps.path != '/' && basePath){
-							Palette.Stamps.path = basePath+Palette.Stamps.path;
+						if(Palette.Stamps.config.path && Palette.Stamps.config.path != '/' && basePath){
+							Palette.Stamps.config.path = basePath+Palette.Stamps.config.path;
 						}
-						if(Palette.Stamps.path && Palette.Stamps.path != '/'){
-							Palette.Stamps.path += '/';
+						if(Palette.Stamps.config.path && Palette.Stamps.config.path != '/'){
+							Palette.Stamps.config.path += '/';
 						}
 
 						if(data.stamps){
@@ -145,6 +147,7 @@ var stamplines = (function() {
 			},
 
 			Lines: {
+				config: {},
 				load: function(lines){
 					var defer = $.Deferred();
 					for(var i=0; i < lines.length; i++){
@@ -152,45 +155,87 @@ var stamplines = (function() {
 						if(!line.id){
 							continue;
 						}
-
 						if(SL.assertPaper()){
 							line.Group = new paper.Group();
 							paper.project.activeLayer.addChild(line.Group);
-
-							var pt1 = new paper.Point( 100.0 + i*100.0,  200 );
-							var pt2 = new paper.Point( 125.0 + i*125.0,  500 );
-
-							var testLine = new paper.Path.Line(pt1, pt2);
-							line.Group.addChild(testLine);
-							line.Group.set(line.style);
-
-							pt1.x += 10;
-							pt2.x += 10;
-							testLine = new paper.Path.Line(pt1, pt2);
-							testLine.set(line.style);
-							line.Group.addChild(testLine);
 						}
-
 						self.lines.push(line);
 					}
+					Palette.Lines.refreshPanel();
 					defer.resolve();
 					return defer;
 				},
 				new: function(line, point1, point2){
+					console.log('NEW LINE => ', line);
 					if(line && line.Group){
+						/**
 						var newLine = new paper.Path.Line(point1, point2);
 						if(line.style){
 							newLine.set(line.style);
 						}
 						line.Group.addChild(newLine);
+						*/
+					}
+				},
+				refreshPanel: function(){
+					if(UI.Dock.isSet()){
+						if(!self.linesPanel){
+							self.linesPanel = $('<ul class="sl-palette sl-lines"></ul>');
+							var linesPanelWrap = $('<div class="sl-palette-wrap sl-dock-scroll"></div>');
+							linesPanelWrap.append(self.linesPanel);
+							UI.dock.append(linesPanelWrap);
+						}
+						self.linesPanel.empty();
+						for(var i=0; i < self.lines.length; i++){
+							var line = self.lines[i];
+							var newLineButton = $('<a class="sl-palette-button sl-line-button"></a>');
+							newLineButton.data('line', line);
+							newLineButton.click(function lineButtonClicked(){
+								Palette.Lines.new($(this).data('line'));
+							});
+
+							var width = (this.config.preview && this.config.preview.width ) || 50;
+							var height = (this.config.preview && this.config.preview.height ) || 50;
+							var linePreviewCanvas = $('<canvas width="'+width+'" height="'+height+'"></canvas>');
+							var linePreview = linePreviewCanvas[0].getContext("2d");
+							if(line.style){
+								if(line.style.strokeColor){
+									linePreview.strokeStyle = line.style.strokeColor;
+								}
+								if(line.style.strokeWidth){
+									linePreview.lineWidth = line.style.strokeWidth;
+								}
+								if(line.style.dashArray){
+									linePreview.setLineDash(line.style.dashArray);
+								}
+							}
+							linePreview.beginPath();
+							linePreview.moveTo(0, height/2.0);
+							linePreview.lineTo(width, height/2.0);
+							linePreview.stroke();
+
+							var newLineContent = $('<div class="sl-palette-content sl-palette-img sl-line-content sl-line-img" draggable="false"></div>');
+							var newLineImage = $('<img src="'+linePreviewCanvas[0].toDataURL("image/png")+'"></img>');
+							newLineContent.append(newLineImage);
+							newLineButton.append(newLineContent);
+
+							newLineContent = $('<span class="sl-palette-content sl-line-content">'+(line.name || line.id)+'</span>');
+							newLineButton.append(newLineContent);
+
+							var newLineItem = $('<li class="sl-palette-item sl-line"></li>');
+							newLineItem.append(newLineButton);
+
+							self.linesPanel.append(newLineItem);
+						}
 					}
 				}
 			},
 
 			Stamps: {
+				config: {},
 				load: function(stamps, path){
 					if(path == undefined){
-						path = Palette.Stamps.path;
+						path = this.config.path;
 					}
 					var loaders = [];
 					var stampIDs = [];
@@ -278,21 +323,21 @@ var stamplines = (function() {
 				refreshPanel: function(){
 					if(UI.Dock.isSet()){
 						if(!self.stampsPanel){
-							self.stampsPanel = $('<ul class="sl-stamps"></ul>');
-							var stampsPanelWrap = $('<div class="sl-stamps-wrap sl-dock-scroll"></div>');
+							self.stampsPanel = $('<ul class="sl-palette sl-stamps"></ul>');
+							var stampsPanelWrap = $('<div class="sl-palette-wrap sl-dock-scroll"></div>');
 							stampsPanelWrap.append(self.stampsPanel);
 							UI.dock.append(stampsPanelWrap);
 						}
 						self.stampsPanel.empty();
 						for(var i=0; i < self.stamps.length; i++){
 							var stamp = self.stamps[i];
-							var newStampButton = $('<a class="sl-stamp-button"></a>');
+							var newStampButton = $('<a class="sl-palette-button sl-stamp-button"></a>');
 							newStampButton.data('stamp', stamp);
 							newStampButton.click(function stampButtonClicked(){
 								Palette.Stamps.new($(this).data('stamp'));
 							});
 
-							var newStampContent = $('<div class="sl-stamp-content sl-stamp-img" draggable="true"></div>');
+							var newStampContent = $('<div class="sl-palette-content sl-palette-img sl-stamp-content sl-stamp-img" draggable="true"></div>');
 							if(stamp.imagePath){
 								newStampContent.append($('<img src="'+stamp.imagePath+'" />'));
 							}
@@ -331,11 +376,11 @@ var stamplines = (function() {
 							});
 							newStampButton.append(newStampContent);
 
-							newStampContent = $('<span class="sl-stamp-content">'+(stamp.name || stamp.id)+'</span>');
+							newStampContent = $('<span class="sl-palette-content sl-stamp-content">'+(stamp.name || stamp.id)+'</span>');
 							newStampButton.append(newStampContent);
 
 
-							var newStampItem = $('<li class="sl-stamp"></li>');
+							var newStampItem = $('<li class="sl-palette-item sl-stamp"></li>');
 							newStampItem.append(newStampButton);
 
 							self.stampsPanel.append(newStampItem);
@@ -1371,8 +1416,6 @@ var stamplines = (function() {
 		// Public
 		this.config = SL.config;
 		this.loadPalette = Palette.load;
-//		this.addStamp = Stamps.add;
-//		this.loadStamps = Stamps.load;
 
 		// constructor
 		SL.init(canvas, config);

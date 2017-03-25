@@ -29,13 +29,19 @@
 			"name": "Triangle One"
 		}
 	],
+	"Line": {
+		"preview": {
+			"width": 50,
+			"height": 50
+		}
+	},
 	"lines": [
 		{
 			"id": "solid-1",
 			"name": "Solid",
 			"style": {
 				"strokeColor": "black",
-				"strokeWidth": 6
+				"strokeWidth": 5
 			}
 		},
 		{
@@ -43,8 +49,8 @@
 			"name": "Dashed",
 			"style": {
 				"strokeColor": "black",
-				"strokeWidth": 6,
-				"dashArray": [20, 10]
+				"strokeWidth": 5,
+				"dashArray": [18, 7]
 			}
 		},
 		{
@@ -52,8 +58,8 @@
 			"name": "Dotted",
 			"style": {
 				"strokeColor": "black",
-				"strokeWidth": 6,
-				"dashArray": [6, 6]
+				"strokeWidth": 5,
+				"dashArray": [5, 5]
 			}
 		}
 	]
