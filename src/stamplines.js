@@ -1280,6 +1280,15 @@ var stamplines = (function() {
 								},
 								hotspot: 'center'
 							});
+							if(!UI.Cursor.awesomeLoaded && SL.Canvas.isSet()){
+								var awesome = config.awesomeCursor;
+								self.canvas.awesomeCursor(
+									(awesome.icon || name), 
+									awesome
+								);
+								UI.Cursor.activate();
+								UI.Cursor.awesomeLoaded = true;
+							}
 						}
 						this.custom[name] = config;
 					}
