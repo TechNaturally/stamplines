@@ -34,17 +34,18 @@
 	border-color: #80CEF6;
 }
 
-/** Stamps Panel **/
-.sl-dock .sl-stamps {
+/** Palette Panels **/
+.sl-dock .sl-palette {
 	display: table-row;
 }
-.sl-dock .sl-stamps .sl-stamp {
+
+.sl-dock .sl-palette .sl-palette-item {
 	display: table-cell;
 	padding: 8px;
 	vertical-align: top;
 }
 
-.sl-dock .sl-stamps .sl-stamp .sl-stamp-button {
+.sl-dock .sl-palette .sl-palette-item .sl-palette-button {
 	display: block;
 	line-height: 0;
 	border: 3px solid transparent;
@@ -52,22 +53,23 @@
 	text-align: center;
 	cursor: pointer;
 }
-.sl-dock .sl-stamps .sl-stamp .sl-stamp-button:hover {
+.sl-dock .sl-palette .sl-palette-item .sl-palette-button:hover {
 	border-color: #80CEF6;
 }
-.sl-dock .sl-stamps .sl-stamp .sl-stamp-button .sl-stamp-img {
+.sl-dock .sl-palette .sl-palette-item .sl-palette-button .sl-palette-img {
 	height: 50px;
 	line-height: 50px;
 }
-.sl-dock .sl-stamps .sl-stamp .sl-stamp-button .sl-stamp-img img {
+
+.sl-dock .sl-palette .sl-palette-item .sl-palette-button .sl-palette-img img {
 	max-height: 100%;
 	vertical-align: middle;
 }
-.sl-dock .sl-stamps .sl-stamp .sl-stamp-button span {
+.sl-dock .sl-palette .sl-palette-item .sl-palette-button span {
 	display: block;
 	line-height: normal;
 	white-space: nowrap;
 }
-.sl-dock .sl-stamps .sl-stamp .sl-stamp-button .sl-stamp-content + .sl-stamp-content {
+.sl-dock .sl-palette .sl-palette-item .sl-palette-button .sl-palette-content + .sl-palette-content {
 	margin-top: 8px;
 }
