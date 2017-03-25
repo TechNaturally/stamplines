@@ -51,6 +51,21 @@ var stamplines = (function() {
 					}
 					Util.init();
 					UI.init({
+						Cursors: {
+							custom: {
+								'plus': {awesomeCursor:{}},
+								'minus': {awesomeCursor:{}},
+								'rotate': {awesomeCursor:{icon:'rotate-right'}},
+								'move': {awesomeCursor:{icon:'arrows'}},
+								'expand-nesw': {awesomeCursor:{icon:'expand'}},
+								'expand-senw': {awesomeCursor:{icon:'expand',flip: 'horizontal'}},
+								'expand-ns': {awesomeCursor:{icon:'arrows-v'}},
+								'expand-ew': {awesomeCursor:{icon:'arrows-h'}},
+								'link': {awesomeCursor:{}},
+								'unlink': {awesomeCursor:{}},
+								'crosshairs': {awesomeCursor:{}}
+							}
+						},
 						Mouse: {
 							dragMaxPoints: 2
 						}
@@ -1202,26 +1217,29 @@ var stamplines = (function() {
 					}
 				}
 
-				UI.Cursor.config('plus', {awesomeCursor:{}});
-				UI.Cursor.config('minus', {awesomeCursor:{}});
-				UI.Cursor.config('rotate', {awesomeCursor:{icon:'rotate-right'}});
-				UI.Cursor.config('move', {awesomeCursor:{icon:'arrows'}});
-				UI.Cursor.config('expand-nesw', {awesomeCursor:{icon:'expand'}});
-				UI.Cursor.config('expand-senw', {awesomeCursor:{icon:'expand',flip: 'horizontal'}});
-				UI.Cursor.config('expand-ns', {awesomeCursor:{icon:'arrows-v'}});
-				UI.Cursor.config('expand-ew', {awesomeCursor:{icon:'arrows-h'}});
-				UI.Cursor.config('link', {awesomeCursor:{}});
-				UI.Cursor.config('unlink', {awesomeCursor:{}});
-				UI.Cursor.config('crosshairs', {awesomeCursor:{}});
-
+				UI.Cursor.init(config.Cursors);
 				UI.Mouse.init(config.Mouse);
 			},
 			Cursor: {
-				active: 'crosshair',
+				active: undefined,
 				custom: {},
+				init: function(config){
+					if(!config){
+						config: {};
+					}
+					UI.Cursor.config = config;
+					if(config.custom){
+						for(var name in config.custom){
+							UI.Cursor.loadCustom(name, config.custom[name]);
+						}
+					}
+					if(!UI.Cursor.active){
+						UI.Cursor.activate();
+					}
+				},
 				activate: function(name){
 					if(!name){
-						name = 'crosshair';
+						name = UI.Cursor.config.default || 'crosshair';
 					}
 					if(this.active == name){
 						return;
@@ -1249,7 +1267,7 @@ var stamplines = (function() {
 						this.active = name;
 					}
 				},
-				config: function(name, config){
+				loadCustom: function(name, config){
 					if(name){
 						if(!config){
 							config = {};
