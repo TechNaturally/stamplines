@@ -480,6 +480,7 @@ var stamplines = (function() {
 				if(Tools.defaultTool){
 					Tools.defaultTool.activate();
 				}
+				UI.Cursor.activate();
 			},
 			addButton: function(toolID, icon, callback){
 				if(self.ui.toolsPanel){
@@ -668,7 +669,7 @@ var stamplines = (function() {
 							MT.Mouse.Hover.targetSelected = (MT.Mouse.Hover.targetItem && MT.Selection.contains(MT.Mouse.Hover.targetItem));
 							MT.Mouse.Hover.targetUnselected = (MT.Mouse.Hover.targetItem && !MT.Mouse.Hover.targetSelected);
 
-							MT.Mouse.Hover.selection = (MT.Mouse.point && MT.Selection.UI.outline && MT.Selection.UI.outline.visible && MT.Selection.UI.outline.contains(MT.Mouse.point));
+							MT.Mouse.Hover.selection = (UI.Mouse.State.active && UI.Mouse.State.point && MT.Selection.UI.outline && MT.Selection.UI.outline.visible && MT.Selection.UI.outline.contains(UI.Mouse.State.point));
 
 							this.refreshCursor();
 							MT.checkActive();
@@ -720,7 +721,7 @@ var stamplines = (function() {
 							}
 						},
 						onMouseUp: function(event){
-							if(MT.Mouse.drag){
+							if(UI.Mouse.State.button.drag){
 								var position = MT.Selection.Group.position.clone();
 								position = Util.Bound.position(position, MT.Selection.Group);
 
@@ -882,8 +883,7 @@ var stamplines = (function() {
 							}
 						},
 						onMouseMove: function(event){
-							MT.Mouse.Hover.rotateHandle = (this.UI.Group && this.UI.Group.visible && this.UI.currentHandle && this.UI.currentHandle.strokeBounds.contains(event.point));
-
+							MT.Mouse.Hover.rotateHandle = (this.UI.Group && this.UI.Group.visible && this.UI.currentHandle && this.UI.currentHandle.strokeBounds.contains(UI.Mouse.State.point));
 							this.refreshCursor();
 							MT.checkActive();
 						},
@@ -1047,7 +1047,7 @@ var stamplines = (function() {
 							}
 						},
 						onMouseUp: function(event){
-							if(this.active && MT.Mouse.drag && MT.Selection.count()){
+							if(this.active && UI.Mouse.State.button.drag && MT.Selection.count()){
 								for(var i=0; i < MT.Selection.Group.children.length; i++){
 									var item = MT.Selection.Group.children[i];
 									Util.Bound.lockToGrid(item);
@@ -1068,27 +1068,27 @@ var stamplines = (function() {
 							MT.Mouse.Hover.selectionEdge.right = false;
 							MT.Mouse.Hover.selectionEdge.direction = undefined;
 
-							if(MT.Mouse.point && MT.Selection.UI.outline && MT.Selection.UI.outline.visible){
+							if(UI.Mouse.State.active && UI.Mouse.State.point && MT.Selection.UI.outline && MT.Selection.UI.outline.visible){
 								var checkBounds = MT.Selection.UI.outline.handleBounds.expand(edgeSize);
-								if(checkBounds.contains(MT.Mouse.point)){
+								if(checkBounds.contains(UI.Mouse.State.point)){
 									var checkRect = new paper.Rectangle();
 									var checkPoint = new paper.Point();
 
 									checkPoint.set(checkBounds.right, checkBounds.top+edgeSize);
 									checkRect.set(checkBounds.topLeft, checkPoint);
-									MT.Mouse.Hover.selectionEdge.top = checkRect.contains(MT.Mouse.point);
+									MT.Mouse.Hover.selectionEdge.top = checkRect.contains(UI.Mouse.State.point);
 
 									checkPoint.set(checkBounds.left, checkBounds.bottom-edgeSize);
 									checkRect.set(checkPoint, checkBounds.bottomRight);
-									MT.Mouse.Hover.selectionEdge.bottom = checkRect.contains(MT.Mouse.point);
+									MT.Mouse.Hover.selectionEdge.bottom = checkRect.contains(UI.Mouse.State.point);
 
 									checkPoint.set(checkBounds.left+edgeSize, checkBounds.bottom);
 									checkRect.set(checkBounds.topLeft, checkPoint);
-									MT.Mouse.Hover.selectionEdge.left = checkRect.contains(MT.Mouse.point);
+									MT.Mouse.Hover.selectionEdge.left = checkRect.contains(UI.Mouse.State.point);
 
 									checkPoint.set(checkBounds.right-edgeSize, checkBounds.top);
 									checkRect.set(checkPoint, checkBounds.bottomRight);
-									MT.Mouse.Hover.selectionEdge.right = checkRect.contains(MT.Mouse.point);
+									MT.Mouse.Hover.selectionEdge.right = checkRect.contains(UI.Mouse.State.point);
 								}
 							}
 
@@ -1138,11 +1138,11 @@ var stamplines = (function() {
 				MT.activateUtil(MT.Utils.Select);
 
 				MT.checkActive = function(){
-					if(this.Mouse.point){
+					if(UI.Mouse.State.active && UI.Mouse.State.point){
 						var activate;
 						for(var name in this.Utils){
 							if(typeof this.Utils[name].activatePriority == 'function'){
-								var priority = this.Utils[name].activatePriority(this.Mouse.point);
+								var priority = this.Utils[name].activatePriority(UI.Mouse.State.point);
 								if(priority >= 0 && (!activate || priority <= activate.priority)){
 									if(!activate){
 										activate = {};
@@ -1159,8 +1159,8 @@ var stamplines = (function() {
 				};
 
 				MT.checkTarget = function(){
-					if(this.Mouse.point){
-						var target = paper.project.hitTest(this.Mouse.point);
+					if(UI.Mouse.State.active && UI.Mouse.State.point){
+						var target = paper.project.hitTest(UI.Mouse.State.point);
 						this.Mouse.Hover.target = target;
 						this.Mouse.Hover.targetItem = ((target && target.item) ? target.item : null);
 						this.Mouse.Hover.targetLocked = (target && target.item && target.item.data && target.item.data.locked);
@@ -1170,7 +1170,6 @@ var stamplines = (function() {
 				MT.onActivate = function(event){
 					MT.checkActive();
 				};
-
 				MT.onKeyDown = function(event){
 					this.utilsHandle('onKeyDown', event);
 				};
@@ -1178,22 +1177,17 @@ var stamplines = (function() {
 					this.utilsHandle('onKeyUp', event);
 				};
 				MT.onMouseMove = function(event){
-					this.Mouse.point = event.point;
 					this.checkTarget();
 					this.checkActive();
 					this.utilsHandle('onMouseMove', event);
 				};
 				MT.onMouseDown = function(event){
-					this.Mouse.down = true;
 					this.utilsHandle('onMouseDown', event);
 				};
 				MT.onMouseUp = function(event){
-					this.Mouse.down = false;
 					this.utilsHandle('onMouseUp', event);
-					this.Mouse.drag = false;
 				};
 				MT.onMouseDrag = function(event){
-					this.Mouse.drag = true;
 					this.utilsHandle('onMouseDrag', event);
 				};
 
@@ -1317,7 +1311,7 @@ var stamplines = (function() {
 			},
 			Mouse: {
 				State: {
-					position: new paper.Point(0, 0),
+					point: new paper.Point(0, 0),
 					button: {}
 				},
 				init: function(config){
@@ -1333,21 +1327,23 @@ var stamplines = (function() {
 						UI.Mouse.State.active = false;
 					};
 					Handle.onMouseMove = function(event){
-						UI.Mouse.State.position.x = event.point.x;
-						UI.Mouse.State.position.y = event.point.y;
+						UI.Mouse.State.point.x = event.point.x;
+						UI.Mouse.State.point.y = event.point.y;
 					};
 					Handle.onMouseDown = function(event){
 						UI.Mouse.State.button.active = event.event.button;
 						UI.Mouse.State.button.down = event.point;
 					};
 					Handle.onMouseUp = function(event){
-						UI.Mouse.State.button.active = undefined;
-						UI.Mouse.State.button.down = undefined;
-						UI.Mouse.State.button.drag = undefined;
+						setTimeout(function(){
+							UI.Mouse.State.button.active = undefined;
+							UI.Mouse.State.button.down = undefined;
+							UI.Mouse.State.button.drag = undefined;
+						});
 					};
 					Handle.onMouseDrag = function(event){
-						UI.Mouse.State.position.x = event.point.x;
-						UI.Mouse.State.position.y = event.point.y;
+						UI.Mouse.State.point.x = event.point.x;
+						UI.Mouse.State.point.y = event.point.y;
 						if(!UI.Mouse.State.button.drag){
 							// create a new drag with first point where the mouse was pressed
 							UI.Mouse.State.button.drag = {
