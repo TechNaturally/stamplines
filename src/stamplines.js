@@ -33,7 +33,7 @@ var stamplines = (function() {
 					'rotate.slices': (360/45),
 					'rotate.snap': true,
 					'scale.edgeSize': 6,
-					'selection.padding': 10
+					'selection.padding': 15
 				}, config);
 
 				if(SL.Canvas.isSet()){
@@ -180,6 +180,20 @@ var stamplines = (function() {
 				initTools: function(){
 					if(SL.assertPaper()){
 						var LT = new paper.Tool();
+						LT.Current = {};
+						LT.Next = {
+							lastPoint: new paper.Point(),
+							nextPoint: new paper.Point()
+						};
+
+						LT.setLine = function(line){
+							if(!LT.Current.line){
+								LT.Current.line = {
+									points: []
+								};
+							}
+							LT.Current.line.config = line;
+						};
 
 						LT.deactivate = function(){
 							Tools.activateDefault();
@@ -187,6 +201,15 @@ var stamplines = (function() {
 
 						LT.onActivate = function(event){
 							UI.Cursor.activate('crosshairs');
+						};
+						LT.onDeactivate = function(event){
+							LT.Current.line = undefined;
+							LT.Current.Line = undefined;
+
+							if(LT.Next.segment){
+								LT.Next.segment.remove();
+								LT.Next.segment = undefined;
+							}
 						};
 
 						LT.onKeyDown = function(event){
@@ -198,10 +221,129 @@ var stamplines = (function() {
 						LT.onMouseDown = function(event){
 							if(event.event.button == 2){
 								LT.deactivate();
+								return;
+							}
+							if(LT.Current.line){
+								LT.Current.line.points.push(UI.Mouse.State.point.clone());
+								var points = LT.Current.line.points;
+								// add the segment if there are 2 or more points
+								if(points.length > 1){
+									if(!LT.Current.Line){
+										// initialize the line
+										LT.Current.Line = new paper.Path();
+										LT.Current.line.config.Group.addChild(LT.Current.Line);
+										Palette.Lines.applyStyle(LT.Current.Line, LT.Current.line.config.style);
+										LT.Current.Line.data.type = 'line';
+
+										// add the last two points
+										var pt1 = points[points.length-2].clone();
+										var pt2 = points[points.length-1].clone();
+										Util.Bound.point(pt1);
+										Util.Bound.point(pt2);
+										LT.Current.Line.add( pt1, pt2 );
+									}
+									else{
+										// add the last point
+										var pt = points[points.length-1].clone();
+										Util.Bound.point(pt);
+										LT.Current.Line.add( pt );
+									}
+								}
+
+								// draw a live preview to the mouse cursor
+								if(points.length){
+									var pt;
+									// read the last point from the current line
+									if(LT.Current.Line && LT.Current.Line.segments && LT.Current.Line.segments.length){
+										pt = LT.Current.Line.segments[LT.Current.Line.segments.length-1].point;
+									}
+									// if no point, read the last mouse point
+									if(!pt){
+										pt = points[points.length-1].clone();
+										Util.Bound.point( pt );
+									}
+									// set the lastPoint
+									LT.Next.lastPoint.set( pt );
+
+									// initialize the live preview if there is not one
+									if(!LT.Next.segment){
+										LT.Next.segment = new paper.Path();
+										LT.Current.line.config.Group.addChild(LT.Next.segment);
+										Palette.Lines.applyStyle(LT.Next.segment, LT.Current.line.config.style);
+									}
+
+									// draw the line segments
+									LT.Next.segment.removeSegments();
+									LT.Next.segment.add( LT.Next.lastPoint, LT.Next.nextPoint );
+								}
+							}
+						};
+						LT.onMouseMove = function(event){
+							// update the nextPoint for the live preview
+							var pt = UI.Mouse.State.point.clone();
+							Util.Bound.point( pt );
+							LT.Next.nextPoint.set( pt );
+							if(LT.Next.segment){
+								LT.Next.segment.removeSegments();
+								LT.Next.segment.add( LT.Next.lastPoint, LT.Next.nextPoint );
 							}
 						};
 
 						Tools.addTool('lines', LT);
+
+						var MT = self.tools['master'];
+
+						var LE = {
+							State: {},
+							activate: function(){
+								MT.setUtilityControl(true);
+								this.State.target = MT.Mouse.Hover.target;
+								this.refreshCursor();
+							},
+							deactivate: function(){
+								this.State.target = undefined;
+								this.State.drag = undefined;
+								MT.setUtilityControl(false);
+							},
+							activatePriority: function(point){
+								if(MT.Mouse.Hover.target && MT.Mouse.Hover.targetSelected && MT.Mouse.Hover.target.type == 'segment'){
+									return 1;
+								}
+								return -1;
+							},
+							refreshCursor: function(){
+								if(this.active){
+									UI.Cursor.activate('crosshairs');
+								}
+							},
+							onMouseDrag: function(event){
+								if(this.active && event.delta && this.State.target && this.State.target.segment){
+									this.State.target.segment.point.x += event.delta.x;
+									this.State.target.segment.point.y += event.delta.y;
+									MT.redraw();
+								}
+							},
+							onMouseUp: function(event){
+								if(this.active && this.State.target && this.State.target.segment){
+									var pt = UI.Mouse.State.point.clone();
+									Util.Bound.point( pt );
+									this.State.target.segment.point.set( pt );
+									MT.redraw();
+								}
+							},
+							onMouseMove: function(event){
+								if(this.active){
+									if(!this.State.target || !MT.Mouse.Hover.target 
+											|| MT.Mouse.Hover.target.item != this.State.target.item 
+											|| MT.Mouse.Hover.target.segment != this.State.target.segment
+										){
+										MT.setUtilityControl(false);
+										MT.checkActive();
+									}
+								}
+							}
+						};
+						Tools.addUtility('LineEditor', LE);
 					}
 				},
 				load: function(lines){
@@ -220,6 +362,13 @@ var stamplines = (function() {
 					Palette.Lines.refreshPanel();
 					defer.resolve();
 					return defer;
+				},
+				applyStyle: function(line, style){
+					if(line && style){
+						for(var prop in style){
+							line[prop] = style[prop];
+						}
+					}
 				},
 				new: function(line, point1, point2){
 					console.log('NEW LINE => ', line);
@@ -248,6 +397,7 @@ var stamplines = (function() {
 							newLineButton.data('line', line);
 							newLineButton.mousedown(function lineButtonClicked(){
 								self.tools.lines.activate();
+								self.tools.lines.setLine($(this).data('line'));
 							});
 
 							var width = (this.config.preview && this.config.preview.width ) || 50;
@@ -371,6 +521,7 @@ var stamplines = (function() {
 
 						// place an instance of the symbol
 						var newStamp = stamp.symbol.place(position);
+						newStamp.data.type = 'stamp';
 						if(newStamp.bounds.width && newStamp.bounds.height){
 							newStamp.scale(size.width/newStamp.bounds.width, size.height/newStamp.bounds.height, newStamp.bounds.topLeft);
 						}
@@ -495,6 +646,11 @@ var stamplines = (function() {
 			addTool: function(toolID, tool){
 				self.tools[toolID] = tool;
 			},
+			addUtility: function(utilityID, utility){
+				if(self.tools['master'] && self.tools['master'].Utils && !self.tools['master'].Utils[utilityID]){
+					self.tools['master'].Utils[utilityID] = utility;
+				}
+			},
 			initMaster: function(){
 				var MT = new paper.Tool();
 				MT.Mouse = { Hover: {} };
@@ -518,7 +674,7 @@ var stamplines = (function() {
 					count: function(){
 						return this.Group.children.length;
 					},
-					eachItem: function(callback, data){
+					each: function(callback, data){
 						if(typeof callback == 'function'){
 							for(var i=0; i < this.Group.children.length; i++){
 								callback(this.Group.children[i], i, data);
@@ -526,7 +682,9 @@ var stamplines = (function() {
 						}
 					},
 					refresh: function(changed){
-						this.Group.selected = (this.count() > 1);
+						if(changed){
+							this.refreshSelected();
+						}
 						if(this.count()){
 							if(!this.UI.outline){
 								this.UI.outline = new paper.Shape.Rectangle();
@@ -544,6 +702,12 @@ var stamplines = (function() {
 						}
 						if(changed){
 							MT.onSelectionChange();
+						}
+					},
+					refreshSelected: function(){
+						var items = this.Group.children;
+						for(var i=0; i < items.length; i++){
+							items[i].selected = (this.count() > 1 || (items[i].data && items[i].data.type == 'line'));
 						}
 					},
 					remove: function(item){
@@ -609,23 +773,51 @@ var stamplines = (function() {
 						this.active = util;
 						if(this.active){
 							this.active.active = true;
+							if(typeof this.active.enableUI == 'function'){
+								this.active.enableUI();
+							}
 							if(typeof this.active.activate == 'function'){
 								this.active.activate();
 							}
 						}
 					}
 				};
+				MT.setUtilityControl = function(utilityControl){
+					var oldValue = this.utilityControl;
+					this.utilityControl = utilityControl;
+					if(this.utilityControl != oldValue){
+						if(this.utilityControl){
+							MT.utilsHandleInactive('disableUI');
+						}
+						else{
+							MT.utilsHandleInactive('enableUI');
+						}
+					}
+				};
 				MT.utilsHandle = function(func, args){
-					for(var name in this.Utils){
-						var util = this.Utils[name];
-						if(typeof util[func] == 'function'){
-							util[func](args);
+					if(this.utilityControl){
+						MT.utilsHandleActive(func, args);
+					}
+					else{
+						for(var name in this.Utils){
+							var util = this.Utils[name];
+							if(typeof util[func] == 'function'){
+								util[func](args);
+							}
 						}
 					}
 				};
 				MT.utilsHandleActive = function(func, args){
 					if(this.active && typeof this.active[func] == 'function'){
 						this.active[func](args);
+					}
+				};
+				MT.utilsHandleInactive = function(func, args){
+					for(var name in this.Utils){
+						var util = this.Utils[name];
+						if(!util.active && typeof util[func] == 'function'){
+							util[func](args);
+						}
 					}
 				};
 
@@ -717,17 +909,29 @@ var stamplines = (function() {
 
 								var delta = position.subtract(MT.Selection.Group.position);
 								MT.Selection.Group.translate(delta);
-								MT.UI.Group.translate(delta);
+								MT.redraw();
 							}
 						},
 						onMouseUp: function(event){
-							if(UI.Mouse.State.button.drag){
+							if(this.active && UI.Mouse.State.button.drag){
 								var position = MT.Selection.Group.position.clone();
 								position = Util.Bound.position(position, MT.Selection.Group);
 
 								var delta = position.subtract(MT.Selection.Group.position);
 								MT.Selection.Group.translate(delta);
-								MT.UI.Group.translate(delta);
+
+								MT.Selection.each(function shiftLines(item, idx, data){
+									if(item && item.data && item.data.type == 'line' && item.segments && item.segments.length){
+										// since all points should be already locked to grid,
+										// any offset on the first point should also apply to the entire line
+										// this is more efficient than processing each point individually
+										var pt = item.segments[0].point.clone();
+										Util.Bound.point( pt );
+										var lineDelta = pt.subtract(item.segments[0].point);
+										item.translate(lineDelta);
+									}
+								});
+								MT.redraw();
 							}
 						}
 					},
@@ -745,6 +949,12 @@ var stamplines = (function() {
 						},
 						deactivate: function(){
 							this.refreshUI();
+						},
+						disableUI: function(){
+							this.UI.Group.visible = false;
+						},
+						enableUI: function(){
+							this.UI.Group.visible = true;
 						},
 						activatePriority: function(point){
 							if(MT.Mouse.Hover.rotateHandle){
@@ -878,8 +1088,7 @@ var stamplines = (function() {
 
 								MT.Selection.Group.rotate(delta);
 								MT.Selection.rotation = angle;
-								MT.Selection.refresh();
-								this.refreshUI();
+								MT.redraw();
 							}
 						},
 						onMouseMove: function(event){
@@ -974,7 +1183,7 @@ var stamplines = (function() {
 										delta: delta,
 										direction: direction
 									};
-									MT.Selection.eachItem(function scaleItem(item, idx, data){
+									MT.Selection.each(function scaleItem(item, idx, data){
 										var delta = data.delta;
 										var direction = data.direction.clone();
 										var scale = new paper.Point(delta.x, delta.y);
@@ -1041,8 +1250,7 @@ var stamplines = (function() {
 										}
 									}, data);
 
-									MT.Selection.refresh();
-									MT.utilsHandle('refreshUI');
+									MT.redraw();
 								}
 							}
 						},
@@ -1052,8 +1260,7 @@ var stamplines = (function() {
 									var item = MT.Selection.Group.children[i];
 									Util.Bound.lockToGrid(item);
 								}
-								MT.Selection.refresh();
-								MT.utilsHandle('refreshUI');
+								MT.redraw();
 							}
 						},
 						onMouseMove: function(event){
@@ -1138,7 +1345,7 @@ var stamplines = (function() {
 				MT.activateUtil(MT.Utils.Select);
 
 				MT.checkActive = function(){
-					if(UI.Mouse.State.active && UI.Mouse.State.point){
+					if(UI.Mouse.State.active && UI.Mouse.State.point && !this.utilityControl){
 						var activate;
 						for(var name in this.Utils){
 							if(typeof this.Utils[name].activatePriority == 'function'){
@@ -1165,6 +1372,11 @@ var stamplines = (function() {
 						this.Mouse.Hover.targetItem = ((target && target.item) ? target.item : null);
 						this.Mouse.Hover.targetLocked = (target && target.item && target.item.data && target.item.data.locked);
 					}
+				};
+
+				MT.redraw = function(){
+					MT.Selection.refresh();
+					MT.utilsHandle('refreshUI');
 				};
 
 				MT.onActivate = function(event){
@@ -1405,6 +1617,40 @@ var stamplines = (function() {
 
 					var delta = position.subtract(item.position);
 					item.translate(delta);
+				},
+				point: function(point){
+					var gridSize = SL.config('grid.size');
+					var origX = point.x;
+					var origY = point.y;
+					var check;
+
+					// bound to grid
+					check = Math.round(origX / gridSize) * gridSize;
+					if(check != origX){
+						point.x += (check - origX);
+					}
+
+					check = Math.round(origY / gridSize) * gridSize;
+					if(check != origY){
+						point.y += (check - origY);
+					}
+
+					// bound to canvas
+					var canvasSize = SL.Canvas.size();
+					if(point.x < 0){
+						point.x = 0;
+					}
+					else if(point.x > canvasSize.width){
+						point.x = canvasSize.width;
+					}
+					if(point.y < 0){
+						point.y = 0;
+					}
+					else if(point.y > canvasSize.height){
+						point.y = canvasSize.height;
+					}
+
+					return point;
 				},
 				position: function(point, item, padding, interactive){
 					if(item){
