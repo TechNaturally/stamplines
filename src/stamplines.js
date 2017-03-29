@@ -231,7 +231,6 @@ var stamplines = (function() {
 									if(!LT.Current.Line){
 										// initialize the line
 										LT.Current.Line = new paper.Path();
-										LT.Current.line.config.Group.addChild(LT.Current.Line);
 										Palette.Lines.applyStyle(LT.Current.Line, LT.Current.line.config.style);
 										LT.Current.Line.data.type = 'line';
 
@@ -268,7 +267,6 @@ var stamplines = (function() {
 									// initialize the live preview if there is not one
 									if(!LT.Next.segment){
 										LT.Next.segment = new paper.Path();
-										LT.Current.line.config.Group.addChild(LT.Next.segment);
 										Palette.Lines.applyStyle(LT.Next.segment, LT.Current.line.config.style);
 									}
 
@@ -294,54 +292,287 @@ var stamplines = (function() {
 						var MT = self.tools['master'];
 
 						var LE = {
-							State: {},
+							State: {
+								selectedPoint: undefined
+							},
+							UI: {
+								Group: undefined,
+								assertGroup: function(){
+									if(!LE.UI.Group){
+										LE.UI.Group = new paper.Group();
+										LE.UI.Group.remove(); // remove it from main layer, it gets added to MT.UI when enabled
+										MT.UI.enable(LE.UI.Group);
+									}
+								}
+							},
 							activate: function(){
+								LE.UI.assertGroup();
+								MT.UI.enable(LE.UI.Group);
 								MT.setUtilityControl(true);
-								this.State.target = MT.Mouse.Hover.target;
+
+								if(!this.State.target){
+									this.State.target = MT.Mouse.Hover.target;
+								}
+								this.UI.Outline.addToSegment( this.State.target );
+
 								this.refreshCursor();
 							},
 							deactivate: function(){
+								this.reset();
 								this.State.target = undefined;
-								this.State.drag = undefined;
+								this.State.Drag = undefined;
+								this.exitAppend();
+								MT.UI.disable(LE.UI.Group);
 								MT.setUtilityControl(false);
 							},
 							activatePriority: function(point){
-								if(MT.Mouse.Hover.target && MT.Mouse.Hover.targetSelected && MT.Mouse.Hover.target.type == 'segment'){
+								if(this.State.target){
 									return 1;
 								}
 								return -1;
+							},
+							exitAppend: function(){
+								if(LE.State.Append){
+									if(LE.State.Append.Line){
+										LE.State.Append.Line.remove();
+									}
+									LE.State.Append = undefined;
+								}
 							},
 							refreshCursor: function(){
 								if(this.active){
 									UI.Cursor.activate('crosshairs');
 								}
 							},
+							refreshUI: function(){
+								if(LE.UI.Group && LE.UI.Group.children){
+									for(var i=0; i < LE.UI.Group.children.length; i++){
+										var item = LE.UI.Group.children[i];
+										if(item && item.data && item.data.segment && item.data.segment != this.State.target){
+											LE.UI.Outline.removeFromSegment(item.data.segment);
+										}
+									}
+								}
+								if(LE.State.selectedPoint){
+									var item = LE.State.selectedPoint;
+									if(!item.outline){
+										this.UI.Outline.addToSegment( item );
+									}
+									if(item.outline){
+										var delta = item.point.subtract(item.outline.position);
+										item.outline.translate(delta);
+									}
+								}
+							},
+							reset: function(){
+								// unselect all points
+								LE.unselectPoint();
+							},
+							selectPoint: function(item){
+								// make sure target is selected
+								if(item && LE.State.selectedPoint != item){
+									LE.UI.Outline.removeFromSegment(LE.State.selectedPoint);
+
+									LE.State.selectedPoint = item;
+									LE.UI.Outline.addToSegment(LE.State.selectedPoint);
+								}
+							},
+							unselectPoint: function(item){
+								if(item == undefined){
+									item = LE.State.selectedPoint;
+								}
+								// unselect all points
+								if(item && LE.State.selectedPoint == item){
+									if(item.outline){
+										item.outline.remove();
+										item.outline = undefined;
+									}
+									LE.State.selectedPoint = undefined;
+								}
+							},
+							onSelectionChange: function(){
+								if(!MT.Selection.count()){
+									this.reset();
+								}
+							},
+							onDoubleClick: function(event){
+								if(LE.active && LE.State.target){
+									if(LE.State.target.path && LE.State.target.path.segments && LE.State.target.path.segments.length > 2){
+										if(LE.State.Append){
+											LE.exitAppend();
+										}
+										LE.unselectPoint(LE.State.target);
+										LE.State.target.remove();
+										MT.redraw();
+									}
+								}
+							},
+							onKeyDown: function(event){
+								if(LE.active && LE.State){
+									if(LE.State.Append){
+										// Append Mode
+										if(event.key == 'escape'){
+											LE.exitAppend();
+											MT.checkActive();
+											return;
+										}
+									}
+								}
+							},
+							onMouseDown: function(event){
+								if(LE.active && LE.State.target){
+									if(LE.State.Append){
+										// Append Mode
+										if(event.event.button == 2){
+											// right click cancels
+											LE.exitAppend();
+											MT.checkActive();
+											return;
+										}
+										if(LE.State.Append.lastPoint && LE.State.Append.nextPoint && 
+											(LE.State.Append.lastPoint.x != LE.State.Append.nextPoint.x || LE.State.Append.lastPoint.y != LE.State.Append.nextPoint.y)){
+											// mouse down somewhere not on the last point
+											// add a new point
+											var pt = LE.State.Append.nextPoint.clone();
+											Util.Bound.point( pt );
+											var newSegment;
+											if(LE.State.Append.toStart){
+												newSegment = LE.State.Append.target.insert(0, pt);
+											}
+											else{
+												newSegment = LE.State.Append.target.add(pt);
+											}
+											// advance the last point and next point
+											LE.State.Append.lastPoint = pt;
+											LE.State.Append.nextPoint = UI.Mouse.State.point.clone();
+
+											// select the new end point
+											this.selectPoint(newSegment);
+
+											// refresh UI
+											this.onMouseMove(event);
+											MT.redraw();
+										}
+									}
+									else if(LE.State.target){
+										LE.selectPoint(LE.State.target);
+									}
+								}
+							},
 							onMouseDrag: function(event){
-								if(this.active && event.delta && this.State.target && this.State.target.segment){
-									this.State.target.segment.point.x += event.delta.x;
-									this.State.target.segment.point.y += event.delta.y;
-									MT.redraw();
+								if(this.active && event.delta && this.State.target){
+									if(!this.State.Append){
+										this.State.Drag = true;
+
+										// make sure target is selected
+										if(this.State.selectedPoint != this.State.target){
+											this.selectPoint(this.State.target);
+										}
+
+										if(this.State.selectedPoint){
+											var item = this.State.selectedPoint;
+											var pt = item.point.add(event.delta);
+											item.point.set(pt);
+										}
+
+										MT.redraw();
+									}
 								}
 							},
 							onMouseUp: function(event){
-								if(this.active && this.State.target && this.State.target.segment){
-									var pt = UI.Mouse.State.point.clone();
-									Util.Bound.point( pt );
-									this.State.target.segment.point.set( pt );
-									MT.redraw();
+								if(this.active && this.State.target){
+									if(this.State.Drag){
+										// released a drag
+										if(this.State.selectedPoint){
+											var item = this.State.selectedPoint;
+											var pt = item.point.clone();
+											Util.Bound.point( pt );
+											item.point.set( pt );
+										}
+										this.State.Drag = undefined;
+										MT.redraw();
+									}
+									else if(!this.State.Append){
+										if(this.State.target.path && this.State.target.path.segments){
+											var pathSegments = this.State.target.path.segments;
+											var segIndex = this.State.target.index;
+											if(segIndex === 0 || segIndex === pathSegments.length-1){
+												// end point clicked
+												// enter Append Mode
+												LE.State.Append = {
+													target: LE.State.target.path,
+													toStart: (segIndex === 0),
+													lastPoint: LE.State.target.point,
+													nextPoint: undefined,
+													Line: undefined
+												};
+												// set next point at Mouse position
+												var pt = UI.Mouse.State.point.clone();
+												Util.Bound.point( pt );
+												LE.State.Append.nextPoint = pt;
+
+												// create a line from last point to next point
+												LE.State.Append.Line = new paper.Path(LE.State.Append.lastPoint, LE.State.Append.nextPoint);
+												LE.State.Append.Line.set({style: LE.State.target.path.style});
+											}
+										}	
+									}
 								}
 							},
 							onMouseMove: function(event){
-								if(this.active){
-									if(!this.State.target || !MT.Mouse.Hover.target 
-											|| MT.Mouse.Hover.target.item != this.State.target.item 
-											|| MT.Mouse.Hover.target.segment != this.State.target.segment
-										){
-										MT.setUtilityControl(false);
-										MT.checkActive();
+
+								if(MT.Mouse.Hover.target && MT.Mouse.Hover.targetSelected && MT.Mouse.Hover.target.type == 'segment' && MT.Mouse.Hover.target.segment){
+									this.State.target = MT.Mouse.Hover.target.segment;
+								}
+								else if(MT.Mouse.Hover.targetItem && LE.UI.Group && MT.Mouse.Hover.targetItem.isDescendant(LE.UI.Group) 
+									&& MT.Mouse.Hover.targetItem.data && MT.Mouse.Hover.targetItem.data.type == 'segment-outline'){
+
+									if(MT.Mouse.Hover.targetItem.data.segment && this.State.target != MT.Mouse.Hover.targetItem.data.segment){
+										this.State.target = MT.Mouse.Hover.targetItem.data.segment;
 									}
 								}
+								else if(this.State.Append){
+									if(this.State.Append.Line){
+										var pt = UI.Mouse.State.point.clone();
+										Util.Bound.point( pt );
+										LE.State.Append.nextPoint.set(pt);
+										LE.State.Append.Line.removeSegments();
+										LE.State.Append.Line.add(LE.State.Append.lastPoint, LE.State.Append.nextPoint);
+									}
+								}
+								else if(this.State.target){
+									this.UI.Outline.removeFromSegment(this.State.target);
+
+									this.State.target = undefined;
+									MT.setUtilityControl(false);
+									MT.checkActive();
+								}
 							}
+						};
+						LE.UI.Outline = {
+							addToSegment: function(segment){
+								if(segment && !segment.outline){
+									segment.outline = new paper.Path.Circle( segment.point, 12, 12 );
+									segment.outline.data.locked = true;
+									segment.outline.data.type = 'segment-outline';
+									segment.outline.data.segment = segment;
+									segment.outline.remove();
+									segment.outline.strokeWidth = 3;
+									segment.outline.strokeColor = '#00AA33';
+									segment.outline.fillColor = '#FFFFFF';
+									segment.outline.opacity = 0.75;
+									segment.outline.onDoubleClick = LE.onDoubleClick;
+									LE.UI.assertGroup();
+									LE.UI.Group.addChild(segment.outline);
+								}
+							},
+							removeFromSegment: function(segment){
+								if(segment && segment.outline){
+									segment.outline.remove();
+									segment.outline = undefined;
+								}
+							}
+
 						};
 						Tools.addUtility('LineEditor', LE);
 					}
@@ -352,10 +583,6 @@ var stamplines = (function() {
 						var line = lines[i];
 						if(!line.id){
 							continue;
-						}
-						if(SL.assertPaper()){
-							line.Group = new paper.Group();
-							paper.project.activeLayer.addChild(line.Group);
 						}
 						self.lines.push(line);
 					}
@@ -368,18 +595,6 @@ var stamplines = (function() {
 						for(var prop in style){
 							line[prop] = style[prop];
 						}
-					}
-				},
-				new: function(line, point1, point2){
-					console.log('NEW LINE => ', line);
-					if(line && line.Group){
-						/**
-						var newLine = new paper.Path.Line(point1, point2);
-						if(line.style){
-							newLine.set(line.style);
-						}
-						line.Group.addChild(newLine);
-						*/
 					}
 				},
 				refreshPanel: function(){
@@ -892,7 +1107,7 @@ var stamplines = (function() {
 							this.refreshCursor();
 						},
 						activatePriority: function(point){
-							if(MT.Mouse.Hover.selection && !MT.Utils.Select.multi && !MT.Mouse.Hover.targetUnselected){
+							if(MT.Mouse.Hover.selection && !MT.Utils.Select.multi && (MT.Mouse.Hover.targetLocked || !MT.Mouse.Hover.targetUnselected)){
 								return 5;
 							}
 							return -1;
@@ -951,10 +1166,14 @@ var stamplines = (function() {
 							this.refreshUI();
 						},
 						disableUI: function(){
-							this.UI.Group.visible = false;
+							if(this.UI.Group){
+								this.UI.Group.visible = false;
+							}
 						},
 						enableUI: function(){
-							this.UI.Group.visible = true;
+							if(this.UI.Group){
+								this.UI.Group.visible = true;
+							}
 							this.refreshUI();
 						},
 						activatePriority: function(point){
@@ -973,7 +1192,7 @@ var stamplines = (function() {
 								if(MT.Selection.UI.outline && MT.Selection.UI.outline.visible){
 									if(!this.UI.Group){
 										this.UI.Group = new paper.Group();
-										this.UI.Group.remove();
+										this.UI.Group.remove(); // remove it from main layer, it gets added to MT.UI when enabled
 									}
 
 									var rotateSlices = SL.config('rotate.slices');
