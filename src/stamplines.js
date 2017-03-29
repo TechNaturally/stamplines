@@ -892,7 +892,7 @@ var stamplines = (function() {
 							this.refreshCursor();
 						},
 						activatePriority: function(point){
-							if(MT.Mouse.Hover.selection && !MT.Utils.Select.multi){
+							if(MT.Mouse.Hover.selection && !MT.Utils.Select.multi && !MT.Mouse.Hover.targetUnselected){
 								return 5;
 							}
 							return -1;
@@ -955,6 +955,7 @@ var stamplines = (function() {
 						},
 						enableUI: function(){
 							this.UI.Group.visible = true;
+							this.refreshUI();
 						},
 						activatePriority: function(point){
 							if(MT.Mouse.Hover.rotateHandle){
@@ -1256,10 +1257,9 @@ var stamplines = (function() {
 						},
 						onMouseUp: function(event){
 							if(this.active && UI.Mouse.State.button.drag && MT.Selection.count()){
-								for(var i=0; i < MT.Selection.Group.children.length; i++){
-									var item = MT.Selection.Group.children[i];
+								MT.Selection.each(function lockToGrid(item){
 									Util.Bound.lockToGrid(item);
-								}
+								});
 								MT.redraw();
 							}
 						},
