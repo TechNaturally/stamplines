@@ -125,7 +125,7 @@ var stamplines = (function() {
 		var Palette = {
 			initTools: function(){
 				this.Lines.initTools();
-
+				this.Stamps.initTools();
 			},
 			load: function(path){
 				var defer = $.Deferred();
@@ -136,38 +136,46 @@ var stamplines = (function() {
 						}
 						var loaders = [];
 
-						Palette.name = data.name;
-						Palette.Stamps.config = $.extend({
+						// read the stamp and line configs
+						var stampConfig = $.extend({
 							path: ''
 						}, data.Stamp);
 
-						Palette.Lines.config = $.extend({
+						var lineConfig = $.extend({
 							preview: {
 								width: 50,
 								height: 50
 							}
 						}, data.Line);
 
+						// normalize asset paths
 						var basePath = '';
 						var lastSlash = path.lastIndexOf('/');
 						if(lastSlash != -1){
 							basePath = path.substr(0, lastSlash+1);
 						}
-						if(Palette.Stamps.config.path && Palette.Stamps.config.path != '/' && basePath){
-							Palette.Stamps.config.path = basePath+Palette.Stamps.config.path;
+						if(stampConfig.path && stampConfig.path != '/' && basePath){
+							stampConfig.path = basePath+stampConfig.path;
 						}
-						if(Palette.Stamps.config.path && Palette.Stamps.config.path != '/'){
-							Palette.Stamps.config.path += '/';
+						if(lineConfig.path && lineConfig.path != '/'){
+							lineConfig.path += '/';
 						}
 
+						// initialize the palette
+						Palette.name = data.name;
+
+						Palette.Stamps.init(stampConfig);
+						Palette.Lines.init(lineConfig);
+
+						// load the stamps and lines
 						if(data.stamps){
 							loaders.push( Palette.Stamps.load(data.stamps) );
 						}
-
 						if(data.lines){
 							loaders.push( Palette.Lines.load(data.lines) );
 						}
 
+						// wait for all loaders to complete
 						$.when.apply($, loaders).always(function PaletteLoaded(){
 							defer.resolve();
 						});
@@ -177,6 +185,10 @@ var stamplines = (function() {
 
 			Lines: {
 				config: {},
+				lines: [],
+				init: function(config){
+					this.config = config;
+				},
 				initTools: function(){
 					if(SL.assertPaper()){
 						var LT = new paper.Tool();
@@ -201,14 +213,19 @@ var stamplines = (function() {
 
 						LT.onActivate = function(event){
 							UI.Cursor.activate('crosshairs');
+							if(MT.Utils['ShapeConnector']){
+								MT.Utils['ShapeConnector'].UI.createConnectionPoints();
+							}
 						};
 						LT.onDeactivate = function(event){
 							LT.Current.line = undefined;
 							LT.Current.Line = undefined;
-
 							if(LT.Next.segment){
 								LT.Next.segment.remove();
 								LT.Next.segment = undefined;
+							}
+							if(MT.Utils['ShapeConnector']){
+								MT.Utils['ShapeConnector'].UI.removeConnectionPoints();
 							}
 						};
 
@@ -228,6 +245,7 @@ var stamplines = (function() {
 								var points = LT.Current.line.points;
 								// add the segment if there are 2 or more points
 								if(points.length > 1){
+									var SC = MT.Utils['ShapeConnector'];
 									if(!LT.Current.Line){
 										// initialize the line
 										LT.Current.Line = new paper.Path();
@@ -237,15 +255,58 @@ var stamplines = (function() {
 										// add the last two points
 										var pt1 = points[points.length-2].clone();
 										var pt2 = points[points.length-1].clone();
-										Util.Bound.point(pt1);
-										Util.Bound.point(pt2);
+
+										// integrate with ShapeConnector utility
+										var connectTo1, connectTo2;
+										if(SC){
+											connectTo1 = SC.Points.hitTest(pt1);
+											if(connectTo1 && connectTo1.position){
+												pt1.set(connectTo1.position);
+											}
+											connectTo2 = SC.Points.hitTest(pt2);
+											if(connectTo2 && connectTo2.position){
+												pt2.set(connectTo2.position);
+											}
+										}
+
+										if(!connectTo1){
+											Util.Bound.point(pt1);
+										}
+										if(!connectTo2){
+											Util.Bound.point(pt2);
+										}
+										
 										LT.Current.Line.add( pt1, pt2 );
+										if(connectTo1 && connectTo1.data && connectTo1.data.type == 'connection-point' && LT.Current.Line.segments.length > 0){
+											var segment = LT.Current.Line.segments[0];
+											SC.connect(segment, connectTo1.data.connection, connectTo1.data.item);
+
+										}
+										if(connectTo2 && connectTo2.data && connectTo2.data.type == 'connection-point' && LT.Current.Line.segments.length > 1){
+											var segment = LT.Current.Line.segments[1];
+											SC.connect(segment, connectTo2.data.connection, connectTo2.data.item);
+										}
 									}
 									else{
 										// add the last point
 										var pt = points[points.length-1].clone();
 										Util.Bound.point(pt);
-										LT.Current.Line.add( pt );
+										// integrate with ShapeConnector utility
+										var connectTo;
+										if(SC){
+											connectTo = SC.Points.hitTest(event.point);
+											if(connectTo && connectTo.position){
+												pt.set(connectTo.position);
+											}
+										}
+										var lastSegment = (LT.Current.Line.segments.length ? LT.Current.Line.segments[LT.Current.Line.segments.length-1] : undefined);
+										var segment = LT.Current.Line.add( pt );
+										if(segment && lastSegment && lastSegment.data && lastSegment.data.connection){
+											SC.disconnect(lastSegment, lastSegment.data.connection);
+										}
+										if(connectTo && connectTo.data && connectTo.data.type == 'connection-point' && segment){
+											SC.connect(segment, connectTo.data.connection, connectTo.data.item);
+										}
 									}
 								}
 
@@ -261,6 +322,16 @@ var stamplines = (function() {
 										pt = points[points.length-1].clone();
 										Util.Bound.point( pt );
 									}
+
+									// integrate with ShapeConnector utility
+									var connectTo;
+									if(MT.Utils['ShapeConnector']){
+										connectTo = MT.Utils['ShapeConnector'].Points.hitTest(event.point);
+										if(connectTo && connectTo.position){
+											pt.set(connectTo.position);
+										}
+									}
+
 									// set the lastPoint
 									LT.Next.lastPoint.set( pt );
 
@@ -280,17 +351,24 @@ var stamplines = (function() {
 							// update the nextPoint for the live preview
 							var pt = UI.Mouse.State.point.clone();
 							Util.Bound.point( pt );
+
+							// integrate with ShapeConnector utility
+							if(MT.Utils['ShapeConnector']){
+								var connectTo = MT.Utils['ShapeConnector'].Points.hitTest(event.point);
+								if(connectTo && connectTo.position){
+									pt.set(connectTo.position);
+								}
+							}
+
 							LT.Next.nextPoint.set( pt );
 							if(LT.Next.segment){
 								LT.Next.segment.removeSegments();
 								LT.Next.segment.add( LT.Next.lastPoint, LT.Next.nextPoint );
 							}
 						};
-
 						Tools.addTool('lines', LT);
 
 						var MT = self.tools['master'];
-
 						var LE = {
 							State: {
 								selectedPoint: undefined
@@ -303,6 +381,7 @@ var stamplines = (function() {
 										LE.UI.Group.remove(); // remove it from main layer, it gets added to MT.UI when enabled
 										MT.UI.enable(LE.UI.Group);
 									}
+									LE.UI.Group.bringToFront();
 								}
 							},
 							activate: function(){
@@ -338,6 +417,13 @@ var stamplines = (function() {
 									}
 									LE.State.Append = undefined;
 								}
+								if(MT.Utils['ShapeConnector']){
+									MT.Utils['ShapeConnector'].UI.removeConnectionPoints();
+								}
+								if(LE.State.selectedPoint && (!MT.Mouse.Hover.targetItem || !MT.Mouse.Hover.targetItem.data || !MT.Mouse.Hover.targetItem.data.segment || MT.Mouse.Hover.targetItem.data.segment != LE.State.selectedPoint)){
+									LE.unselectPoint(LE.State.selectedPoint);
+								}
+								MT.redraw();
 							},
 							refreshCursor: function(){
 								if(this.active){
@@ -396,7 +482,7 @@ var stamplines = (function() {
 								}
 							},
 							onDoubleClick: function(event){
-								if(LE.active && LE.State.target){
+								if(LE.active && LE.State.target && event.event && event.event.button === 0){
 									if(LE.State.target.path && LE.State.target.path.segments && LE.State.target.path.segments.length > 2){
 										if(LE.State.Append){
 											LE.exitAppend();
@@ -421,10 +507,12 @@ var stamplines = (function() {
 							},
 							onMouseDown: function(event){
 								if(LE.active && LE.State.target){
+									LE.State.mouseDownExitAppend = false;
 									if(LE.State.Append){
 										// Append Mode
 										if(event.event.button == 2){
 											// right click cancels
+											LE.State.mouseDownExitAppend = true;
 											LE.exitAppend();
 											MT.checkActive();
 											return;
@@ -435,13 +523,36 @@ var stamplines = (function() {
 											// add a new point
 											var pt = LE.State.Append.nextPoint.clone();
 											Util.Bound.point( pt );
-											var newSegment;
+
+											// integrate with ShapeConnector utility
+											var SC = MT.Utils['ShapeConnector'];
+											var connectTo;
+											if(SC){
+												connectTo = SC.Points.hitTest(event.point);
+												if(connectTo && connectTo.position){
+													pt.set(connectTo.position);
+												}
+											}
+											var newSegment, lastSegment;
 											if(LE.State.Append.toStart){
+												if(LE.State.Append.target.segments.length){
+													lastSegment = LE.State.Append.target.segments[0];
+												}
 												newSegment = LE.State.Append.target.insert(0, pt);
 											}
 											else{
+												if(LE.State.Append.target.segments.length){
+													lastSegment = LE.State.Append.target.segments[LE.State.Append.target.segments.length-1];
+												}
 												newSegment = LE.State.Append.target.add(pt);
 											}
+											if(newSegment && lastSegment && lastSegment.data && lastSegment.data.connection){
+												SC.disconnect(lastSegment, lastSegment.data.connection);
+											}
+											if(newSegment && connectTo && connectTo.data && connectTo.data.type == 'connection-point'){
+												SC.connect(newSegment, connectTo.data.connection, connectTo.data.item);
+											}
+
 											// advance the last point and next point
 											LE.State.Append.lastPoint = pt;
 											LE.State.Append.nextPoint = UI.Mouse.State.point.clone();
@@ -461,6 +572,14 @@ var stamplines = (function() {
 							},
 							onMouseDrag: function(event){
 								if(this.active && event.delta && this.State.target){
+									// Append Mode
+									if(event.event.button == 2){
+										// right click cancels
+										LE.State.mouseDownExitAppend = true;
+										LE.exitAppend();
+										MT.checkActive();
+										return;
+									}
 									if(!this.State.Append){
 										this.State.Drag = true;
 
@@ -470,9 +589,31 @@ var stamplines = (function() {
 										}
 
 										if(this.State.selectedPoint){
+											// calculate the new position for the item
 											var item = this.State.selectedPoint;
 											var pt = item.point.add(event.delta);
+
+											// integrate with ShapeConnector utility
+											var SC = MT.Utils['ShapeConnector'];
+											var connectTo;
+											if(SC){
+												connectTo = SC.Points.hitTest(event.point);
+												if(connectTo && connectTo.position){
+													pt.set(connectTo.position);
+												}
+											}
+
+											// set the item's new position
 											item.point.set(pt);
+
+											if(SC && item){
+												if(connectTo && connectTo.data && connectTo.data.type == 'connection-point'){
+													SC.connect(item, connectTo.data.connection, connectTo.data.item);
+												}
+												else if(item.data && item.data.connection){
+													SC.disconnect(item, item.data.connection);
+												}
+											}
 										}
 
 										MT.redraw();
@@ -487,12 +628,31 @@ var stamplines = (function() {
 											var item = this.State.selectedPoint;
 											var pt = item.point.clone();
 											Util.Bound.point( pt );
+
+											var SC = MT.Utils['ShapeConnector'];
+											var connectTo;
+											if(SC){
+												connectTo = SC.Points.hitTest(event.point);
+												if(connectTo && connectTo.position){
+													pt.set(connectTo.position);
+												}
+											}
+
 											item.point.set( pt );
+
+											if(SC){
+												if(connectTo && connectTo.data && connectTo.data.type == 'connection-point'){
+													SC.connect(item, connectTo.data.connection, connectTo.data.item);
+												}
+												else if(item.data && item.data.connection){
+													SC.disconnect(item, item.data.connection);
+												}
+											}
 										}
 										this.State.Drag = undefined;
 										MT.redraw();
 									}
-									else if(!this.State.Append){
+									else if(!this.State.Append && !LE.State.mouseDownExitAppend){
 										if(this.State.target.path && this.State.target.path.segments){
 											var pathSegments = this.State.target.path.segments;
 											var segIndex = this.State.target.index;
@@ -520,21 +680,30 @@ var stamplines = (function() {
 								}
 							},
 							onMouseMove: function(event){
-
+								var oldTarget = this.State.target;
 								if(MT.Mouse.Hover.target && MT.Mouse.Hover.targetSelected && MT.Mouse.Hover.target.type == 'segment' && MT.Mouse.Hover.target.segment){
 									this.State.target = MT.Mouse.Hover.target.segment;
+									MT.checkActive();
 								}
 								else if(MT.Mouse.Hover.targetItem && LE.UI.Group && MT.Mouse.Hover.targetItem.isDescendant(LE.UI.Group) 
 									&& MT.Mouse.Hover.targetItem.data && MT.Mouse.Hover.targetItem.data.type == 'segment-outline'){
 
 									if(MT.Mouse.Hover.targetItem.data.segment && this.State.target != MT.Mouse.Hover.targetItem.data.segment){
 										this.State.target = MT.Mouse.Hover.targetItem.data.segment;
+										MT.checkActive();
 									}
 								}
 								else if(this.State.Append){
 									if(this.State.Append.Line){
 										var pt = UI.Mouse.State.point.clone();
 										Util.Bound.point( pt );
+										// integrate with ShapeConnector utility
+										if(MT.Utils['ShapeConnector']){
+											var connectTo = MT.Utils['ShapeConnector'].Points.hitTest(event.point);
+											if(connectTo && connectTo.position){
+												pt.set(connectTo.position);
+											}
+										}
 										LE.State.Append.nextPoint.set(pt);
 										LE.State.Append.Line.removeSegments();
 										LE.State.Append.Line.add(LE.State.Append.lastPoint, LE.State.Append.nextPoint);
@@ -542,7 +711,6 @@ var stamplines = (function() {
 								}
 								else if(this.State.target){
 									this.UI.Outline.removeFromSegment(this.State.target);
-
 									this.State.target = undefined;
 									MT.setUtilityControl(false);
 									MT.checkActive();
@@ -654,6 +822,217 @@ var stamplines = (function() {
 
 			Stamps: {
 				config: {},
+				stamps: [],
+				init: function(config){
+					this.config = config;
+				},
+				initTools: function(){
+					var MT = self.tools['master'];
+					var SC = {
+						UI: {
+							ConnectionPoints: undefined,
+
+							createConnectionPoints: function(){
+								if(!this.ConnectionPoints){
+									this.ConnectionPoints = new paper.Group();
+									this.ConnectionPoints.remove();
+								}
+								for(var i=0; i < Palette.Stamps.stamps.length; i++){
+									var item = Palette.Stamps.stamps[i];
+									this.createConnectionPointsForStamp(item);
+									
+								}
+								MT.UI.enable(this.ConnectionPoints);
+							},
+							createConnectionPointsForStamp: function(item){
+								if(item && item.data && item.data.connections){
+									var connections = item.data.connections;
+									for(var i=0; i < connections.length; i++){
+										var connection = connections[i];
+										var point = Palette.Stamps.denormalizePoint( new paper.Point(connection.source), item );
+										var connectUI = new paper.Shape.Circle(point, 9);
+										connectUI.data.locked = true;
+										connectUI.data.type = 'connection-point';
+										connectUI.data.item = item;
+										connectUI.data.connection = connection;
+										connectUI.strokeColor = '#9900AA';
+										connectUI.strokeWidth = 3;
+										connectUI.strokeScaling = false;
+										connectUI.fillColor = '#FFFFFF';
+										connectUI.opacity = 0.75;
+										this.ConnectionPoints.addChild(connectUI);
+									}
+								}
+							},
+							eachConnectionPoints: function(callback, args){
+								if(this.ConnectionPoints && this.ConnectionPoints.children && typeof callback == 'function'){
+									for(var i=0; i < this.ConnectionPoints.children.length; i++){
+										var connectionPoint = this.ConnectionPoints.children[i];
+										var item = ((connectionPoint && connectionPoint.data) ? connectionPoint.data.item : undefined);
+										if(callback(connectionPoint, item, i, args) === true){
+											return;
+										}
+									}
+								}
+							},
+							hasConnectionPoints: function(){
+								return (this.ConnectionPoints && this.ConnectionPoints.children && this.ConnectionPoints.children.length);
+							},
+							removeConnectionPoints: function(immediate){
+								if(this.ConnectionPoints){
+									this.ConnectionPoints.removeChildren();
+									MT.UI.disable(this.ConnectionPoints);
+								}
+							}
+						},
+						connect: function(segment, connection, item){
+							if(connection && connection.connected && connection.connected.indexOf(segment) == -1){
+								connection.connected.push(segment);
+								if(!segment.data){
+									segment.data = {};
+								}
+								if(segment.data && (segment.data.connection != connection || segment.data.connectedTo != item)){
+									this.disconnect(segment, segment.data.connection);
+								}
+								segment.data.connection = connection;
+								segment.data.connectedTo = item;
+							}
+						},
+						disconnect: function(segment, connection){
+							if(!connection && segment && segment.data && segment.data.connection){
+								connection = segment.data.connection;
+							}
+							if(connection && connection.connected){
+								var connectedIdx = connection.connected.indexOf(segment);
+								if(connectedIdx != -1){
+									connection.connected.splice(connectedIdx, 1);
+								}
+								if(segment.data){
+									segment.data.connection = undefined;
+									segment.data.connectedTo = undefined;
+								}
+							}
+						},
+						refreshConnected: function(item){
+							if(item && item.data && item.data.connections){
+								for(var i=0; i < item.data.connections.length; i++){
+									var connection = item.data.connections[i];
+									if(connection && connection.source && connection.connected && connection.connected.length){
+										for(var j=0; j < connection.connected.length; j++){
+											var connected = connection.connected[j];
+											var point = Palette.Stamps.denormalizePoint( new paper.Point(connection.source), item );
+											connected.point.set(point);
+										}
+									}
+								}
+							}
+						},
+						Points: {
+							hitTest: function(point){
+								// check if the point is on a connection point
+								var connection = { check: point };
+								SC.UI.eachConnectionPoints(function checkConnectionPoint(connectPt, connectionItem, idx, match){
+									var hit = connectPt.hitTest(match.check);
+									if(hit && hit.item){
+										connection.hit = hit.item;
+									}
+								}, connection);
+								return connection.hit;
+							},
+							each: function(callback, args){
+								if(typeof callback == 'function'){
+									for(var i=0; i < Palette.Stamps.stamps.length; i++){
+										var item = Palette.Stamps.stamps[i];
+										if(item && item.data && item.data.stamp && item.data.stamp.connections){
+											var connections = item.data.stamp.connections;
+											for(var j=0; j < connections.length; j++){
+												if(callback(connections[j], item, j, args) === true){
+													return;
+												}
+											}
+										}
+									}
+								}
+							}
+						},
+						onMouseHoverTargetChange: function(event){
+							var target = event.target;
+							var oldTarget = event.oldTarget;
+
+							var targetSegment = ((target && target.segment)?target.segment:undefined);
+							var oldTargetSegment = ((oldTarget && oldTarget.segment)?oldTarget.segment:undefined);
+
+							if(!targetSegment && target && target.item && target.item.data && target.item.data.segment){
+								targetSegment = target.item.data.segment;
+							}
+
+							if(!oldTargetSegment && oldTarget && oldTarget.item && oldTarget.item.data && oldTarget.item.data.segment){
+								oldTargetSegment = oldTarget.item.data.segment;
+							}
+							var endTargetted = false;
+							var wasEndTargetted = false;
+							if(targetSegment != oldTargetSegment){
+								var pathSegments, segIndex;
+								if(targetSegment && targetSegment.path && MT.Selection.contains(targetSegment.path)){
+									pathSegments = targetSegment.path.segments;
+									segIndex = targetSegment.index;
+									if(segIndex === 0 || segIndex === pathSegments.length-1){
+										endTargetted = true;
+									}
+								}
+								if(oldTargetSegment && oldTargetSegment.path){
+									pathSegments = oldTargetSegment.path.segments;
+									segIndex = oldTargetSegment.index;
+									if(segIndex === 0 || segIndex === pathSegments.length-1){
+										wasEndTargetted = true;
+									}
+								}
+							}
+							if(endTargetted){
+								this.UI.createConnectionPoints();
+							}
+							else if(wasEndTargetted 
+								&& (!MT.Utils['LineEditor'] || !MT.Utils['LineEditor'].State || !MT.Utils['LineEditor'].State.selectedPoint)
+								&& (!self.tools['lines'] || !self.tools['lines'].active )){
+								this.UI.removeConnectionPoints();
+							}
+						}
+					};
+					Tools.addUtility('ShapeConnector', SC);
+				},
+				denormalizePoint: function(point, stamp){
+					if(point && stamp && stamp.position && stamp.strokeBounds){
+						var rotation = stamp.rotation;
+						if(rotation){
+							stamp.rotate(-rotation);
+						}
+						var bounds = new paper.Point(stamp.strokeBounds.width/2.0, stamp.strokeBounds.height/2.0);
+						point = stamp.position.add(point.multiply(bounds));
+						if(rotation){
+							stamp.rotate(rotation);
+							point = point.rotate(rotation, stamp.position);
+						}
+						return point;
+					}
+				},
+				Connections: {
+					normalize: function(stamp){
+						if(stamp.connections){
+							if(stamp.symbol.item){
+								var size = stamp.symbol.item.strokeBounds;
+								for(var i=0; i < stamp.connections.length; i++){
+									var connection = stamp.connections[i];
+									if(size.width && (connection.x < -1.0 || connection.x > 1.0)){
+										connection.x /= (size.width/2.0);
+									}
+									if(size.height && (connection.y < -1.0 || connection.y > 1.0)){
+										connection.y /= (size.height/2.0);
+									}
+								}
+							}
+						}
+					}
+				},
 				load: function(stamps, path){
 					if(path == undefined){
 						path = this.config.path;
@@ -692,6 +1071,7 @@ var stamplines = (function() {
 								var symbolItem = paper.project.importSVG(svg);
 								symbolItem.style.strokeScaling = false;
 								this.stamp.symbol = new paper.Symbol( symbolItem );
+								Palette.Stamps.Connections.normalize( this.stamp );
 							}
 						})
 						.fail(function stampImageNotFound(){
@@ -737,9 +1117,20 @@ var stamplines = (function() {
 						// place an instance of the symbol
 						var newStamp = stamp.symbol.place(position);
 						newStamp.data.type = 'stamp';
+						newStamp.data.stamp = stamp;
+						if(newStamp.data.stamp.connections){
+							newStamp.data.connections = [];
+							for(var i=0; i < newStamp.data.stamp.connections.length; i++){
+								newStamp.data.connections.push({
+									source: newStamp.data.stamp.connections[i],
+									connected: []
+								});
+							}
+						}
 						if(newStamp.bounds.width && newStamp.bounds.height){
 							newStamp.scale(size.width/newStamp.bounds.width, size.height/newStamp.bounds.height, newStamp.bounds.topLeft);
 						}
+						this.stamps.push(newStamp);
 					}
 				},
 				refreshPanel: function(){
@@ -968,6 +1359,7 @@ var stamplines = (function() {
 							item.visible = true;
 							this.add(item);
 						}
+						this.Group.bringToFront();
 					},
 					remove: function(item){
 						if(item && this.contains(item)){
@@ -1009,8 +1401,8 @@ var stamplines = (function() {
 						}
 					}
 				};
-				MT.utilsHandle = function(func, args){
-					if(this.utilityControl){
+				MT.utilsHandle = function(func, args, forceAll){
+					if(this.utilityControl && !forceAll){
 						MT.utilsHandleActive(func, args);
 					}
 					else{
@@ -1124,6 +1516,22 @@ var stamplines = (function() {
 
 								var delta = position.subtract(MT.Selection.Group.position);
 								MT.Selection.Group.translate(delta);
+								
+								if(MT.Utils['ShapeConnector']){
+									MT.Selection.each(function processDragged(item, idx, data){
+										if(item && item.data && item.data.connections){
+											MT.Utils['ShapeConnector'].refreshConnected(item);
+										}
+										if(item && item.segments){
+											for(var i=0; i < item.segments.length; i++){
+												var segment = item.segments[i];
+												if(segment.data && segment.data.connectedTo){
+													MT.Utils['ShapeConnector'].refreshConnected(segment.data.connectedTo);
+												}
+											}
+										}
+									});
+								}
 								MT.redraw();
 							}
 						},
@@ -1135,7 +1543,7 @@ var stamplines = (function() {
 								var delta = position.subtract(MT.Selection.Group.position);
 								MT.Selection.Group.translate(delta);
 
-								MT.Selection.each(function shiftLines(item, idx, data){
+								MT.Selection.each(function processMoved(item, idx, data){
 									if(item && item.data && item.data.type == 'line' && item.segments && item.segments.length){
 										// since all points should be already locked to grid,
 										// any offset on the first point should also apply to the entire line
@@ -1144,6 +1552,20 @@ var stamplines = (function() {
 										Util.Bound.point( pt );
 										var lineDelta = pt.subtract(item.segments[0].point);
 										item.translate(lineDelta);
+									}
+
+									if(MT.Utils['ShapeConnector']){
+										if(item && item.data && item.data.connections){
+											MT.Utils['ShapeConnector'].refreshConnected(item);
+										}
+										if(item && item.segments){
+											for(var i=0; i < item.segments.length; i++){
+												var segment = item.segments[i];
+												if(segment.data && segment.data.connectedTo){
+													MT.Utils['ShapeConnector'].refreshConnected(segment.data.connectedTo);
+												}
+											}
+										}
 									}
 								});
 								MT.redraw();
@@ -1308,6 +1730,23 @@ var stamplines = (function() {
 
 								MT.Selection.Group.rotate(delta);
 								MT.Selection.rotation = angle;
+
+								MT.Selection.each(function processRotated(item, idx, data){
+									if(MT.Utils['ShapeConnector']){
+										if(item && item.data && item.data.connections){
+											MT.Utils['ShapeConnector'].refreshConnected(item);
+										}
+										if(item && item.segments){
+											for(var i=0; i < item.segments.length; i++){
+												var segment = item.segments[i];
+												if(segment.data && segment.data.connectedTo){
+													MT.Utils['ShapeConnector'].refreshConnected(segment.data.connectedTo);
+												}
+											}
+										}
+									}
+								});
+								
 								MT.redraw();
 							}
 						},
@@ -1468,6 +1907,20 @@ var stamplines = (function() {
 										if(rotation){
 											item.rotate(rotation, origBounds.center);
 										}
+
+										if(MT.Utils['ShapeConnector']){
+											if(item && item.data && item.data.connections){
+												MT.Utils['ShapeConnector'].refreshConnected(item);
+											}
+											if(item && item.segments){
+												for(var i=0; i < item.segments.length; i++){
+													var segment = item.segments[i];
+													if(segment.data && segment.data.connectedTo){
+														MT.Utils['ShapeConnector'].refreshConnected(segment.data.connectedTo);
+													}
+												}
+											}
+										}
 									}, data);
 
 									MT.redraw();
@@ -1476,8 +1929,22 @@ var stamplines = (function() {
 						},
 						onMouseUp: function(event){
 							if(this.active && UI.Mouse.State.button.drag && MT.Selection.count()){
-								MT.Selection.each(function lockToGrid(item){
+								MT.Selection.each(function processScaled(item){
 									Util.Bound.lockToGrid(item);
+
+									if(MT.Utils['ShapeConnector']){
+										if(item && item.data && item.data.connections){
+											MT.Utils['ShapeConnector'].refreshConnected(item);
+										}
+										if(item && item.segments){
+											for(var i=0; i < item.segments.length; i++){
+												var segment = item.segments[i];
+												if(segment.data && segment.data.connectedTo){
+													MT.Utils['ShapeConnector'].refreshConnected(segment.data.connectedTo);
+												}
+											}
+										}
+									}
 								});
 								MT.redraw();
 							}
@@ -1573,6 +2040,7 @@ var stamplines = (function() {
 									if(!activate){
 										activate = {};
 									}
+									activate.name = name;
 									activate.util = this.Utils[name];
 									activate.priority = priority;
 								}
@@ -1586,10 +2054,14 @@ var stamplines = (function() {
 
 				MT.checkTarget = function(){
 					if(UI.Mouse.State.active && UI.Mouse.State.point){
+						var oldTarget = this.Mouse.Hover.target;
 						var target = paper.project.hitTest(UI.Mouse.State.point);
 						this.Mouse.Hover.target = target;
 						this.Mouse.Hover.targetItem = ((target && target.item) ? target.item : null);
 						this.Mouse.Hover.targetLocked = (target && target.item && target.item.data && target.item.data.locked);
+						if( (!target && oldTarget) || (target && !oldTarget) || (target && oldTarget && (target.item != oldTarget.item || target.segment != oldTarget.segment)) ){							
+							MT.utilsHandle('onMouseHoverTargetChange', {target: target, oldTarget: oldTarget}, true);
+						}
 					}
 				};
 
