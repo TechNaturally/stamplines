@@ -182,6 +182,34 @@ var stamplines = (function() {
 					});
 				return defer;
 			},
+			remove: function(item){
+				// this totally destroys a stamp or line
+				if(item && item.data){
+					var MT = self.tools['master'];
+
+					// remove from selection
+					MT.Selection.remove(item);
+
+					// destroy it as line or stamp
+					if(item.data.type == 'line'){
+						this.Lines.destroy(item);
+					}
+					else if(item.data.type == 'stamp'){
+						this.Stamps.destroy(item);
+					}
+
+					// disconnect and connections
+					var SC = MT.Utils['ShapeConnector'];
+					if(SC){
+						SC.disconnectAll(item);
+					}
+
+					// refresh master tool
+					MT.onMouseMove(UI.Mouse.State.lastMove);
+					MT.checkActive();
+					MT.redraw();
+				}
+			},
 
 			Lines: {
 				config: {},
@@ -191,6 +219,7 @@ var stamplines = (function() {
 				},
 				initTools: function(){
 					if(SL.assertPaper()){
+						var MT = self.tools['master'];
 						var LT = new paper.Tool();
 						LT.Current = {};
 						LT.Next = {
@@ -251,6 +280,7 @@ var stamplines = (function() {
 										LT.Current.Line = new paper.Path();
 										Palette.Lines.applyStyle(LT.Current.Line, LT.Current.line.config.style);
 										LT.Current.Line.data.type = 'line';
+										Palette.Lines.lines.push(LT.Current.Line);
 
 										// add the last two points
 										var pt1 = points[points.length-2].clone();
@@ -368,7 +398,6 @@ var stamplines = (function() {
 						};
 						Tools.addTool('lines', LT);
 
-						var MT = self.tools['master'];
 						var LE = {
 							State: {
 								selectedPoint: undefined
@@ -479,18 +508,6 @@ var stamplines = (function() {
 							onSelectionChange: function(){
 								if(!MT.Selection.count()){
 									this.reset();
-								}
-							},
-							onDoubleClick: function(event){
-								if(LE.active && LE.State.target && event.event && event.event.button === 0){
-									if(LE.State.target.path && LE.State.target.path.segments && LE.State.target.path.segments.length > 2){
-										if(LE.State.Append){
-											LE.exitAppend();
-										}
-										LE.unselectPoint(LE.State.target);
-										LE.State.target.remove();
-										MT.redraw();
-									}
 								}
 							},
 							onKeyDown: function(event){
@@ -729,7 +746,7 @@ var stamplines = (function() {
 									segment.outline.strokeColor = '#00AA33';
 									segment.outline.fillColor = '#FFFFFF';
 									segment.outline.opacity = 0.75;
-									segment.outline.onDoubleClick = LE.onDoubleClick;
+									segment.outline.onDoubleClick = LE.UI.Outline.onDoubleClick;
 									LE.UI.assertGroup();
 									LE.UI.Group.addChild(segment.outline);
 								}
@@ -739,8 +756,19 @@ var stamplines = (function() {
 									segment.outline.remove();
 									segment.outline = undefined;
 								}
+							},
+							onDoubleClick: function(event){
+								if(LE.active && LE.State.target && event.event && event.event.button === 0){
+									if(LE.State.target.path && LE.State.target.path.segments && LE.State.target.path.segments.length > 2){
+										if(LE.State.Append){
+											LE.exitAppend();
+										}
+										LE.unselectPoint(LE.State.target);
+										LE.State.target.remove();
+										MT.redraw();
+									}
+								}
 							}
-
 						};
 						Tools.addUtility('LineEditor', LE);
 					}
@@ -762,6 +790,15 @@ var stamplines = (function() {
 					if(line && style){
 						for(var prop in style){
 							line[prop] = style[prop];
+						}
+					}
+				},
+				destroy: function(line){
+					if(line && line.data && line.data.type == 'line'){
+						var lineIdx = this.lines.indexOf(line);
+						line.remove();
+						if(lineIdx != -1){
+							this.lines.splice(lineIdx, 1);
 						}
 					}
 				},
@@ -911,6 +948,32 @@ var stamplines = (function() {
 									segment.data.connection = undefined;
 									segment.data.connectedTo = undefined;
 								}
+							}
+						},
+						disconnectAll: function(item){
+							if(item && item.data){
+								if(item.data.connection){
+									this.disconnect(item, item.data.connection);
+								}
+
+								if(item.data.connections){
+									for(var i=0; i < item.data.connections.length; i++){
+										var connection = item.data.connections[i];
+										if(connection && connection.connected && connection.connected.length){
+											// disconnect function manipulates connection.connected, so 2 steps:
+											// 1. collect connected segments into an array
+											var disconnect = [];
+											for(var j=0; j < connection.connected.length; j++){
+												disconnect.push(connection.connected[j]);
+											}
+											// 2. process array of disconnections
+											for(var j=0; j < disconnect.length; j++){
+												this.disconnect(disconnect[j], connection);
+											}
+										}
+									}
+								}
+
 							}
 						},
 						refreshConnected: function(item){
@@ -1131,6 +1194,15 @@ var stamplines = (function() {
 							newStamp.scale(size.width/newStamp.bounds.width, size.height/newStamp.bounds.height, newStamp.bounds.topLeft);
 						}
 						this.stamps.push(newStamp);
+					}
+				},
+				destroy: function(stamp){
+					if(stamp && stamp.data && stamp.data.type == 'stamp'){
+						var stampIdx = this.stamps.indexOf(stamp);
+						stamp.remove();
+						if(stampIdx != -1){
+							this.stamps.splice(stampIdx, 1);
+						}
 					}
 				},
 				refreshPanel: function(){
@@ -1429,6 +1501,13 @@ var stamplines = (function() {
 				};
 
 				MT.Utils = {
+					Delete: {
+						onDoubleClick: function(event){
+							if(MT.Mouse.Hover.targetItem){
+								Palette.remove(MT.Mouse.Hover.targetItem);
+							}
+						}
+					},
 					Select: {
 						activate: function(){
 							this.refreshCursor();
@@ -2093,7 +2172,9 @@ var stamplines = (function() {
 				MT.onMouseDrag = function(event){
 					this.utilsHandle('onMouseDrag', event);
 				};
-
+				MT.onDoubleClick = function(event){
+					this.utilsHandle('onDoubleClick', event);
+				};
 				MT.onSelectionChange = function(){
 					this.utilsHandle('onSelectionChange');
 				};
@@ -2214,6 +2295,7 @@ var stamplines = (function() {
 			},
 			Mouse: {
 				State: {
+					lastMove: undefined,
 					point: new paper.Point(0, 0),
 					button: {}
 				},
@@ -2230,6 +2312,7 @@ var stamplines = (function() {
 						UI.Mouse.State.active = false;
 					};
 					Handle.onMouseMove = function(event){
+						UI.Mouse.State.lastMove = event;
 						UI.Mouse.State.point.x = event.point.x;
 						UI.Mouse.State.point.y = event.point.y;
 					};
@@ -2258,6 +2341,11 @@ var stamplines = (function() {
 							if(UI.Mouse.State.button.drag.points.length > UI.Mouse.config.dragMaxPoints){
 								UI.Mouse.State.button.drag.points.splice(0, (UI.Mouse.State.button.drag.points.length-UI.Mouse.config.dragMaxPoints));
 							}
+						}
+					};
+					Handle.onDoubleClick = function(event){
+						if(paper.tool && typeof paper.tool.onDoubleClick == 'function'){
+							paper.tool.onDoubleClick(event);
 						}
 					};
 					UI.Mouse.Handlers = Handle;
