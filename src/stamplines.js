@@ -2322,6 +2322,7 @@ var stamplines = (function() {
 					};
 					Handle.onMouseUp = function(event){
 						setTimeout(function(){
+							UI.Mouse.State.button.last = UI.Mouse.State.button.active;
 							UI.Mouse.State.button.active = undefined;
 							UI.Mouse.State.button.down = undefined;
 							UI.Mouse.State.button.drag = undefined;
@@ -2345,7 +2346,9 @@ var stamplines = (function() {
 					};
 					Handle.onDoubleClick = function(event){
 						if(paper.tool && typeof paper.tool.onDoubleClick == 'function'){
-							paper.tool.onDoubleClick(event);
+							if(UI.Mouse.State.button.active === 0 && UI.Mouse.State.button.last === 0){
+								paper.tool.onDoubleClick(event);
+							}
 						}
 					};
 					UI.Mouse.Handlers = Handle;
