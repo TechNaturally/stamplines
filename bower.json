@@ -1,0 +1,26 @@
+{
+  "name": "stamplines",
+  "version": "0.0.1",
+  "homepage": "https://github.com/TechNaturally/stamplines",
+  "description": "Simple \"stamp + line\" drawing library for paper.js",
+  "main": "src/stamplines.js",
+  "authors": [
+    "Pat Long (plong0)"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "paper": "^0.10.3",
+    "jquery": "^3.1.1",
+    "jquery-awesome-cursor": "^0.3.1"
+  },
+  "resolutions": {
+    "jquery": "^3.1.1"
+  }
+}

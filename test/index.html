@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mocha Tests</title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+    <style type="text/css">
+      #canvas {
+        margin: 15px;
+        width: 640px;
+        height: 480px;
+        border: 1px solid #333
+      }
+      #mocha {
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <div class="foobar">
+      <div class="foo"></div><div class="bar"></div>
+    </div>
+
+    <!-- load and configure test environment -->
+    <div id="mocha"></div>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/sinon/pkg/sinon.js"></script>
+    <script src="../node_modules/sinon-chai/lib/sinon-chai.js"></script>
+    <script>mocha.setup('bdd')</script>
+
+    <!-- load code to test -->
+    <script src="../bower_components/paper/dist/paper-full.js"></script>
+    <script src="../dist/stamplines.js"></script>
+
+    <!-- load test files -->
+    <script>
+    var SL = new StampLines();
+    </script>
+    <script src="test.js"></script>
+
+    <!-- run tests -->
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>
