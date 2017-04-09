@@ -31,18 +31,25 @@
     <script>mocha.setup('bdd')</script>
 
     <!-- load code to test -->
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/paper/dist/paper-full.js"></script>
+    <script src="../bower_components/jquery-awesome-cursor/dist/jquery.awesome-cursor.js"></script>
     <script src="../dist/stamplines.js"></script>
 
     <!-- load test files -->
     <script>
-    var SL = new StampLines();
-    </script>
-    <script src="test.js"></script>
-
-    <!-- run tests -->
-    <script>
+    var SL;
+    $(function documentReady(){
+      SL = new StampLines({
+        canvas: $('#canvas').first(),
+        Util: {
+          grid: {
+            size: 25
+          }
+        }
+      });
       mocha.run();
     </script>
+    <script src="tests.js"></script>
   </body>
 </html>

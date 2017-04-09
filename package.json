@@ -2,7 +2,7 @@
   "name": "stamplines",
   "version": "0.0.1",
   "description": "Simple \"stamp + line\" drawing library for paper.js",
-  "main": "stamplines.js",
+  "main": "dist/stamplines.js",
   "directories": {
     "example": "examples"
   },

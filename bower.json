@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "homepage": "https://github.com/TechNaturally/stamplines",
   "description": "Simple \"stamp + line\" drawing library for paper.js",
-  "main": "src/stamplines.js",
+  "main": "dist/stamplines.js",
   "authors": [
     "Pat Long (plong0)"
   ],
