@@ -3,6 +3,7 @@
   <head>
     <title>Mocha Tests</title>
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+    <link rel="stylesheet" href="../dist/stamplines.css">
     <style type="text/css">
       #canvas {
         margin: 15px;
@@ -40,15 +41,9 @@
     <script>
     var SL;
     $(function documentReady(){
-      SL = new StampLines({
-        canvas: $('#canvas').first(),
-        Util: {
-          grid: {
-            size: 25
-          }
-        }
-      });
+      SL = new StampLines( $('#canvas').first() );
       mocha.run();
+    });
     </script>
     <script src="tests.js"></script>
   </body>

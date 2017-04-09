@@ -5,6 +5,9 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var webserver = require('gulp-webserver');
 var sourcemaps = require('gulp-sourcemaps');
+var clean = require('gulp-clean');
+var concat = require('gulp-concat');
+var rename = require('gulp-rename');
 var chalk = require('chalk');
 
 // browserify/watchify/babelify stack
@@ -21,6 +24,9 @@ var eslint = require('gulp-eslint');
 // sass compiler
 var sass = require('gulp-sass');
 
+// uglify
+var uglify = require('gulp-uglify');
+
 
 // Package Definition
 const PKG = {
@@ -29,17 +35,33 @@ const PKG = {
   path: {
     src: {
       main: './src/stamplines.js',
-      sass: ['./src/**/*.scss']
+      sass: ['./src/**/*.scss'],
+      test: ['./test/tests/*.js', './test/tests/core/**/*.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js', './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js', './test/tests/tools/*.js', './test/tests/tools/**/*.js', './test/tests/util/*.js', './test/tests/util/**/*.js', './test/tests/**/*.js']
     },
     dest: {
       build: './dist/',
-      maps: './'
+      maps: './', // relative to dest.build
+      test: {
+        path: './test/',
+        js: 'tests.js'
+      }
+    },
+    clean: {
+      build: {
+        all: './dist/',
+        js: ['./dist/*.js', './dist/*.js.map', './dist/*.min.map'],
+        sass: ['./dist/*.css', './dist/*.css.map']
+      },
+      tests: './test/tests.js' // dest.test.path + dest.test.js
     },
     lint: {
       js: ['./src/**/*.js','test/**/*.js'],
       sass: ['./src/**/*.scss']
     },
-    test: '/test'
+    webserver: {
+      root: './',
+      open: '/test'
+    }
   }
 };
 
@@ -53,16 +75,30 @@ var bify = function() {
 };
 
 // runs a browserify/watchify bundler
-function bundleJS(pkg) {
+function bundleJS(pkg, minify) {
   gutil.log('['+chalk.yellow('Browserify')+'] '+chalk.blue('Starting')+'...');
-  return pkg.bundle()
+  var bundle = pkg.bundle()
           .on('error', function(err) { console.error(err); this.emit('end'); })
           .on('end', function(result){ gutil.log('['+chalk.yellow('Browserify')+'] '+chalk.blue('Finished')+'!'); })
           .pipe(source(PKG.main))
           .pipe(buffer())
-          .pipe(sourcemaps.init({ loadMaps: true }))
+          .pipe(sourcemaps.init({ loadMaps: true }));
+
+  if (!minify) {
+    // not minifying - output the sourcemaps and transpiled code
+    bundle = bundle.pipe(sourcemaps.write(PKG.path.dest.maps))
+          .pipe(gulp.dest(PKG.path.dest.build));
+  }
+  else {
+    // minifying - output the transpiled source, sourcemaps, and minified code
+    bundle = bundle.pipe(gulp.dest(PKG.path.dest.build))
+          .pipe(uglify())
+          .pipe(rename({ extname: '.min.js' }))
           .pipe(sourcemaps.write(PKG.path.dest.maps))
           .pipe(gulp.dest(PKG.path.dest.build));
+  }
+
+  return bundle;
 }
 
 // runs js through eslint
@@ -73,12 +109,22 @@ function lintJS(lintFiles=PKG.path.lint.js) {
           .pipe(eslint.failOnError());
 }
 
-function buildSass(){
-  return gulp.src(PKG.path.src.sass)
+function buildSass(minify){
+  var bundle = gulp.src(PKG.path.src.sass)
           .pipe(sourcemaps.init({ loadMaps: true }))
-          .pipe(sass().on('error', sass.logError))
+          .pipe(sass().on('error', sass.logError));
+  if (!minify) {
+    bundle = bundle.pipe(sourcemaps.write(PKG.path.dest.maps))
+          .pipe(gulp.dest(PKG.path.dest.build));
+  }
+  else{
+    bundle = bundle.pipe(gulp.dest(PKG.path.dest.build))
+          .pipe(uglify())
+          .pipe(rename({ extname: '.min.css' }))
           .pipe(sourcemaps.write(PKG.path.dest.maps))
           .pipe(gulp.dest(PKG.path.dest.build));
+  }
+  return bundle;
 }
 
 
@@ -87,26 +133,58 @@ function buildSass(){
 gulp.task('default', ['dev']);
 
 // dev environment watches with a livereload on localhost:8000
-gulp.task('dev', ['watch'], function() {
-  gulp.src('./')
+gulp.task('dev', ['watch:tests', 'watch'], function() {
+  gulp.src(PKG.path.webserver.root)
       .pipe(webserver({
-        open: PKG.path.test,
+        open: PKG.path.webserver.open,
         livereload: true
-//        directoryListing: true
       }));
+});
+
+// clean
+gulp.task('clean', ['clean:all']);
+gulp.task('clean:all', ['clean:build', 'clean:tests']);
+
+gulp.task('clean:build', function() {
+  return gulp.src(PKG.path.clean.build.all, {read: false})
+          .pipe(clean());
+});
+gulp.task('clean:js', function() {
+  return gulp.src(PKG.path.clean.build.js, {read: false})
+          .pipe(clean());
+});
+gulp.task('clean:sass', function() {
+  return gulp.src(PKG.path.clean.build.sass, {read: false})
+          .pipe(clean());
+});
+gulp.task('clean:tests', function() {
+  return gulp.src(PKG.path.clean.tests, {read: false})
+          .pipe(clean());
 });
 
 
 /** BUILD TASKS **/
-gulp.task('build', ['build:js', 'build:sass']);
+gulp.task('build', ['clean:build', 'build:js', 'build:sass']);
 
 // builds javascript using browserify
-gulp.task('build:js', ['lint:js'], function() {
-  bundleJS(bify());
+gulp.task('build:js', ['clean:js', 'lint:js'], function() {
+  bundleJS(bify(), true);
 });
 
 // builds sass
-gulp.task('build:sass', buildSass);
+gulp.task('build:sass', ['clean:sass'], function() {
+  buildSass(true);
+});
+gulp.task('build:sass:watched', function() {
+  buildSass();
+});
+
+// builds tests
+gulp.task('build:tests', ['clean:tests'], function() {
+  gulp.src(PKG.path.src.test)
+      .pipe(concat(PKG.path.dest.test.js))
+      .pipe(gulp.dest(PKG.path.dest.test.path));
+});
 
 
 /** LINTING TASKS **/
@@ -133,8 +211,18 @@ gulp.task('watch:js', function() {
 });
 
 // watches the sass
-gulp.task('watch:sass',  function(){
+gulp.task('watch:sass', function(){
   // watch scss files
-  gulp.watch(PKG.path.src.sass, ['build:sass']);
-  gulp.start('build:sass');
+  gulp.watch(PKG.path.src.sass, ['build:sass:watched']);
+  gulp.start('build:sass:watched');
 });
+
+// watches the tests
+gulp.task('watch:tests', function(){
+  gulp.watch(PKG.path.src.test, ['build:tests']);
+  gulp.start('build:tests');
+});
+
+
+/** TEST TASKS **/
+gulp.task('test', ['build:tests']);

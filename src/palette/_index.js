@@ -1,1 +1,1 @@
-export * from './palettes/_index.js'
+export * from './palettes/_index.js';
