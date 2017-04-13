@@ -1,6 +1,8 @@
+import {default as PaperCanvas} from '../../src/core/paper-canvas.js';
 import {default as CoreComponent} from '../../src/core/component.js';
 import {default as CorePalette} from '../../src/core/palette.js';
 import {default as CoreTool} from '../../src/core/tool.js';
+import {default as UIComponent} from '../../src/core/ui-component.js';
 import {default as CoreUtil} from '../../src/core/util.js';
 
 import {default as Palette} from '../../src/palette/palette.js';
@@ -20,9 +22,11 @@ import {Grid} from '../../src/util/utils/_index.js';
 
 export default {
 	Core: {
+		PaperCanvas: PaperCanvas,
 		Component: CoreComponent,
 		Palette: CorePalette,
 		Tool: CoreTool,
+		UIComponent: UIComponent,
 		Util: CoreUtil
 	},
 	Palette: {

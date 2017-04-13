@@ -1,3 +1,4 @@
+import PaperCanvas from './core/paper-canvas.js';
 import UI from './ui/ui.js';
 import Utils from './util/utils.js';
 import ToolBelt from './tools/toolbelt.js';
@@ -10,8 +11,10 @@ export default class StampLines {
 			canvas: (this.config.canvas ? $(this.config.canvas) : undefined)
 		};
 
+		this._paper = new PaperCanvas(this, { canvas: this.config.canvas });
+
 		// initialize UI
-		this.UI = new UI(this, this.config.UI, this.DOM);
+		this.UI = new UI(this, this.config.UI, {paper: this._paper});
 
 		// initialize Tools
 		this.Tools = new ToolBelt();
@@ -31,5 +34,12 @@ export default class StampLines {
 		for (let id in this.Utils.active) {
 			let util = this.Utils.active[id];
 		}
+	}
+
+	get paper() {
+		if (!this._paper || !this._paper.view) {
+			throw "PaperCanvas has not been initialized!";
+		}
+		return this._paper;
 	}
 }

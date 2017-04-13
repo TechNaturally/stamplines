@@ -1,13 +1,19 @@
-import Component from '../core/component.js';
-import Dock from './dock.js';
-import Mouse from './mouse.js';
+import {default as Component} from '../core/component.js';
+import {default as Dock} from './dock.js';
+import {default as Mouse} from './mouse.js';
 export default class UI extends Component {
-	constructor(SL, config, DOM={}) {
+	constructor(SL, config, control) {
 		super(SL, config);
 		
-		this.DOM = DOM;
-		this.Dock = new Dock();
-		this.Mouse = new Mouse();
+		this.DOM = SL.DOM;
+		this.PaperCanvas = control.paper;
+
+		// initialize UI Compontents
+		let componentConfig = {
+			paperCanvas: this.PaperCanvas
+		};
+		this.Dock = new Dock(componentConfig);
+		this.Mouse = new Mouse(componentConfig);
 	}
 	get type() {
 		return 'UI';
