@@ -3,3 +3,5 @@ bower_components/
 node_modules/
 dist/
 test/tests.js
+test/test-lib.js
+test/test-lib.js.map

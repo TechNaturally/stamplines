@@ -36,12 +36,17 @@ const PKG = {
     src: {
       main: './src/stamplines.js',
       sass: ['./src/**/*.scss'],
-      test: ['./test/tests/*.js', './test/tests/core/**/*.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js', './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js', './test/tests/tools/*.js', './test/tests/tools/**/*.js', './test/tests/util/*.js', './test/tests/util/**/*.js', './test/tests/**/*.js']
+      testLib: './test/tests/lib.js',
+      tests: ['!./test/tests/lib.js', './test/tests/*.js', './test/tests/core/**/*.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js', './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js', './test/tests/tools/*.js', './test/tests/tools/**/*.js', './test/tests/util/*.js', './test/tests/util/**/*.js', './test/tests/**/*.js']
     },
     dest: {
       build: './dist/',
       maps: './', // relative to dest.build
-      test: {
+      testLib: {
+        path: './test/',
+        js: 'test-lib.js'
+      },
+      tests: {
         path: './test/',
         js: 'tests.js'
       }
@@ -52,7 +57,8 @@ const PKG = {
         js: ['./dist/*.js', './dist/*.js.map', './dist/*.min.map'],
         sass: ['./dist/*.css', './dist/*.css.map']
       },
-      tests: './test/tests.js' // dest.test.path + dest.test.js
+      testLib: ['./test/test-lib.js', './test/test-lib.js.map'],
+      tests: ['./test/tests.js', './test/tests.js.map'] // dest.test.path + dest.testss.js
     },
     lint: {
       js: ['./src/**/*.js','test/**/*.js'],
@@ -68,26 +74,30 @@ const PKG = {
 
 /** Browserify setup **/
 // generate a browserify bundler
-var bify = function() {
-  return browserify(PKG.path.src.main, { debug: true, standalone: PKG.name })
+var bify = function(src, name) {
+  src = src || PKG.path.src.main;
+  name = name || PKG.name;
+  return browserify(src, { debug: true, standalone: name })
 //          .transform(eslintify, {})
           .transform(babelify, {presets: ["es2015"], plugins: ['add-module-exports']});
 };
 
 // runs a browserify/watchify bundler
-function bundleJS(pkg, minify) {
+function bundleJS(pkg, destPath, destFile, minify) {
+  destPath = destPath || PKG.path.dest.build;
+  destFile = destFile || PKG.main;
   gutil.log('['+chalk.yellow('Browserify')+'] '+chalk.blue('Starting')+'...');
   var bundle = pkg.bundle()
           .on('error', function(err) { console.error(err); this.emit('end'); })
           .on('end', function(result){ gutil.log('['+chalk.yellow('Browserify')+'] '+chalk.blue('Finished')+'!'); })
-          .pipe(source(PKG.main))
+          .pipe(source(destFile))
           .pipe(buffer())
           .pipe(sourcemaps.init({ loadMaps: true }));
 
   if (!minify) {
     // not minifying - output the sourcemaps and transpiled code
     bundle = bundle.pipe(sourcemaps.write(PKG.path.dest.maps))
-          .pipe(gulp.dest(PKG.path.dest.build));
+          .pipe(gulp.dest(destPath));
   }
   else {
     // minifying - output the transpiled source, sourcemaps, and minified code
@@ -95,7 +105,7 @@ function bundleJS(pkg, minify) {
           .pipe(uglify())
           .pipe(rename({ extname: '.min.js' }))
           .pipe(sourcemaps.write(PKG.path.dest.maps))
-          .pipe(gulp.dest(PKG.path.dest.build));
+          .pipe(gulp.dest(destPath));
   }
 
   return bundle;
@@ -133,7 +143,7 @@ function buildSass(minify){
 gulp.task('default', ['dev']);
 
 // dev environment watches with a livereload on localhost:8000
-gulp.task('dev', ['watch:tests', 'watch'], function() {
+gulp.task('dev', ['watch:tests', 'watch:src'], function() {
   gulp.src(PKG.path.webserver.root)
       .pipe(webserver({
         open: PKG.path.webserver.open,
@@ -143,7 +153,7 @@ gulp.task('dev', ['watch:tests', 'watch'], function() {
 
 // clean
 gulp.task('clean', ['clean:all']);
-gulp.task('clean:all', ['clean:build', 'clean:tests']);
+gulp.task('clean:all', ['clean:build', 'clean:tests', 'clean:testLib']);
 
 gulp.task('clean:build', function() {
   return gulp.src(PKG.path.clean.build.all, {read: false})
@@ -161,6 +171,10 @@ gulp.task('clean:tests', function() {
   return gulp.src(PKG.path.clean.tests, {read: false})
           .pipe(clean());
 });
+gulp.task('clean:testLib', function() {
+  return gulp.src(PKG.path.clean.testLib, {read: false})
+          .pipe(clean());
+});
 
 
 /** BUILD TASKS **/
@@ -168,7 +182,7 @@ gulp.task('build', ['clean:build', 'build:js', 'build:sass']);
 
 // builds javascript using browserify
 gulp.task('build:js', ['clean:js', 'lint:js'], function() {
-  bundleJS(bify(), true);
+  bundleJS(bify(), PKG.path.dest.build, PKG.main, true);
 });
 
 // builds sass
@@ -181,9 +195,12 @@ gulp.task('build:sass:watched', function() {
 
 // builds tests
 gulp.task('build:tests', ['clean:tests'], function() {
-  gulp.src(PKG.path.src.test)
-      .pipe(concat(PKG.path.dest.test.js))
-      .pipe(gulp.dest(PKG.path.dest.test.path));
+  gulp.src(PKG.path.src.tests)
+      .pipe(concat(PKG.path.dest.tests.js))
+      .pipe(gulp.dest(PKG.path.dest.tests.path));
+});
+gulp.task('build:testLib', ['clean:testLib'], function() {
+  bundleJS(bify(PKG.path.src.testLib, PKG.name+'Test'), PKG.path.dest.testLib.path, PKG.path.dest.testLib.js, false);
 });
 
 
@@ -197,7 +214,8 @@ gulp.task('lint:js', function(){
 
 
 /** WATCH TASKS **/
-gulp.task('watch', ['watch:js', 'watch:sass']);
+gulp.task('watch', ['watch:src']);
+gulp.task('watch:src', ['watch:js', 'watch:sass']);
 
 // watches the browserify bundle (using watchify)
 gulp.task('watch:js', function() {
@@ -205,9 +223,9 @@ gulp.task('watch:js', function() {
   var wify = watchify(bify());
   wify.on('log', gutil.log);
   wify.on('update', function(changedFiles) {
-    bundleJS(wify);
+    bundleJS(wify, PKG.path.dest.build);
   });
-  bundleJS(wify);
+  bundleJS(wify, PKG.path.dest.build);
 });
 
 // watches the sass
@@ -219,10 +237,18 @@ gulp.task('watch:sass', function(){
 
 // watches the tests
 gulp.task('watch:tests', function(){
-  gulp.watch(PKG.path.src.test, ['build:tests']);
+  // generate a watchify bundler
+  var wify = watchify(bify(PKG.path.src.testLib, PKG.name+'Test'));
+  wify.on('log', gutil.log);
+  wify.on('update', function(changedFiles) {
+    bundleJS(wify, PKG.path.dest.testLib.path, PKG.path.dest.testLib.js);
+  });
+  bundleJS(wify, PKG.path.dest.testLib.path, PKG.path.dest.testLib.js);
+  
+  gulp.watch(PKG.path.src.tests, ['build:tests']);
   gulp.start('build:tests');
 });
 
 
 /** TEST TASKS **/
-gulp.task('test', ['build:tests']);
+gulp.task('test', ['build:tests', 'build:testLib']);

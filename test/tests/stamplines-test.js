@@ -1,6 +1,4 @@
 describe('StampLines', function() {
-  var SL, canvas;
-
   /** Canvas element **/
   describe('canvas element', function() {
     it('should exist', function() {
