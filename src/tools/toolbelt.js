@@ -20,7 +20,6 @@ export default class ToolBelt extends paper.Tool {
 			if (!newTool.name) {
 				newTool.name = type;
 			}
-			console.log('| Enabled Tool => ['+type+'] => "'+newTool.name+'"');
 		}
 	}
 }

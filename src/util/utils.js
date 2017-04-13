@@ -9,6 +9,10 @@ export default class Utils extends Component {
 		return 'Utils';
 	}
 
+	get(id) {
+		return this.active[id];
+	}
+
 	enable(type, id) {
 		if (type.constructor === Array) {
 			let enabled = [];
@@ -26,7 +30,6 @@ export default class Utils extends Component {
 			if (!id) {
 				id = type.toLowerCase();
 			}
-			console.log('|--> ENABLE UTIL ['+type+'] as ['+id+']');
 			if (!this.active[id] && Available[type]) {
 				var newUtil = new Available[type](this.SL, ((this.config && this.config[id])?this.config[id]:{}));
 				this.active[id] = newUtil;

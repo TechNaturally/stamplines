@@ -12,4 +12,14 @@ export default class Util extends Component {
 	set name(name) {
 		this._name = name;
 	}
+
+	activate() {
+		this._active = true;
+	}
+	deactivate() {
+		this._active = false;
+	}
+	isActive() {
+		return this._active;
+	}
 }
