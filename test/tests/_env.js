@@ -1,6 +1,32 @@
 /** Test Environment **/
 const assert = chai.assert;
 const expect = chai.expect;
-const TestLib = StampLinesTest;
-var SL, canvas;
-console.log('TestLib => ', TestLib);
+
+var Test = {
+  Lib: StampLinesTest,
+  SL: undefined,
+  canvas: undefined,
+
+  assertCanvas() {
+    if(!this.canvas){
+      this.canvas = $('canvas').first();
+    }
+    if(!this.canvas || !this.canvas.length){
+      throw "Could not find a canvas element to test on!";
+    }
+  },
+
+  assertSL() {
+    if(!this.SL){
+      this.assertCanvas();
+      this.SL = new StampLines({
+        canvas: this.canvas,
+        Util: {
+          grid: {
+            size: 25
+          }
+        }
+      });
+    }
+  }
+};
