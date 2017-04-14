@@ -12,4 +12,17 @@ describe('Core.PaperCanvas', function() {
       expect(PaperCanvas.view).to.exist;
     });
   });
+
+  describe('#canvas [DOM Element]', function() {
+    it('should be set', function() {
+      expect(PaperCanvas.canvas).to.exist;
+    });
+    it('should be a jQuery-wrapped canvas element', function() {
+      expect(PaperCanvas.canvas).to.not.be.empty;
+      expect(PaperCanvas.canvas[0].nodeName.toUpperCase()).to.eql('CANVAS');
+    });
+    it('should have class "sl-canvas"', function() {
+      expect(PaperCanvas.canvas.hasClass('sl-canvas')).to.be.true;
+    });
+  });
 });

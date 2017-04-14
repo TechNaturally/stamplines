@@ -17,6 +17,9 @@ export default class PaperCanvas extends Component {
     this.canvas = config.canvas;
     if(this.canvas && this.canvas.length){
       paper.setup(this.canvas[0]);
+      if(!this.canvas.hasClass('sl-canvas')){
+        this.canvas.addClass('sl-canvas');
+      }
     }
 
     this.registerHandlers(this.Handles);
