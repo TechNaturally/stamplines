@@ -16,12 +16,12 @@ export default class UI extends Component {
     // initialize Dock
     this.config.Dock = this.config.Dock || {};
     $.extend(this.config.Dock, componentConfig);
-    this.Dock = new Dock(this.config.Dock);
+    this.Dock = new Dock(this, this.config.Dock);
 
     // initialize Mouse
     this.config.Mouse = this.config.Mouse || {};
     $.extend(this.config.Mouse, componentConfig);
-    this.Mouse = new Mouse(this.config.Mouse);
+    this.Mouse = new Mouse(this, this.config.Mouse);
   }
   get type() {
     return 'UI';

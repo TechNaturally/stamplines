@@ -1,5 +1,6 @@
 export default class UIComponent {
-  constructor(config={}) {
+  constructor(UI, config={}) {
+    this.UI = UI;
     this.config = config;
   }
   get type() {

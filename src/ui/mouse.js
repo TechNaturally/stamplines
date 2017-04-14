@@ -1,7 +1,7 @@
 import UIComponent from '../core/ui-component.js';
 export default class Mouse extends UIComponent {
-  constructor(config={}) {
-    super(config);
+  constructor(UI, config={}) {
+    super(UI, config);
     var State = this.State = {
       active: false,
       lastMove: null,
