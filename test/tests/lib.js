@@ -1,3 +1,4 @@
+import {default as StampLines} from '../../src/stamplines.js';
 import {default as PaperCanvas} from '../../src/core/paper-canvas.js';
 import {default as CoreComponent} from '../../src/core/component.js';
 import {default as CorePalette} from '../../src/core/palette.js';
@@ -22,6 +23,7 @@ import {Grid} from '../../src/util/utils/_index.js';
 
 export default {
 	Core: {
+		StampLines: StampLines,
 		PaperCanvas: PaperCanvas,
 		Component: CoreComponent,
 		Palette: CorePalette,
