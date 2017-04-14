@@ -1,4 +1,14 @@
+.stamplines {
+  border: 1px solid #999;
+}
+.sl-canvas,
+.sl-dock {
+  display: block;
+}
 .sl-canvas {
   cursor: crosshair;
-  border: 1px solid #333;
+}
+.sl-dock {
+  width: 100%;
+  border-top: 1px solid #999;
 }

@@ -53,6 +53,9 @@ export default class StampLines {
 StampLines.defaults = {
   config: {
     UI: {
+      DOM: {
+        useWrapper: true
+      },
       Mouse: {
         maxDragPoints: 3
       }

@@ -8,6 +8,10 @@ export default class UI extends Component {
     this.DOM = SL.DOM;
     this.PaperCanvas = control.paper;
 
+    if (this.config.DOM && this.config.DOM.useWrapper) {
+      this.wrapDOM();
+    }
+
     // initialize UI Compontents
     let componentConfig = {
       paperCanvas: this.PaperCanvas
@@ -25,5 +29,22 @@ export default class UI extends Component {
   }
   get type() {
     return 'UI';
+  }
+
+  wrapDOM() {
+    if(!this.DOM.wrapper && this.DOM.canvas){
+      var wrapperClass = 'stamplines';
+      if (typeof this.config.useWrapper == 'string' && wrapperClass != this.config.useWrapper) {
+        wrapperClass += ' '+this.config.useWrapper;
+      }
+      this.DOM.wrapper = $('<div></div>');
+      this.DOM.wrapper.addClass(wrapperClass);
+      var canvasStyle = window.getComputedStyle(this.DOM.canvas[0]);
+      if(canvasStyle.width){
+        this.DOM.wrapper.css('width', canvasStyle.width);
+      }
+      this.DOM.canvas.before(this.DOM.wrapper);
+      this.DOM.wrapper.append(this.DOM.canvas);
+    }
   }
 }

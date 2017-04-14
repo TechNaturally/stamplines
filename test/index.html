@@ -6,13 +6,16 @@
     <link rel="stylesheet" href="../dist/stamplines.css">
     <style type="text/css">
       #canvas {
-        margin: 15px;
         width: 640px;
         height: 480px;
       }
       #mocha {
         margin-top: 15px;
       }
+      .stamplines {
+        margin: 15px;
+      }
+      
     </style>
   </head>
   <body>
@@ -26,10 +29,12 @@
     <script src="../node_modules/sinon-chai/lib/sinon-chai.js"></script>
     <script>mocha.setup('bdd')</script>
 
-    <!-- load code to test -->
+    <!-- load dependencies -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/paper/dist/paper-full.js"></script>
     <script src="../bower_components/jquery-awesome-cursor/dist/jquery.awesome-cursor.js"></script>
+
+    <!-- load code to test -->
     <script src="../dist/stamplines.js"></script>
 
     <!-- load test files -->
