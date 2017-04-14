@@ -21,6 +21,16 @@ describe('StampLines', function() {
       expect(Test.SL.constructor.name).to.equal('StampLines');
     });
 
+    /** SL.Paper [Paper.js integration] **/
+    describe('SL.Paper [Paper.js integration]', function() {
+      it('should exist', function() {
+        expect(Test.SL.Paper).to.exist;
+      });
+      it('should be constructed by PaperCanvas', function() {
+        expect(Test.SL.Paper.constructor.name).to.equal('PaperCanvas');
+      });
+    });
+
     /** SL.UI [user interface] **/
     describe('SL.UI [user interface]', function() {
       it('should exist', function() {

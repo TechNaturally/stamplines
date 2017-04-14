@@ -30,7 +30,7 @@ export default class PaperCanvas extends Component {
 	}
 
 	registerHandlers(handlers) {
-		var view = paper.view;
+		var view = this.view || paper.view;
 		if(!view){
 			throw "No view to register handlers on!";
 		}

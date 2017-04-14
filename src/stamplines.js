@@ -11,7 +11,7 @@ export default class StampLines {
 			canvas: (this.config.canvas ? $(this.config.canvas) : undefined)
 		};
 
-		this._paper = new PaperCanvas(this, { canvas: this.config.canvas });
+		this._paper = new PaperCanvas(this, { canvas: this.DOM.canvas });
 
 		// initialize UI
 		this.UI = new UI(this, this.config.UI, {paper: this._paper});
@@ -36,9 +36,16 @@ export default class StampLines {
 		}
 	}
 
-	get paper() {
+	get canvas() {
+		if (!this.DOM.canvas) {
+			throw "StampLines does not have a canvas!";
+		}
+		return this.DOM.canvas;
+	}
+
+	get Paper() {
 		if (!this._paper || !this._paper.view) {
-			throw "PaperCanvas has not been initialized!";
+			throw "StampLines has not been initialized with Paper.js!";
 		}
 		return this._paper;
 	}
