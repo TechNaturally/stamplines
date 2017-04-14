@@ -21,8 +21,11 @@ var babelify = require('babelify');
 var eslint = require('gulp-eslint');
 //var eslintify = require('eslintify');
 
-// sass compiler
+// SASS compiler
 var sass = require('gulp-sass');
+
+// CSS cleaner
+var cleanCSS = require('gulp-clean-css');
 
 // uglify
 var uglify = require('gulp-uglify');
@@ -132,7 +135,7 @@ function buildSass(minify){
   }
   else{
     bundle = bundle.pipe(gulp.dest(PKG.path.dest.build))
-          .pipe(uglify())
+          .pipe(cleanCSS())
           .pipe(rename({ extname: '.min.css' }))
           .pipe(sourcemaps.write(PKG.path.dest.maps))
           .pipe(gulp.dest(PKG.path.dest.build));
