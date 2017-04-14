@@ -52,6 +52,11 @@ export default class StampLines {
 }
 StampLines.defaults = {
 	config: {
+		UI: {
+			Mouse: {
+				maxDragPoints: 3
+			}
+		},
 		Util: {
 		  grid: {
 		    size: 25
