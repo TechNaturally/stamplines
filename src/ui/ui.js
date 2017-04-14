@@ -31,6 +31,10 @@ export default class UI extends Component {
     return 'UI';
   }
 
+  classify(id) {
+    return id.toDashCase();
+  }
+
   wrapDOM() {
     if(!this.DOM.wrapper && this.DOM.canvas){
       var wrapperClass = 'stamplines';
