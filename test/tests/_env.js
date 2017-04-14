@@ -19,14 +19,7 @@ var Test = {
   assertSL() {
     if(!this.SL){
       this.assertCanvas();
-      this.SL = new StampLines({
-        canvas: this.canvas,
-        Util: {
-          grid: {
-            size: 25
-          }
-        }
-      });
+      this.SL = new StampLines(this.canvas);
     }
   }
 };

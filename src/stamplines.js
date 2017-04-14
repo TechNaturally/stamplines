@@ -4,11 +4,11 @@ import Utils from './util/utils.js';
 import ToolBelt from './tools/toolbelt.js';
 import * as Palette from './palette/palette.js';
 export default class StampLines {
-	constructor(config={}) {
+	constructor(canvas, config=StampLines.defaults.config) {
 		// initialize StampLines core
 		this.config = config;
 		this.DOM = {
-			canvas: (this.config.canvas ? $(this.config.canvas) : undefined)
+			canvas: canvas
 		};
 
 		this._paper = new PaperCanvas(this, { canvas: this.DOM.canvas });
@@ -50,3 +50,12 @@ export default class StampLines {
 		return this._paper;
 	}
 }
+StampLines.defaults = {
+	config: {
+		Util: {
+		  grid: {
+		    size: 25
+		  }
+		}
+	}
+};
