@@ -1,5 +1,5 @@
-describe('Utils', function() {
-  describe('Constructor', function() {
+describe('Utils', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });

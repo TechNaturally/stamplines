@@ -1,5 +1,5 @@
-describe('Tools.Core.Scale', function() {
-  describe('Constructor', function() {
+describe('Tools.Core.Scale', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });

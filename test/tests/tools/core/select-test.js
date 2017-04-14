@@ -1,5 +1,5 @@
-describe('Tools.Core.Select', function() {
-  describe('Constructor', function() {
+describe('Tools.Core.Select', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });

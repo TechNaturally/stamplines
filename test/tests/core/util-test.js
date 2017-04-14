@@ -1,18 +1,18 @@
-describe('Core.Util', function() {
-  describe('Constructor', function() {
+describe('Core.Util', () => {
+  describe('Constructor', () => {
     Test.assertSL();
     let Util = new Test.Lib.Core.Util(Test.SL, {});
-    it('should initialize', function() {
+    it('should initialize', () => {
       expect(Util).to.exist;
     });
-    it('should be constructed by Util', function() {
+    it('should be constructed by Util', () => {
       expect(Util.constructor.name).to.equal('Util');
     });
-    it('should activate', function() {
+    it('should activate', () => {
       Util.activate();
       expect(Util.isActive()).to.be.true;
     });
-    it('should deactivate', function() {
+    it('should deactivate', () => {
       Util.activate();
       Util.deactivate();
       expect(Util.isActive()).to.be.false;

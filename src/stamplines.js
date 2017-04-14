@@ -52,6 +52,10 @@ export default class StampLines {
 }
 StampLines.defaults = {
   config: {
+    Palettes: {
+      Lines: {},
+      Stamps: {}
+    },
     UI: {
       DOM: {
         useWrapper: true

@@ -4,9 +4,10 @@
         "sourceType": "module"
     },
     "rules": {
-        "semi": 2,
-        "strict": 2,
+        "semi": "error",
+        "strict": "error",
         "indent": ["warn", 2],
-        "quotes": ["warn", "single"]
+        "quotes": ["warn", "single"],
+        "prefer-arrow-callback": "warn"
     }
 }

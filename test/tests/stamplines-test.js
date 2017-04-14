@@ -1,11 +1,11 @@
-describe('StampLines', function() {
-  beforeEach(function() {
+describe('StampLines', () => {
+  beforeEach(() => {
     Test.assertSL();
   });
 
   /** Canvas element **/
-  describe('canvas element', function() {
-    it('should exist', function() {
+  describe('canvas element', () => {
+    it('should exist', () => {
       Test.assertCanvas();
       expect(Test.canvas).to.have.length.above(0);
     });
@@ -13,89 +13,89 @@ describe('StampLines', function() {
   
 
   /** SL [Global Object] **/
-  describe('SL [Global Object]', function() {
-    it('should exist', function() {
+  describe('SL [Global Object]', () => {
+    it('should exist', () => {
       expect(Test.SL).to.exist;
     });
-    it('should be constructed by StampLines', function() {
+    it('should be constructed by StampLines', () => {
       expect(Test.SL.constructor.name).to.equal('StampLines');
     });
 
     /** SL.Paper [Paper.js integration] **/
-    describe('SL.Paper [Paper.js integration]', function() {
-      it('should exist', function() {
+    describe('SL.Paper [Paper.js integration]', () => {
+      it('should exist', () => {
         expect(Test.SL.Paper).to.exist;
       });
-      it('should be constructed by PaperCanvas', function() {
+      it('should be constructed by PaperCanvas', () => {
         expect(Test.SL.Paper.constructor.name).to.equal('PaperCanvas');
       });
     });
 
     /** SL.UI [user interface] **/
-    describe('SL.UI [user interface]', function() {
-      it('should exist', function() {
+    describe('SL.UI [user interface]', () => {
+      it('should exist', () => {
         expect(Test.SL.UI).to.exist;
       });
-      it('should be constructed by UI', function() {
+      it('should be constructed by UI', () => {
         expect(Test.SL.UI.constructor.name).to.equal('UI');
       });
     });
 
     /** SL.Tools [interaction tools] **/
-    describe('SL.Tools [interaction tools]', function() {
-      it('should exist', function() {
+    describe('SL.Tools [interaction tools]', () => {
+      it('should exist', () => {
         expect(Test.SL.Tools).to.exist;
       });
-      it('should be constructed by ToolBelt', function() {
+      it('should be constructed by ToolBelt', () => {
         expect(Test.SL.Tools.constructor.name).to.equal('ToolBelt');
       });
 
-      describe('SL.Tools.Belt', function() {
-        it('should exist', function() {
+      describe('SL.Tools.Belt', () => {
+        it('should exist', () => {
           expect(Test.SL.Tools.Belt).to.exist;
         });
-        it('should have Select tool', function() {
+        it('should have Select tool', () => {
           expect(Test.SL.Tools.Belt.Select).to.exist;
         });
-        it('should have Scale tool', function() {
+        it('should have Scale tool', () => {
           expect(Test.SL.Tools.Belt.Scale).to.exist;
         });
-        it('should have Rotate tool', function() {
+        it('should have Rotate tool', () => {
           expect(Test.SL.Tools.Belt.Rotate).to.exist;
         });
       });
     });
 
     /** SL.Palettes [content palettes] **/
-    describe('SL.Palettes [content palettes]', function() {
-      it('should exist', function() {
+    describe('SL.Palettes [content palettes]', () => {
+      it('should exist', () => {
         expect(Test.SL.Palettes).to.exist;
       });
-      it('should be an object', function() {
+      it('should be an object', () => {
         expect(Test.SL.Palettes).to.be.an('object');
       });
-      it('should contain Stamps', function() {
+      it('should contain Stamps', () => {
         expect(Test.SL.Palettes.Stamps).to.exist;
       });
-      it('should contain Lines', function() {
+      it('should contain Lines', () => {
         expect(Test.SL.Palettes.Lines).to.exist;
       });
     });
 
     /** SL.Utils [utilities] **/
-    describe('SL.Utils [utilities]', function() {
-      it('should exist', function() {
+    describe('SL.Utils [utilities]', () => {
+      it('should exist', () => {
         expect(Test.SL.Utils).to.exist;
       });
-      it('should be constructed by Utils', function() {
+      it('should be constructed by Utils', () => {
         expect(Test.SL.Utils.constructor.name).to.equal('Utils');
       });
 
-      it('should have "grid"', function() {
+      it('should have "grid"', () => {
         let grid = Test.SL.Utils.get('grid');
         expect(grid).to.exist;
       });
-      it('should have "grid" active', function() {
+      it('should have "grid" active', () => {
         let grid = Test.SL.Utils.get('grid');
         expect(grid.isActive()).to.be.true;
       });

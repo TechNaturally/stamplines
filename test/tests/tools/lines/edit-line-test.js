@@ -1,5 +1,5 @@
-describe('Tools.Lines.EditLine', function() {
-  describe('Constructor', function() {
+describe('Tools.Lines.EditLine', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });

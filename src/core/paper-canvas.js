@@ -41,7 +41,7 @@ export default class PaperCanvas extends Component {
       if(typeof handlers != 'object'){
         throw 'Cannot register invalid handlers!';
       }
-      Object.keys(handlers).forEach(function registerHandler(handler) {
+      Object.keys(handlers).forEach((handler) => {
         var callback = handlers[handler];
         view[handler] = callback;
       });

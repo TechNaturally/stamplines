@@ -1,5 +1,5 @@
-describe('Utils.Grid', function() {
-  describe('Constructor', function() {
+describe('Utils.Grid', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });

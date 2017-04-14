@@ -1,5 +1,5 @@
-describe('Tools.Core.Rotate', function() {
-  describe('Constructor', function() {
+describe('Tools.Core.Rotate', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });

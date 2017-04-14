@@ -1,5 +1,5 @@
-describe('Tools.Stamps.CreateStamp', function() {
-  describe('Constructor', function() {
+describe('Tools.Stamps.CreateStamp', () => {
+  describe('Constructor', () => {
     it('should initialize');
   });
 });
