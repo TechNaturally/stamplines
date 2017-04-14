@@ -3,7 +3,7 @@ export default class UIComponent {
     this.config = config;
   }
   get type() {
-    return "UI.Component";
+    return 'UI.Component';
   }
 
   register() {

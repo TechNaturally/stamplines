@@ -27,6 +27,9 @@ var sass = require('gulp-sass');
 // uglify
 var uglify = require('gulp-uglify');
 
+// soften
+var soften = require('gulp-soften');
+
 
 // Package Definition
 const PKG = {
@@ -61,7 +64,7 @@ const PKG = {
       tests: ['./test/tests.js', './test/tests.js.map'] // dest.test.path + dest.testss.js
     },
     lint: {
-      js: ['./src/**/*.js','test/**/*.js'],
+      js: ['./src/**/*.js','./test/tests/**/*.js'],
       sass: ['./src/**/*.scss']
     },
     webserver: {
@@ -252,3 +255,11 @@ gulp.task('watch:tests', function(){
 
 /** TEST TASKS **/
 gulp.task('test', ['build:tests', 'build:testLib']);
+
+
+/** Utility Tasks **/
+gulp.task('soften', function(){
+  gulp.src(['src/**/*.js', 'test/tests/**/*.js'], {base: './'})
+  .pipe(soften(2))
+  .pipe(gulp.dest('./'));
+});

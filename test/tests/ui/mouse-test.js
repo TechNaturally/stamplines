@@ -10,7 +10,7 @@ describe('UI.Mouse', function() {
       expect(Mouse).to.exist;
     });
     it('should be constructed by Mouse', function() {
-      expect(Mouse.constructor.name).to.equal("Mouse");
+      expect(Mouse.constructor.name).to.equal('Mouse');
     });
     it('should have a paperCanvas in its config', function() {
       expect(Mouse.config.paperCanvas).to.exist;
@@ -226,7 +226,7 @@ describe('UI.Mouse', function() {
           Mouse.Handles.onMouseDrag(event);
         });
         expect(Mouse.State.button.drag.points).to.not.be.empty;
-      })
+      });
       it(`should track no more than ${Mouse.config.maxDragPoints} drag.points`, function() {
         events.forEach((event) => {
           Mouse.Handles.onMouseDrag(event);

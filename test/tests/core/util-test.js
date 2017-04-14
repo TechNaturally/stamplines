@@ -6,7 +6,7 @@ describe('Core.Util', function() {
       expect(Util).to.exist;
     });
     it('should be constructed by Util', function() {
-      expect(Util.constructor.name).to.equal("Util");
+      expect(Util.constructor.name).to.equal('Util');
     });
     it('should activate', function() {
       Util.activate();

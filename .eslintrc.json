@@ -4,6 +4,9 @@
         "sourceType": "module"
     },
     "rules": {
-        "semi": 2
+        "semi": 2,
+        "strict": 2,
+        "indent": ["warn", 2],
+        "quotes": ["warn", "single"]
     }
 }

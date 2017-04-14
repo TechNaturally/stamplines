@@ -12,7 +12,7 @@ var Test = {
       this.canvas = $('canvas').first();
     }
     if(!this.canvas || !this.canvas.length){
-      throw "Could not find a canvas element to test on!";
+      throw 'Could not find a canvas element to test on!';
     }
   },
 

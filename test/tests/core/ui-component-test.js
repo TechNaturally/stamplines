@@ -6,7 +6,7 @@ describe('Core.UI.Component', function() {
       expect(UIComponent).to.exist;
     });
     it('should be constructed by UIComponent', function() {
-      expect(UIComponent.constructor.name).to.equal("UIComponent");
+      expect(UIComponent.constructor.name).to.equal('UIComponent');
     });
   });
 });

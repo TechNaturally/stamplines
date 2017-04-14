@@ -6,7 +6,7 @@ describe('Core.Tool', function() {
       expect(Tool).to.exist;
     });
     it('should be constructed by Tool', function() {
-      expect(Tool.constructor.name).to.equal("Tool");
+      expect(Tool.constructor.name).to.equal('Tool');
     });
   });
 });

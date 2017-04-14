@@ -22,42 +22,42 @@ import {default as Utils} from '../../src/util/utils.js';
 import {Grid} from '../../src/util/utils/_index.js';
 
 export default {
-	Core: {
-		StampLines: StampLines,
-		PaperCanvas: PaperCanvas,
-		Component: CoreComponent,
-		Palette: CorePalette,
-		Tool: CoreTool,
-		UIComponent: UIComponent,
-		Util: CoreUtil
-	},
-	Palette: {
-		Palette: Palette,
-		StampPalette: StampPalette,
-		LinePalette: LinePalette
-	},
-	Tools: {
-		ToolBelt: ToolBelt,
-		Core: {
-			Select: Select,
-			Scale: Scale,
-			Rotate: Rotate
-		},
-		Lines: {
-			CreateLine: CreateLine,
-			EditLine: EditLine
-		},
-		Stamps: {
-			CreateStamp: CreateStamp
-		}
-	},
-	UI: {
-		UI: UI,
-		Mouse: Mouse,
-		Dock: Dock
-	},
-	Util: {
-		Utils: Utils,
-		Grid: Grid
-	}
+  Core: {
+    StampLines: StampLines,
+    PaperCanvas: PaperCanvas,
+    Component: CoreComponent,
+    Palette: CorePalette,
+    Tool: CoreTool,
+    UIComponent: UIComponent,
+    Util: CoreUtil
+  },
+  Palette: {
+    Palette: Palette,
+    StampPalette: StampPalette,
+    LinePalette: LinePalette
+  },
+  Tools: {
+    ToolBelt: ToolBelt,
+    Core: {
+      Select: Select,
+      Scale: Scale,
+      Rotate: Rotate
+    },
+    Lines: {
+      CreateLine: CreateLine,
+      EditLine: EditLine
+    },
+    Stamps: {
+      CreateStamp: CreateStamp
+    }
+  },
+  UI: {
+    UI: UI,
+    Mouse: Mouse,
+    Dock: Dock
+  },
+  Util: {
+    Utils: Utils,
+    Grid: Grid
+  }
 };

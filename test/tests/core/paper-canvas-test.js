@@ -6,7 +6,7 @@ describe('Core.PaperCanvas', function() {
       expect(PaperCanvas).to.exist;
     });
     it('should be constructed by PaperCanvas', function() {
-      expect(PaperCanvas.constructor.name).to.equal("PaperCanvas");
+      expect(PaperCanvas.constructor.name).to.equal('PaperCanvas');
     });
     it('should have a view', function() {
       expect(PaperCanvas.view).to.exist;

@@ -92,11 +92,11 @@ describe('StampLines', function() {
       });
 
       it('should have "grid"', function() {
-        let grid = Test.SL.Utils.get("grid");
+        let grid = Test.SL.Utils.get('grid');
         expect(grid).to.exist;
       });
       it('should have "grid" active', function() {
-        let grid = Test.SL.Utils.get("grid");
+        let grid = Test.SL.Utils.get('grid');
         expect(grid.isActive()).to.be.true;
       });
     });
