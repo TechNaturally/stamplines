@@ -19,14 +19,12 @@ export default class Utils extends Component {
       type.forEach(type => {
         if (typeof type == 'string') {
           enabled.push(this.enable(type));
-        }
-        else if (typeof type == 'object') {
+        } else if (typeof type == 'object') {
           enabled.push(this.enable(type.type, type.id));
         }
       });
       return enabled;
-    }
-    else if (type && typeof type == 'string'){
+    } else if (type && typeof type == 'string'){
       if (!id) {
         id = type.toLowerCase();
       }

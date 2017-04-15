@@ -7,7 +7,9 @@
         "semi": "error",
         "strict": "error",
         "indent": ["warn", 2],
+        "brace-style": "warn",
         "quotes": ["warn", "single"],
-        "prefer-arrow-callback": "warn"
+        "prefer-arrow-callback": "warn",
+        "eol-last": "error"
     }
 }
