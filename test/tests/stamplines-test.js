@@ -77,8 +77,14 @@ describe('StampLines', () => {
       it('should contain Stamps', () => {
         expect(Test.SL.Palettes.Stamps).to.exist;
       });
+      it('should contain Stamps constructed by StampPalette', () => {
+        expect(Test.SL.Palettes.Stamps.constructor.name).to.equal('StampPalette');
+      });
       it('should contain Lines', () => {
         expect(Test.SL.Palettes.Lines).to.exist;
+      });
+      it('should contain Lines constructed by LinePalette', () => {
+        expect(Test.SL.Palettes.Lines.constructor.name).to.equal('LinePalette');
       });
     });
 

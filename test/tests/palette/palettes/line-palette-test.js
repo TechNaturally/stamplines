@@ -1,7 +1,7 @@
-describe('Palette.Type.LinePalette', () => {
+describe('Palette.Type.Lines', () => {
   describe('Constructor', () => {
     Test.assertSL();
-    let LinePalette = new Test.Lib.Palette.Palette.Type.LinePalette(Test.SL, $.extend({}, Test.Lib.Core.StampLines.DEFAULT.config.Palettes.Lines));
+    let LinePalette = new Test.Lib.Palette.Palette.Type.Lines(Test.SL, $.extend({}, Test.Lib.Core.StampLines.DEFAULT.config.Palettes.Lines));
     it('should initialize', () => {
       expect(LinePalette).to.exist;
     });

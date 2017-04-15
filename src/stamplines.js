@@ -37,10 +37,12 @@ export default class StampLines {
   }
   initPalettes() {
     let config = this.config.Palettes || {};
-    this.Palettes = {
-      Stamps: new Palette.Type.StampPalette(this, (config ? config.stamps : undefined)),
-      Lines: new Palette.Type.LinePalette(this, (config ? config.lines : undefined))
-    };
+    this.Palettes = {};
+    for (let palette in StampLines.Palette.Type) {
+      let Palette = StampLines.Palette.Type[palette];
+      let paletteConfig = config[palette] || {};
+      this.Palettes[palette] = new Palette(this, paletteConfig);
+    }
   }
   initUtils() {
     let config = this.config.Util || {};
@@ -65,6 +67,7 @@ export default class StampLines {
     return this._paper;
   }
 }
+StampLines.Palette = Palette;
 StampLines.DEFAULT = {
   coreTools: ['Select', 'Rotate', 'Scale'],
   config: {
