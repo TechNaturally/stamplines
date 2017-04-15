@@ -3,7 +3,7 @@ describe('UI.Mouse', () => {
   let PaperCanvas = Test.SL.UI.PaperCanvas;
   let Mouse = new Test.Lib.UI.Mouse(Test.SL.UI, $.extend({
     paperCanvas: PaperCanvas
-  }, Test.Lib.Core.StampLines.defaults.config.UI.Mouse));
+  }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Mouse));
 
   describe('Constructor', () => {
     it('should initialize', () => {

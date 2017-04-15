@@ -3,7 +3,7 @@ describe('UI.Dock', () => {
   let PaperCanvas = Test.SL.UI.PaperCanvas;
   let Dock = new Test.Lib.UI.Dock(Test.SL.UI, $.extend({
     paperCanvas: PaperCanvas
-  }, Test.Lib.Core.StampLines.defaults.config.UI.Dock));
+  }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Dock));
 
   describe('Constructor', () => {
     it('should initialize', () => {

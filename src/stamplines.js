@@ -4,7 +4,7 @@ import Utils from './util/utils.js';
 import ToolBelt from './tools/toolbelt.js';
 import * as Palette from './palette/palette.js';
 export default class StampLines {
-  constructor(canvas, config=StampLines.defaults.config) {
+  constructor(canvas, config=StampLines.DEFAULT.config) {
     this.config = config;
     this.DOM = {
       canvas: canvas
@@ -27,7 +27,7 @@ export default class StampLines {
     if (!config.enable) {
       config.enable = [];
     }
-    for (let enable of StampLines.defaults.coreTools) {
+    for (let enable of StampLines.DEFAULT.coreTools) {
       if (config.enable.indexOf(enable)==-1) {
         config.enable.push(enable);
       }
@@ -65,7 +65,7 @@ export default class StampLines {
     return this._paper;
   }
 }
-StampLines.defaults = {
+StampLines.DEFAULT = {
   coreTools: ['Select', 'Rotate', 'Scale'],
   config: {
     Palettes: {

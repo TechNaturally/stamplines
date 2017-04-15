@@ -1,7 +1,7 @@
 describe('Core.Palette', () => {
   Test.assertSL();
   describe('Constructor', () => {
-    let Palette = new Test.Lib.Core.Palette(Test.SL, $.extend({}, Test.Lib.Core.StampLines.defaults.config.Palettes));
+    let Palette = new Test.Lib.Core.Palette(Test.SL, $.extend({}, Test.Lib.Core.StampLines.DEFAULT.config.Palettes));
     it('should initialize', () => {
       expect(Palette).to.exist;
     });
