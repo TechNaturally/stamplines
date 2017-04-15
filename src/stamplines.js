@@ -5,31 +5,46 @@ import ToolBelt from './tools/toolbelt.js';
 import * as Palette from './palette/palette.js';
 export default class StampLines {
   constructor(canvas, config=StampLines.defaults.config) {
-    // initialize StampLines core
     this.config = config;
     this.DOM = {
       canvas: canvas
     };
-
     this._paper = new PaperCanvas(this, { canvas: this.DOM.canvas });
-
-    // initialize UI
-    this.UI = new UI(this, this.config.UI, {paper: this._paper});
-
-    // initialize Tools
+    this.init();
+  }
+  init() {
+    this.initUI();
+    this.initTools();
+    this.initPalettes();
+    this.initUtils();
+  }
+  initUI() {
+    let config = this.config.UI || {};
+    this.UI = new UI(this, config, {paper: this._paper});
+  }
+  initTools() {
+    let config = this.config.Tools || {};
+    if (!config.enable) {
+      config.enable = [];
+    }
+    for (let enable of StampLines.defaults.coreTools) {
+      if (config.enable.indexOf(enable)==-1) {
+        config.enable.push(enable);
+      }
+    }
     this.Tools = new ToolBelt();
-    this.Tools.init(this, this.config.tools);
-    this.Tools.enable(['Select', 'Rotate', 'Scale']);
-
-    // initialize Palettes
-    let paletteConfig = (this.config && this.config.palettes);
+    this.Tools.init(this, config);
+  }
+  initPalettes() {
+    let config = this.config.Palettes || {};
     this.Palettes = {
-      Stamps: new Palette.Type.StampPalette(this, (paletteConfig ? paletteConfig.stamps : undefined)),
-      Lines: new Palette.Type.LinePalette(this, (paletteConfig ? paletteConfig.lines : undefined))
+      Stamps: new Palette.Type.StampPalette(this, (config ? config.stamps : undefined)),
+      Lines: new Palette.Type.LinePalette(this, (config ? config.lines : undefined))
     };
-
-    // initialize Utils
-    this.Utils = new Utils(this, this.config.Util);
+  }
+  initUtils() {
+    let config = this.config.Util || {};
+    this.Utils = new Utils(this, config);
     this.Utils.enable('Grid');
     for (let id in this.Utils.active) {
       let util = this.Utils.active[id];
@@ -51,10 +66,13 @@ export default class StampLines {
   }
 }
 StampLines.defaults = {
+  coreTools: ['Select', 'Rotate', 'Scale'],
   config: {
     Palettes: {
       Lines: {},
       Stamps: {}
+    },
+    Tools: {
     },
     UI: {
       DOM: {

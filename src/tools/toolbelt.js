@@ -1,12 +1,14 @@
 import * as Tools from './_index.js';
 export default class ToolBelt extends paper.Tool {
-  constructor() {
-    super();
-  }
+  // constructor is limited because class extension
+  // instead, call init(SL, config) after creation
   init(SL, config) {
     this.SL = SL;
     this.config = config;
     this.Belt = {};
+    if (config.enable) {
+      this.enable(config.enable);
+    }
   }
   enable(type) {
     if (type.constructor === Array) {
