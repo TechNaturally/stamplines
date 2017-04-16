@@ -1,0 +1,72 @@
+{
+  "name": "StampLines Test Config",
+  "Stamps": {
+    "path": "stamps",
+    "stamps": [
+      {
+        "id": "circle",
+        "name": "Circle",
+        "connections": [
+          { "x": -25, "y": 0 },
+          { "x": 25, "y": 0 }
+        ]
+      },
+      {
+        "id": "rectangle",
+        "image": "rectangle-rounded.svg",
+        "connections": [
+          { "x": -1.0, "y": 0 },
+          { "x": 1.0, "y": 0 },
+          { "x": 0, "y": -1.0 },
+          { "x": 0, "y": 1.0 }
+        ]
+      },
+      {
+        "id": "triangle",
+        "name": "Triangle"
+      }
+    ]
+  },
+  "Lines": {
+    "preview": {
+      "width": 50,
+      "height": 50
+    },
+    "lines": [
+      {
+        "id": "solid",
+        "name": "Solid Black",
+        "style": {
+          "strokeColor": "black",
+          "strokeWidth": 5
+        }
+      },
+      {
+        "id": "thin-green",
+        "name": "Thin Green",
+        "style": {
+          "strokeColor": "green",
+          "strokeWidth": 3
+        }
+      },
+      {
+        "id": "dashed",
+        "name": "Dashed",
+        "style": {
+          "strokeColor": "grey",
+          "strokeWidth": 5,
+          "dashArray": [18, 7]
+        }
+      },
+      {
+        "id": "dotted",
+        "name": "Dotted",
+        "style": {
+          "strokeColor": "blue",
+          "strokeWidth": 5,
+          "dashArray": [5, 5]
+        }
+      }
+    ]
+  }
+}

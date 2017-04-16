@@ -21,3 +21,7 @@ var Test = {
     }
   }
 };
+// to test dynamic loading, set expected file contents
+Test.Data = {};
+Test.Data['assets/StampLines.json'] = GULP_INCLUDE('./test/assets/StampLines.json');
+Test.Data['assets/StampLines-2.json'] = GULP_INCLUDE('./test/assets/StampLines-2.json');

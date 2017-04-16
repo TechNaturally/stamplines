@@ -8,6 +8,8 @@ var sourcemaps = require('gulp-sourcemaps');
 var clean = require('gulp-clean');
 var concat = require('gulp-concat');
 var rename = require('gulp-rename');
+var replace = require('gulp-replace-task');
+var fs = require('fs');
 var chalk = require('chalk');
 
 // browserify/watchify/babelify stack
@@ -43,7 +45,7 @@ const PKG = {
       main: './src/stamplines.js',
       sass: ['./src/**/*.scss'],
       testLib: './test/tests/lib.js',
-      tests: ['!./test/tests/lib.js', './test/tests/*.js', './test/tests/core/**/*.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js', './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js', './test/tests/tools/*.js', './test/tests/tools/**/*.js', './test/tests/util/*.js', './test/tests/util/**/*.js', './test/tests/**/*.js']
+      tests: ['!./test/tests/lib.js', './test/tests/*.js', './test/tests/core/**/*.js', './test/tests/palette/palette-test.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js', './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js', './test/tests/tools/*.js', './test/tests/tools/**/*.js', './test/tests/util/*.js', './test/tests/util/**/*.js', './test/tests/**/*.js']
     },
     dest: {
       build: './dist/',
@@ -203,6 +205,16 @@ gulp.task('build:sass:watched', function() {
 gulp.task('build:tests', ['clean:tests'], function() {
   gulp.src(PKG.path.src.tests)
       .pipe(concat(PKG.path.dest.tests.js))
+      .pipe(replace({
+        patterns: [
+          {
+            match: /GULP_INCLUDE\('([^\)]+)'\)/g,
+            replacement: function(match, filename) {
+              return fs.readFileSync(filename, 'utf8');
+            }
+          }
+        ]
+      }))
       .pipe(gulp.dest(PKG.path.dest.tests.path));
 });
 gulp.task('build:testLib', ['clean:testLib'], function() {
