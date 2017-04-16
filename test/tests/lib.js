@@ -19,7 +19,7 @@ import {default as Mouse} from '../../src/ui/mouse.js';
 import {default as Dock} from '../../src/ui/dock.js';
 
 import {default as Utils} from '../../src/util/utils.js';
-import {Grid} from '../../src/util/utils/_index.js';
+import {Grid, URL} from '../../src/util/utils/_index.js';
 
 export default {
   Core: {
@@ -56,8 +56,9 @@ export default {
     Mouse: Mouse,
     Dock: Dock
   },
-  Util: {
+  Utils: {
     Utils: Utils,
-    Grid: Grid
+    Grid: Grid,
+    URL: URL
   }
 };

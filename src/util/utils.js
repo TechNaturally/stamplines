@@ -12,6 +12,12 @@ export default class Utils extends Component {
   get(id) {
     return this.active[id];
   }
+  gets(type) {
+    if (Available[type] && typeof Available[type] != 'function') {
+      return Available[type];
+    }
+    throw `Could not get static '${type}' utility!`;
+  }
 
   enable(type, id) {
     if (type.constructor === Array) {
