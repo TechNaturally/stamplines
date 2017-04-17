@@ -1,12 +1,26 @@
 describe('Core.PaperCanvas', () => {
-  Test.assertSL();
-  let PaperCanvas = new Test.Lib.Core.PaperCanvas(Test.SL, { canvas: Test.SL.canvas });
+  let canvas = $('<canvas></canvas>');
+  let PaperCanvas;
+  before(() => {
+    Test.assertSL();
+    PaperCanvas = new Test.Lib.Core.PaperCanvas(Test.SL, { canvas: canvas });
+  });
+  after(() => {
+    PaperCanvas.destroy();
+  });
   describe('Constructor', () => {
     it('should initialize', () => {
       expect(PaperCanvas).to.exist;
     });
     it('should be constructed by PaperCanvas', () => {
       expect(PaperCanvas.constructor.name).to.equal('PaperCanvas');
+    });
+    it('should have a project', () => {
+      expect(PaperCanvas.project).to.exist;
+    });
+    it('should not be the active paper project', () => {
+      // Test.SL.Paper.project should still be active, because it was created before the local PaperCanvas
+      expect(PaperCanvas.project).to.not.equal(paper.project);
     });
     it('should have a view', () => {
       expect(PaperCanvas.view).to.exist;

@@ -15,20 +15,47 @@ export default class PaperCanvas extends Component {
     };
     this.configure();
   }
+  activate() {
+    if (this.paperProject && paper.project != this.paperProject) {
+      paper.project = this.paperProject;
+    }
+  }
+  deactivate() {
+    this.SL.Paper.activate();
+  }
+  destroy() {
+    if (this.paperProject) {
+      this.paperProject.remove();
+      this.paperProject = undefined;
+    }
+  }
+
   get type() {
     return 'PaperCanvas';
   }
-
+  get project() {
+    return this.paperProject;
+  }
   get view() {
-    return paper.view;
+    return this.project.view;
   }
 
   configure(config) {
     config = super.configure(config);
-
     this.canvas = config.canvas;
     if(this.canvas && this.canvas.length){
+      let activeProject = paper.project;
+
+      // create + track the new paper.Project
       paper.setup(this.canvas[0]);
+      this.paperProject = paper.project;
+
+      // don't automatically activate the new project
+      if (activeProject) {
+        paper.project = activeProject;
+      }
+
+      // add the class to the canvas
       if(!this.canvas.hasClass('sl-canvas')){
         this.canvas.addClass('sl-canvas');
       }
