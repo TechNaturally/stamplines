@@ -6,21 +6,33 @@ import * as Palette from './palette/palette.js';
 export default class StampLines {
   constructor(canvas, config=StampLines.DEFAULT.config) {
     this.config = config;
-    this.DOM = {
-      canvas: canvas
-    };
-    this._paper = new PaperCanvas(this, { canvas: this.DOM.canvas });
-    this.init();
+    if (this.config) {
+      this.DOM = {
+        canvas: canvas
+      };
+      this._paper = new PaperCanvas(this, { canvas: this.DOM.canvas });
+      this.init();
+    }
   }
   init() {
+    this.reset();
     this.initUI();
     this.initTools();
     this.initPalettes();
     this.initUtils();
   }
+  reset() {
+    this.resetUtils();
+    this.resetPalettes();
+    this.resetTools();
+    this.resetUI();
+  }
   initUI() {
     let config = this.config.UI || {};
     this.UI = new UI(this, config, {paper: this._paper});
+  }
+  resetUI() {
+
   }
   initTools() {
     let config = this.config.Tools || {};
@@ -35,6 +47,9 @@ export default class StampLines {
     this.Tools = new ToolBelt();
     this.Tools.init(this, config);
   }
+  resetTools() {
+
+  }
   initPalettes() {
     let config = this.config.Palettes || {};
     this.Palettes = {};
@@ -44,12 +59,28 @@ export default class StampLines {
       this.Palettes[palette] = new Palette(this, paletteConfig);
     }
   }
+  resetPalettes() {
+
+  }
   initUtils() {
     let config = this.config.Util || {};
     this.Utils = new Utils(this, config);
-    this.Utils.enable('Grid');
-    for (let id in this.Utils.active) {
-      let util = this.Utils.active[id];
+  }
+  resetUtils() {
+    if (this.Utils) {
+      this.Utils.disable();
+    }
+  }
+
+  loadConfig(source) {
+    if (source) {
+      let RemoteLoader = this.Utils.gets('RemoteLoader', {path: source});
+      return RemoteLoader.load()
+        .then((config) => {
+          console.log('Remote Config loaded...', config);
+          config = $.extend({}, StampLines.DEFAULT.config, config);
+          this.init();
+        });
     }
   }
 
@@ -76,11 +107,13 @@ StampLines.DEFAULT = {
       Stamps: {}
     },
     Tools: {
+      enable: ['Select', 'Rotate', 'Scale']
     },
     UI: {
       DOM: {
         useWrapper: true
       },
+      Dock: {},
       Mouse: {
         maxDragPoints: 3
       }

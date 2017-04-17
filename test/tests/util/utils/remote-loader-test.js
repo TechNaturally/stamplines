@@ -21,12 +21,12 @@ describe('Utils.RemoteLoader', () => {
       });
     });
     describe('with no path argument', () => {
-      it(`should use its config.path and resolve with loaded data equalling Test.Data['${path}']`, () => {
+      it(`should use its config.path and resolve with loaded data equalling Test.Files['${path}']`, () => {
         return new Promise((resolve, reject) => {
           let loaded = RemoteLoader.load();
           loaded
             .then((data) => {
-              expect(data).to.eql(Test.Data[path]);
+              expect(data).to.eql(Test.Files[path]);
               resolve();
             })
             .catch(reject);
@@ -34,12 +34,12 @@ describe('Utils.RemoteLoader', () => {
       }).timeout(5000);
     });
     describe('with path argument', () => {
-      it(`should resolve with loaded data equalling Test.Data['${path2}']`, () => {
+      it(`should resolve with loaded data equalling Test.Files['${path2}']`, () => {
         return new Promise((resolve, reject) => {
           let loaded = RemoteLoader.load(path2);
           loaded
             .then((data) => {
-              expect(data).to.eql(Test.Data[path2]);
+              expect(data).to.eql(Test.Files[path2]);
               resolve();
             })
             .catch(reject);

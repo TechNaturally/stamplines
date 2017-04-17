@@ -1,110 +1,94 @@
 describe('StampLines', () => {
-  beforeEach(() => {
+  let canvas, SL;
+  before(() => {
+    // make sure the default Test.SL already exists
     Test.assertSL();
+
+    // initialize SL with dummy canvas and empty config
+    canvas = $('<canvas></canvas>');
+    SL = new Test.Lib.Core.StampLines(canvas, {});
   });
 
-  /** Canvas element **/
-  describe('canvas element', () => {
+  describe('Constructor', () => {
+    it('should initialize', () => {
+      expect(SL).to.exist;
+    });;
+  });
+
+  describe('config', () => {
     it('should exist', () => {
-      Test.assertCanvas();
-      expect(Test.canvas).to.have.length.above(0);
+      expect(SL.config).to.exist;
     });
   });
-  
 
-  /** SL [Global Object] **/
-  describe('SL [Global Object]', () => {
+  describe('Paper', () => {
     it('should exist', () => {
-      expect(Test.SL).to.exist;
+      expect(SL.Paper).to.exist;
     });
-    it('should be constructed by StampLines', () => {
-      expect(Test.SL.constructor.name).to.equal('StampLines');
+    it('should be constructed by PaperCanvas', () => {
+      expect(SL.Paper.constructor.name).to.equal('PaperCanvas');
     });
+  });
 
-    /** SL.Paper [Paper.js integration] **/
-    describe('SL.Paper [Paper.js integration]', () => {
+  describe('UI', () => {
+    it('should exist', () => {
+      expect(SL.UI).to.exist;
+    });
+    it('should be constructed by UI', () => {
+      expect(SL.UI.constructor.name).to.equal('UI');
+    });
+  });
+
+  describe('Tools', () => {
+    it('should exist', () => {
+      expect(SL.Tools).to.exist;
+    });
+    it('should be constructed by ToolBelt', () => {
+      expect(SL.Tools.constructor.name).to.equal('ToolBelt');
+    });
+    describe('Tools.Belt', () => {
       it('should exist', () => {
-        expect(Test.SL.Paper).to.exist;
+        expect(SL.Tools.Belt).to.exist;
       });
-      it('should be constructed by PaperCanvas', () => {
-        expect(Test.SL.Paper.constructor.name).to.equal('PaperCanvas');
+      it('should have core Select tool', () => {
+        expect(SL.Tools.Belt.Select).to.exist;
       });
-    });
-
-    /** SL.UI [user interface] **/
-    describe('SL.UI [user interface]', () => {
-      it('should exist', () => {
-        expect(Test.SL.UI).to.exist;
+      it('should have core Scale tool', () => {
+        expect(SL.Tools.Belt.Scale).to.exist;
       });
-      it('should be constructed by UI', () => {
-        expect(Test.SL.UI.constructor.name).to.equal('UI');
+      it('should have core Rotate tool', () => {
+        expect(SL.Tools.Belt.Rotate).to.exist;
       });
     });
+  });
 
-    /** SL.Tools [interaction tools] **/
-    describe('SL.Tools [interaction tools]', () => {
-      it('should exist', () => {
-        expect(Test.SL.Tools).to.exist;
-      });
-      it('should be constructed by ToolBelt', () => {
-        expect(Test.SL.Tools.constructor.name).to.equal('ToolBelt');
-      });
-
-      describe('SL.Tools.Belt', () => {
-        it('should exist', () => {
-          expect(Test.SL.Tools.Belt).to.exist;
-        });
-        it('should have Select tool', () => {
-          expect(Test.SL.Tools.Belt.Select).to.exist;
-        });
-        it('should have Scale tool', () => {
-          expect(Test.SL.Tools.Belt.Scale).to.exist;
-        });
-        it('should have Rotate tool', () => {
-          expect(Test.SL.Tools.Belt.Rotate).to.exist;
-        });
-      });
+  describe('Palettes', () => {
+    it('should exist', () => {
+      expect(SL.Palettes).to.exist;
     });
-
-    /** SL.Palettes [content palettes] **/
-    describe('SL.Palettes [content palettes]', () => {
-      it('should exist', () => {
-        expect(Test.SL.Palettes).to.exist;
-      });
-      it('should be an object', () => {
-        expect(Test.SL.Palettes).to.be.an('object');
-      });
-      it('should contain Stamps', () => {
-        expect(Test.SL.Palettes.Stamps).to.exist;
-      });
-      it('should contain Stamps constructed by StampPalette', () => {
-        expect(Test.SL.Palettes.Stamps.constructor.name).to.equal('StampPalette');
-      });
-      it('should contain Lines', () => {
-        expect(Test.SL.Palettes.Lines).to.exist;
-      });
-      it('should contain Lines constructed by LinePalette', () => {
-        expect(Test.SL.Palettes.Lines.constructor.name).to.equal('LinePalette');
-      });
+    it('should be an object', () => {
+      expect(SL.Palettes).to.be.an('object');
     });
+    it('should contain Stamps', () => {
+      expect(SL.Palettes.Stamps).to.exist;
+    });
+    it('should contain Stamps constructed by StampPalette', () => {
+      expect(SL.Palettes.Stamps.constructor.name).to.equal('StampPalette');
+    });
+    it('should contain Lines', () => {
+      expect(SL.Palettes.Lines).to.exist;
+    });
+    it('should contain Lines constructed by LinePalette', () => {
+      expect(SL.Palettes.Lines.constructor.name).to.equal('LinePalette');
+    });
+  });
 
-    /** SL.Utils [utilities] **/
-    describe('SL.Utils [utilities]', () => {
-      it('should exist', () => {
-        expect(Test.SL.Utils).to.exist;
-      });
-      it('should be constructed by Utils', () => {
-        expect(Test.SL.Utils.constructor.name).to.equal('Utils');
-      });
-
-      it('should have "grid"', () => {
-        let grid = Test.SL.Utils.get('grid');
-        expect(grid).to.exist;
-      });
-      it('should have "grid" active', () => {
-        let grid = Test.SL.Utils.get('grid');
-        expect(grid.isActive()).to.be.true;
-      });
+  describe('Utils', () => {
+    it('should exist', () => {
+      expect(SL.Utils).to.exist;
+    });
+    it('should be constructed by Utils', () => {
+      expect(SL.Utils.constructor.name).to.equal('Utils');
     });
   });
 });
