@@ -4,9 +4,16 @@ import {default as Mouse} from './mouse.js';
 export default class UI extends Component {
   constructor(SL, config={}, control={}) {
     super(SL, config);
-    
     this.DOM = SL.DOM;
     this.PaperCanvas = control.paper;
+    this.configure();
+  }
+  get type() {
+    return 'UI';
+  }
+
+  configure(config) {
+    config = super.configure(config);
 
     if (this.config.DOM && this.config.DOM.useWrapper) {
       this.wrapDOM();
@@ -26,9 +33,8 @@ export default class UI extends Component {
     this.config.Mouse = this.config.Mouse || {};
     $.extend(this.config.Mouse, componentConfig);
     this.Mouse = new Mouse(this, this.config.Mouse);
-  }
-  get type() {
-    return 'UI';
+
+    return this.config;
   }
 
   classify(id) {

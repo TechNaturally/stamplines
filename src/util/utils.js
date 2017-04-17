@@ -4,6 +4,7 @@ export default class Utils extends Component {
   constructor(SL, config) {
     super(SL, config);
     this.active = {};
+    this.configure();
   }
   get type() {
     return 'Utils';
@@ -23,10 +24,19 @@ export default class Utils extends Component {
     throw `Could not get '${type}' utility!`;
   }
 
-  enable(type, id) {
+  configure(config) {
+    config = super.configure(config);
+    for (let id in config) {
+      let type = config[id].type || id.toCamelCase().capitalizeFirstLetter();
+      this.enable(type, id, config.id);
+    }
+    return this.config;
+  }
+
+  enable(type, id, config) {
     if (type.constructor === Array) {
       let enabled = [];
-      type.forEach(type => {
+      type.forEach((type) => {
         if (typeof type == 'string') {
           enabled.push(this.enable(type));
         } else if (typeof type == 'object') {
@@ -39,7 +49,8 @@ export default class Utils extends Component {
         id = type.toLowerCase();
       }
       if (!this.active[id] && Available[type]) {
-        var newUtil = new Available[type](this.SL, ((this.config && this.config[id])?this.config[id]:{}));
+        config = config || ((this.config && this.config[id]) ? this.config[id] : {});
+        let newUtil = new Available[type](this.SL, config);
         this.active[id] = newUtil;
         if (!newUtil.name) {
           newUtil.name = type;

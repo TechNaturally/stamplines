@@ -9,4 +9,8 @@ export default class Component {
   get type() {
     return 'Component';
   }
+  configure(config) {
+    this.config = config || this.config || {};
+    return this.config;
+  }
 }

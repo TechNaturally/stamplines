@@ -13,6 +13,18 @@ export default class PaperCanvas extends Component {
         console.log('PaperCanvas.onResize =>', event);
       }
     };
+    this.configure();
+  }
+  get type() {
+    return 'PaperCanvas';
+  }
+
+  get view() {
+    return paper.view;
+  }
+
+  configure(config) {
+    config = super.configure(config);
 
     this.canvas = config.canvas;
     if(this.canvas && this.canvas.length){
@@ -23,13 +35,8 @@ export default class PaperCanvas extends Component {
     }
 
     this.registerHandlers(this.Handles);
-  }
-  get type() {
-    return 'PaperCanvas';
-  }
 
-  get view() {
-    return paper.view;
+    return this.config;
   }
 
   registerHandlers(handlers) {

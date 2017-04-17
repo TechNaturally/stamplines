@@ -2,6 +2,7 @@ import Component from './component.js';
 export default class Tool extends Component {
   constructor(SL, config) {
     super(SL, config);
+    this.configure();
   }
   get type() {
     return 'Tool';
