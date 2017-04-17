@@ -19,19 +19,12 @@ export default class UI extends Component {
       this.wrapDOM();
     }
 
-    // initialize UI Compontents
-    let componentConfig = {
-      paperCanvas: this.PaperCanvas
-    };
-
     // initialize Dock
     this.config.Dock = this.config.Dock || {};
-    $.extend(this.config.Dock, componentConfig);
     this.Dock = new Dock(this, this.config.Dock);
 
     // initialize Mouse
     this.config.Mouse = this.config.Mouse || {};
-    $.extend(this.config.Mouse, componentConfig);
     this.Mouse = new Mouse(this, this.config.Mouse);
 
     return this.config;

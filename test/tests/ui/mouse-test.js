@@ -12,9 +12,6 @@ describe('UI.Mouse', () => {
     it('should be constructed by Mouse', () => {
       expect(Mouse.constructor.name).to.equal('Mouse');
     });
-    it('should have a paperCanvas in its config', () => {
-      expect(Mouse.config.paperCanvas).to.exist;
-    });
   });
 
   describe('PaperCanvas.view', () => {

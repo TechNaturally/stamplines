@@ -7,8 +7,8 @@ export default class UIComponent {
     return 'UI.Component';
   }
 
-  register() {
-    let paperCanvas = this.config.paperCanvas;
+  register(paperCanvas) {
+    paperCanvas = paperCanvas || this.UI.PaperCanvas;
     if (this.Handles && paperCanvas) {
       paperCanvas.registerHandlers(this.Handles);
     }

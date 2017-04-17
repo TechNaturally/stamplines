@@ -12,9 +12,6 @@ describe('UI.Dock', () => {
     it('should be constructed by Dock', () => {
       expect(Dock.constructor.name).to.equal('Dock');
     });
-    it('should have a paperCanvas in its config', () => {
-      expect(Dock.config.paperCanvas).to.exist;
-    });
   });
 
   describe('#assertDOM', () => {
