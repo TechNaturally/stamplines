@@ -10,6 +10,18 @@ export default class Utils extends Component {
     return 'Utils';
   }
 
+  configure(config) {
+    config = super.configure(config);
+    for (let id in config) {
+      let type = config[id].type || id.toCamelCase().capitalizeFirstLetter();
+      if (this.active[id]) {
+        this.disable(id);
+      }
+      this.enable(type, id, config.id);
+    }
+    return this.config;
+  }
+
   get(id) {
     return this.active[id];
   }
@@ -23,16 +35,6 @@ export default class Utils extends Component {
     }
     throw `Could not get '${type}' utility!`;
   }
-
-  configure(config) {
-    config = super.configure(config);
-    for (let id in config) {
-      let type = config[id].type || id.toCamelCase().capitalizeFirstLetter();
-      this.enable(type, id, config.id);
-    }
-    return this.config;
-  }
-
   enable(type, id, config) {
     if (type.constructor === Array) {
       let enabled = [];
@@ -46,20 +48,54 @@ export default class Utils extends Component {
       return enabled;
     } else if (type && typeof type == 'string'){
       if (!id) {
-        id = type.toLowerCase();
-      }
-      if (!this.active[id] && Available[type]) {
-        config = config || ((this.config && this.config[id]) ? this.config[id] : {});
-        let newUtil = new Available[type](this.SL, config);
-        this.active[id] = newUtil;
-        if (!newUtil.name) {
-          newUtil.name = type;
+        let ID = this.SL.Utils.gets('Identity');
+        if (ID) {
+          id = ID.getUnique(type.toLowerCase(), this.active);
         }
       }
-      if (this.active[id] && typeof this.active[id].activate == 'function') {
-        this.active[id].activate();
+      if (Available[type] && typeof Available[type] == 'function') {
+        if (!this.active[id]) {
+          config = config || ((this.config && this.config[id]) ? this.config[id] : {});
+          let newUtil = new Available[type](this.SL, config);
+          newUtil.id = id;
+          this.active[id] = newUtil;
+          if (!newUtil.name) {
+            newUtil.name = type;
+          }
+        }
+        if (this.active[id] && typeof this.active[id].activate == 'function') {
+          this.active[id].activate();
+        }
+        return this.active[id];
+      } else if (Available[type]) {
+        return Available[type];
       }
-      return this.active[id];
+    }
+  }
+  disable(id='*') {
+    if (id == '*') {
+      id = Object.keys(this.active);
+    }
+    if (id.constructor === Array) {
+      let disabled = [];
+      id.forEach((id) => {
+        if (typeof id == 'string') {
+          disabled.push(this.disable(id));
+        } else if (typeof id == 'object' && id.id) {
+          disabled.push(this.disable(id.id));
+        }
+      });
+      return disabled;
+    } else if (id && typeof id == 'string'){
+      if (this.active[id]) {
+        let deactivate = this.active[id];
+        if (typeof deactivate.deactivate == 'function') {
+          deactivate.deactivate();
+        }
+        this.active[id] = undefined;
+        delete this.active[id];
+        return deactivate;
+      }
     }
   }
 }

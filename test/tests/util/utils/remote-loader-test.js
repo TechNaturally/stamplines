@@ -1,4 +1,4 @@
-describe('Util.RemoteLoader', () => {
+describe('Utils.RemoteLoader', () => {
   describe('Constructor', () => {
     let RemoteLoader = new Test.Lib.Utils.RemoteLoader(Test.SL);
     it('should initialize', () => {
