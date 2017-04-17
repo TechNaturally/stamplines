@@ -149,6 +149,7 @@ function buildSass(minify){
 /** MAIN TASKS **/
 // default is to start up the development environment
 gulp.task('default', ['dev']);
+gulp.task('check', ['clean', 'build', 'test', 'lint']);
 
 // dev environment watches with a livereload on localhost:8000
 gulp.task('dev', ['watch:tests', 'watch:src'], function() {
