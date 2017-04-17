@@ -33,13 +33,10 @@ export default class Dock extends UIComponent {
       throw `Palette with id ${id} already exists!`;
     }
     if (!id) {
-      let tryBase = palette.paletteType.toLowerCase();
-      let tryCount = 0;
-      let tryID = tryBase;
-      while (this.Palettes[tryID]) {
-        tryID = tryBase+'-'+(++tryCount);
+      let ID = this.UI.SL.Utils.gets('Identity');
+      if (ID) {
+        id = ID.getUnique(palette.paletteType.toLowerCase(), this.Palettes);
       }
-      id = tryID;
     }
     id = this.UI.classify(id);
 

@@ -19,7 +19,7 @@ import {default as Mouse} from '../../src/ui/mouse.js';
 import {default as Dock} from '../../src/ui/dock.js';
 
 import {default as Utils} from '../../src/util/utils.js';
-import {Grid, RemoteLoader, URL} from '../../src/util/utils/_index.js';
+import {Grid, RemoteLoader, Identity, URL} from '../../src/util/utils/_index.js';
 
 export default {
   Core: {
@@ -60,6 +60,7 @@ export default {
     Utils: Utils,
     Grid: Grid,
     RemoteLoader: RemoteLoader,
+    Identity: Identity,
     URL: URL
   }
 };
