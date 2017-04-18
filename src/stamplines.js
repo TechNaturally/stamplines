@@ -14,16 +14,19 @@ export default class StampLines {
       this.init();
     }
   }
+  destroy() {
+    this.reset();
+  }
   init() {
     this.reset();
     this.initUI();
     this.initTools();
-    this.initPalettes();
     this.initUtils();
+    this.initPalettes();
   }
   reset() {
-    this.resetUtils();
     this.resetPalettes();
+    this.resetUtils();
     this.resetTools();
     this.resetUI();
   }
@@ -32,7 +35,10 @@ export default class StampLines {
     this.UI = new UI(this, config, {paper: this._paper});
   }
   resetUI() {
-
+    if (this.UI) {
+      this.UI.destroy();
+      this.UI = undefined;
+    }
   }
   initTools() {
     let config = this.config.Tools || {};
@@ -48,19 +54,15 @@ export default class StampLines {
     this.Tools.init(this, config);
   }
   resetTools() {
-
+    if (this.Tools) {
+      this.Tools.destroy();
+    }
   }
   initPalettes() {
     let config = this.config.Palettes || {};
-    this.Palettes = {};
-    for (let palette in StampLines.Palette.Type) {
-      let Palette = StampLines.Palette.Type[palette];
-      let paletteConfig = config[palette] || {};
-      this.Palettes[palette] = new Palette(this, paletteConfig);
-    }
+    this.Palettes = new Palette.Manager(this, config);
   }
   resetPalettes() {
-
   }
   initUtils() {
     let config = this.config.Util || {};
@@ -68,7 +70,7 @@ export default class StampLines {
   }
   resetUtils() {
     if (this.Utils) {
-      this.Utils.disable();
+      this.Utils.disable('*');
     }
   }
 
@@ -77,9 +79,9 @@ export default class StampLines {
       let RemoteLoader = this.Utils.gets('RemoteLoader', {path: source});
       return RemoteLoader.load()
         .then((config) => {
-          console.log('Remote Config loaded...', config);
-          config = $.extend({}, StampLines.DEFAULT.config, config);
+          this.config = $.extend({}, StampLines.DEFAULT.config, config);
           this.init();
+          return config;
         });
     }
   }

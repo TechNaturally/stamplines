@@ -8,6 +8,22 @@ export default class UI extends Component {
     this.PaperCanvas = control.paper;
     this.configure();
   }
+  destroy() {
+    this.destroyDock();
+    this.destroyMouse();
+    this.unwrapDOM();
+  }
+  destroyDock() {
+    if(this.Dock){
+      this.Dock.destroy();
+    }
+  }
+  destroyMouse() {
+    if(this.Mouse){
+      this.Mouse.destroy();
+    }
+  }
+
   get type() {
     return 'UI';
   }
@@ -34,8 +50,15 @@ export default class UI extends Component {
     return id.toDashCase();
   }
 
+  unwrapDOM() {
+    if (this.DOM.wrapper) {
+      if (this.DOM.canvas && this.DOM.canva) {
+
+      }
+    }
+  }
   wrapDOM() {
-    if(!this.DOM.wrapper && this.DOM.canvas){
+    if (!this.DOM.wrapper && this.DOM.canvas) {
       var wrapperClass = 'stamplines';
       if (typeof this.config.useWrapper == 'string' && wrapperClass != this.config.useWrapper) {
         wrapperClass += ' '+this.config.useWrapper;

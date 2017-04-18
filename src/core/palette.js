@@ -5,6 +5,9 @@ export default class Palette extends Component {
     this.DOM = {};
     this.configure();
   }
+  destroy() {
+    this.destroyDOM();
+  }
   get type() {
     return 'Palette';
   }

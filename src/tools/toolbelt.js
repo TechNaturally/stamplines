@@ -10,6 +10,12 @@ export default class ToolBelt extends paper.Tool {
       this.enable(config.enable);
     }
   }
+  destroy() {
+    for (let type in this.Belt) {
+      this.Belt[type] = undefined;
+    }
+    this.remove();
+  }
   enable(type) {
     if (type.constructor === Array) {
       for (var i=0; i < type.length; i++) {

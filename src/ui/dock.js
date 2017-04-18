@@ -10,14 +10,14 @@ export default class Dock extends UIComponent {
   }
 
   assertDOM() {
-    if(!this.UI.DOM.dock){
+    if (!this.UI.DOM.dock) {
       this.UI.DOM.dock = $('<div class="sl-dock"></div>)');
       this.UI.DOM.canvas.after(this.UI.DOM.dock);
       return true;
     }
   }
   destroyDOM() {
-    if(this.UI.DOM.dock){
+    if (this.UI.DOM.dock) {
       this.UI.DOM.dock.remove();
       this.UI.DOM.dock = undefined;
       return true;

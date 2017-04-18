@@ -3,6 +3,11 @@ export default class UIComponent {
     this.UI = UI;
     this.config = config;
   }
+  destroy() {
+    if (typeof this.destroyDOM == 'function') {
+      this.destroyDOM();
+    }
+  }
   get type() {
     return 'UI.Component';
   }

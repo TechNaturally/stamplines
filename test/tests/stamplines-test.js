@@ -8,42 +8,24 @@ describe('StampLines', () => {
     canvas = $('<canvas></canvas>');
     SL = new Test.Lib.Core.StampLines(canvas, {});
   });
+  after(() => {
+    SL.destroy();
+  });
 
   describe('Constructor', () => {
     it('should initialize', () => {
       expect(SL).to.exist;
-    });;
-  });
-
-  describe('config', () => {
-    it('should exist', () => {
+    });
+    it('should have config property', () => {
       expect(SL.config).to.exist;
     });
-  });
-
-  describe('Paper', () => {
-    it('should exist', () => {
-      expect(SL.Paper).to.exist;
-    });
-    it('should be constructed by PaperCanvas', () => {
+    it('should have Paper property constructed by PaperCanvas', () => {
       expect(SL.Paper.constructor.name).to.equal('PaperCanvas');
     });
-  });
-
-  describe('UI', () => {
-    it('should exist', () => {
-      expect(SL.UI).to.exist;
-    });
-    it('should be constructed by UI', () => {
+    it('should have UI property constructed by UI', () => {
       expect(SL.UI.constructor.name).to.equal('UI');
     });
-  });
-
-  describe('Tools', () => {
-    it('should exist', () => {
-      expect(SL.Tools).to.exist;
-    });
-    it('should be constructed by ToolBelt', () => {
+    it('should have Tools property constructed by ToolBelt', () => {
       expect(SL.Tools.constructor.name).to.equal('ToolBelt');
     });
     describe('Tools.Belt', () => {
@@ -60,35 +42,36 @@ describe('StampLines', () => {
         expect(SL.Tools.Belt.Rotate).to.exist;
       });
     });
-  });
-
-  describe('Palettes', () => {
-    it('should exist', () => {
-      expect(SL.Palettes).to.exist;
+    it('should have Palettes property constructed by PaletteManager', () => {
+      expect(SL.Palettes.constructor.name).to.equal('PaletteManager');
     });
-    it('should be an object', () => {
-      expect(SL.Palettes).to.be.an('object');
-    });
-    it('should contain Stamps', () => {
-      expect(SL.Palettes.Stamps).to.exist;
-    });
-    it('should contain Stamps constructed by StampPalette', () => {
-      expect(SL.Palettes.Stamps.constructor.name).to.equal('StampPalette');
-    });
-    it('should contain Lines', () => {
-      expect(SL.Palettes.Lines).to.exist;
-    });
-    it('should contain Lines constructed by LinePalette', () => {
-      expect(SL.Palettes.Lines.constructor.name).to.equal('LinePalette');
-    });
-  });
-
-  describe('Utils', () => {
-    it('should exist', () => {
-      expect(SL.Utils).to.exist;
-    });
-    it('should be constructed by Utils', () => {
+    it('should have Utils property constructed by Utils', () => {
       expect(SL.Utils.constructor.name).to.equal('Utils');
     });
+  });
+
+  describe('#loadConfig', () => {
+    let remotePath = 'assets/StampLines.json';
+    it('should load a config file remotely', () => {
+      return new Promise((resolve, reject) => {
+        SL.loadConfig(remotePath)
+          .then((config) => {
+            expect(config).to.eql(Test.Files[remotePath]);
+            resolve();
+          })
+          .catch(reject);
+      });
+    }).timeout(5000);
+    it('should configure itself with the loaded config', () => {
+      return new Promise((resolve, reject) => {
+        SL.loadConfig(remotePath)
+          .then((config) => {
+            let remoteConfig = $.extend({}, StampLines.DEFAULT.config, config);
+            expect(SL.config).to.eql(remoteConfig);
+            resolve();
+          })
+          .catch(reject);
+      });
+    }).timeout(5000);
   });
 });
