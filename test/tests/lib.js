@@ -7,7 +7,7 @@ import {default as UIComponent} from '../../src/core/ui-component.js';
 import {default as CoreUtil} from '../../src/core/util.js';
 
 import {default as Palette} from '../../src/palette/palette.js';
-import {StampPalette, LinePalette} from '../../src/palette/palettes/_index.js';
+import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/palettes/_index.js';
 
 import {default as ToolBelt} from '../../src/tools/toolbelt.js';
 import {Select, Scale, Rotate} from '../../src/tools/core/_index.js';
@@ -20,6 +20,7 @@ import {default as Dock} from '../../src/ui/dock.js';
 
 import {default as Utils} from '../../src/util/utils.js';
 import {Grid, RemoteLoader, Identity, URL} from '../../src/util/utils/_index.js';
+import {default as NamedObjectMap} from '../../src/util/classes/named-object-map.js';
 
 export default {
   Core: {
@@ -57,6 +58,9 @@ export default {
     Dock: Dock
   },
   Utils: {
+    Classes: {
+      NamedObjectMap: NamedObjectMap
+    },
     Utils: Utils,
     Grid: Grid,
     RemoteLoader: RemoteLoader,

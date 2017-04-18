@@ -37,7 +37,7 @@ describe('Utils', () => {
         let grid1 = Utils.get('grid');
         Utils.configure({
           'grid': {
-            'size': 25
+            'size': 32
           }
         });
         let grid2 = Utils.get('grid');
@@ -147,13 +147,13 @@ describe('Utils', () => {
     describe('- given no id', () => {
       it('should disable all utilities', () => {
         Utils.disable();
-        expect(Utils.active).to.be.empty;
+        expect(Utils.active.table).to.be.empty;
       });
     });
     describe('- given an id of \'*\'', () => {
       it('should disable all utilities', () => {
         Utils.disable();
-        expect(Utils.active).to.be.empty;
+        expect(Utils.active.table).to.be.empty;
       });
     });
     describe('- given an id', () => {
