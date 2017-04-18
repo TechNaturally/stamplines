@@ -29,6 +29,9 @@ export default class Dock extends UIComponent {
       throw 'No palette to add!';
     }
     this.assertDOM();
+    if (!id) {
+      id = palette.id;
+    }
     if (id && this.Palettes[id]) {
       throw `Palette with id ${id} already exists!`;
     }

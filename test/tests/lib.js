@@ -7,6 +7,7 @@ import {default as UIComponent} from '../../src/core/ui-component.js';
 import {default as CoreUtil} from '../../src/core/util.js';
 
 import {default as Palette} from '../../src/palette/palette.js';
+import {default as PaletteManager} from '../../src/palette/manager.js';
 import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/palettes/_index.js';
 
 import {default as ToolBelt} from '../../src/tools/toolbelt.js';
@@ -34,6 +35,7 @@ export default {
   },
   Palette: {
     Palette: Palette,
+    Manager: PaletteManager,
     StampPalette: StampPalette,
     LinePalette: LinePalette
   },

@@ -89,13 +89,17 @@ export default class NamedObjectMap extends Component {
       }
     }
   }
-  readConfigured(config) {
+  readConfigured(config, addEntry) {
     for (let id in config) {
       let type = config[id].type || id.toCamelCase().capitalizeFirstLetter();
       if (this.getEntry(id)) {
         this.removeEntry(id);
       }
-      this.addEntry(type, id, config[id]);
+      if (typeof addEntry == 'function') {
+        addEntry(type, id, config[id]);
+      } else {
+        this.addEntry(type, id, config[id]);
+      }
     }
   }
 }
