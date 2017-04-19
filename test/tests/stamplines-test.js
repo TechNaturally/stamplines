@@ -51,7 +51,10 @@ describe('StampLines', () => {
   });
 
   describe('#loadConfig', () => {
-    let remotePath = 'assets/StampLines.json';
+    let remotePath;
+    before(() => {
+      remotePath = 'assets/StampLines.json';
+    });
     it('should load a config file remotely', () => {
       return new Promise((resolve, reject) => {
         SL.loadConfig(remotePath)

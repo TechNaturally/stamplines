@@ -1,7 +1,10 @@
 describe('Core.Util', () => {
   describe('Constructor', () => {
-    Test.assertSL();
-    let Util = new Test.Lib.Core.Util(Test.SL, {});
+    let Util;
+    before(() => {
+      Test.assertSL();
+      Util = new Test.Lib.Core.Util(Test.SL, {});
+    });
     it('should initialize', () => {
       expect(Util).to.exist;
     });

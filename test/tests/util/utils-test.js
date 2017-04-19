@@ -1,6 +1,13 @@
 describe('Utils', () => {
   describe('Constructor', () => {
-    let Utils = new Test.Lib.Utils.Utils(Test.SL, Test.SL.config.Utils);
+    let Utils;
+    before(() => {
+      Utils = new Test.Lib.Utils.Utils(Test.SL, Test.SL.config.Utils);
+    });
+    after(() => {
+      Utils.disable();
+      Utils = undefined;
+    });
     it('should initialize', () => {
       expect(Utils).to.exist;
     });
@@ -10,7 +17,14 @@ describe('Utils', () => {
   });
 
   describe('#configure', () => {
-    let Utils = new Test.Lib.Utils.Utils(Test.SL);
+    let Utils;
+    before(() => {
+      Utils = new Test.Lib.Utils.Utils(Test.SL);
+    });
+    after(() => {
+      Utils.disable();
+      Utils = undefined;
+    });
     describe('should enable configured utilites', () => {
       it('should attempt to determine utility type based on id', () => {
         Utils.configure({
@@ -47,10 +61,17 @@ describe('Utils', () => {
   });
 
   describe('#get', () => {
-    let Utils = new Test.Lib.Utils.Utils(Test.SL, {
-      'grid': {
-        'size': 50
-      }
+    let Utils;
+    before(() => {
+      Utils = new Test.Lib.Utils.Utils(Test.SL, {
+        'grid': {
+          'size': 50
+        }
+      });
+    });
+    after(() => {
+      Utils.disable();
+      Utils = undefined;
     });
     it('should return an active utility by id', () => {
       let grid = Utils.get('grid');
@@ -59,7 +80,14 @@ describe('Utils', () => {
   });
 
   describe('#gets', () => {
-    let Utils = new Test.Lib.Utils.Utils(Test.SL, {});
+    let Utils;
+    before(() => {
+      Utils = new Test.Lib.Utils.Utils(Test.SL, {});
+    });
+    after(() => {
+      Utils.disable();
+      Utils = undefined;
+    });
     describe('- given a singleton utility type', () => {
       it('should return a static utility', () => {
         let url = Utils.gets('URL');
@@ -85,14 +113,20 @@ describe('Utils', () => {
   });
 
   describe('#enable', () => {
-    let Utils;
-    let utilsConfig = {
-      'myGrid': {
-        'size': 42
-      }
-    };
+    let Utils, utilsConfig;
+    before(() => {
+      utilsConfig = {
+        'myGrid': {
+          'size': 42
+        }
+      };
+    });
     beforeEach(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL, utilsConfig);
+    });
+    afterEach(() => {
+      Utils.disable();
+      Utils = undefined;
     });
     describe('- given a type', () => {
       it('should enable a utility and generate a new id', () => {
@@ -143,6 +177,10 @@ describe('Utils', () => {
         'grid': {},
         'loader': {type: 'RemoteLoader'}
       });
+    });
+    afterEach(() => {
+      Utils.disable();
+      Utils = undefined;
     });
     describe('- given no id', () => {
       it('should disable all utilities', () => {

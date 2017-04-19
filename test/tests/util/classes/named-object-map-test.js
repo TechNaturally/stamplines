@@ -1,27 +1,37 @@
 describe('Classes.NamedObjectMap', () => {
-  let Utils = $.extend({}, Test.Lib.Utils);
-  delete Utils.Utils;
-  Test.assertSL();
+  let Utils, configEntries, configNOL;
 
-  let configEntries = {
-    'myGrid': {
-      'size': 50
-    }
-  };
-  let configNOL = {
-    config: configEntries,
-    types: Utils,
-    exclusiveIDs: true,
-    '#onAdd': [
-      (entry, type) => {
-        entry.name = (entry.name || type);
-      },
-      'activate'],
-    '#onRemove': 'deactivate'
-  };
-  
+  before(() => {
+    Utils = $.extend({}, Test.Lib.Utils);
+    delete Utils.Utils;
+    Test.assertSL();
+    configEntries = {
+      'myGrid': {
+        'size': 50
+      }
+    };
+    configNOL = {
+      config: configEntries,
+      types: Utils,
+      exclusiveIDs: true,
+      '#onAdd': [
+        (entry, type) => {
+          entry.name = (entry.name || type);
+        },
+        'activate'],
+      '#onRemove': 'deactivate'
+    };
+  });
+
   describe('Constructor', () => {
-    let NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.removeEntry();
+      NOL = undefined;
+    });
     it('should initialize', () => {
       expect(NOL).to.exist;
     });
@@ -33,6 +43,7 @@ describe('Classes.NamedObjectMap', () => {
       NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
     });
     afterEach(() => {
+      NOL.removeEntry();
       NOL = undefined;
     });
     it('should add an entry to the table', () => {
@@ -82,7 +93,14 @@ describe('Classes.NamedObjectMap', () => {
   });
 
   describe('#getEntry', () => {
-    let NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.removeEntry();
+      NOL = undefined;
+    });
     it('should retrieve an entry from the table', () => {
       NOL.addEntry('Grid', 'myGrid');
       let entry = NOL.getEntry('myGrid');
@@ -91,7 +109,14 @@ describe('Classes.NamedObjectMap', () => {
   });
 
   describe('#readConfigured', () => {
-    let NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.removeEntry();
+      NOL = undefined;
+    });
     describe('should enable configured entries', () => {
       it('should attempt to determine entry type based on id', () => {
         NOL.readConfigured({
@@ -141,6 +166,7 @@ describe('Classes.NamedObjectMap', () => {
       });
     });
     afterEach(() => {
+      NOL.removeEntry();
       NOL = undefined;
     });
     describe('- given no id', () => {

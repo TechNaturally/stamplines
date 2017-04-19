@@ -1,7 +1,10 @@
 describe('Core.Tool', () => {
   describe('Constructor', () => {
-    Test.assertSL();
-    let Tool = new Test.Lib.Core.Tool(Test.SL, {});
+    let Tool;
+    before(() => {
+      Test.assertSL();
+      Tool = new Test.Lib.Core.Tool(Test.SL, {});
+    });
     it('should initialize', () => {
       expect(Tool).to.exist;
     });

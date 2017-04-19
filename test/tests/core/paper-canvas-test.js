@@ -1,12 +1,13 @@
 describe('Core.PaperCanvas', () => {
-  let canvas = $('<canvas></canvas>');
-  let PaperCanvas;
+  let canvas, PaperCanvas;
   before(() => {
     Test.assertSL();
+    canvas = $('<canvas></canvas>');
     PaperCanvas = new Test.Lib.Core.PaperCanvas(Test.SL, { canvas: canvas });
   });
   after(() => {
     PaperCanvas.destroy();
+    PaperCanvas = undefined;
   });
   describe('Constructor', () => {
     it('should initialize', () => {

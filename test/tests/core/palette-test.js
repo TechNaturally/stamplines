@@ -1,17 +1,34 @@
 describe('Core.Palette', () => {
-  Test.assertSL();
+  before(() => {
+    Test.assertSL();
+  });
+  
   describe('Constructor', () => {
-    let Palette = new Test.Lib.Core.Palette(Test.SL, $.extend({}, Test.Lib.Core.StampLines.DEFAULT.config.Palettes));
+    let palette;
+    before(() => {
+      palette = new Test.Lib.Core.Palette(Test.SL, $.extend({}, Test.Lib.Core.StampLines.DEFAULT.config.Palettes));
+    });
+    after(() => {
+      palette.destroy();
+      palette = undefined;
+    });
     it('should initialize', () => {
-      expect(Palette).to.exist;
+      expect(palette).to.exist;
     });
     it('should be constructed by Palette', () => {
-      expect(Palette.constructor.name).to.equal('Palette');
+      expect(palette.constructor.name).to.equal('Palette');
     });
   });
 
   describe('#generateDOM', () => {
-    let palette = new Test.Lib.Core.Palette(Test.SL, {});
+    let palette;
+    before(() => {
+      palette = new Test.Lib.Core.Palette(Test.SL, {});
+    });
+    after(() => {
+      palette.destroy();
+      palette = undefined;
+    });
     afterEach(() => {
       palette.destroyDOM();
     });
@@ -29,7 +46,14 @@ describe('Core.Palette', () => {
     });
   });
   describe('#destroyDOM', () => {
-    let palette = new Test.Lib.Core.Palette(Test.SL, {});
+    let palette;
+    before(() => {
+      palette = new Test.Lib.Core.Palette(Test.SL, {});
+    });
+    after(() => {
+      palette.destroy();
+      palette = undefined;
+    });
     beforeEach(() => {
       palette.generateDOM();
     });

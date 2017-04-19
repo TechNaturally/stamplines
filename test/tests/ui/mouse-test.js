@@ -1,9 +1,17 @@
 describe('UI.Mouse', () => {
-  Test.assertSL();
-  let PaperCanvas = Test.SL.UI.PaperCanvas;
-  let Mouse = new Test.Lib.UI.Mouse(Test.SL.UI, $.extend({
-    paperCanvas: PaperCanvas
-  }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Mouse));
+  let PaperCanvas, Mouse;
+  before(() => {
+    Test.assertSL();
+    PaperCanvas = Test.SL.UI.PaperCanvas;
+    Mouse = new Test.Lib.UI.Mouse(Test.SL.UI, $.extend({
+      paperCanvas: PaperCanvas
+    }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Mouse));
+  });
+  after(() => {
+    Mouse.destroy();
+    Mouse = undefined;
+    PaperCanvas = undefined;
+  });
 
   describe('Constructor', () => {
     it('should initialize', () => {
@@ -15,7 +23,10 @@ describe('UI.Mouse', () => {
   });
 
   describe('PaperCanvas.view', () => {
-    var PaperView = PaperCanvas.view;
+    let PaperView;
+    before(() => {
+      PaperView = PaperCanvas.view;
+    });
     it('should exist', () => {
       expect(PaperView).to.exist;
     });
@@ -224,7 +235,7 @@ describe('UI.Mouse', () => {
         });
         expect(Mouse.State.button.drag.points).to.not.be.empty;
       });
-      it(`should track no more than ${Mouse.config.maxDragPoints} drag.points`, () => {
+      it(`should track no more than ${Test.Lib.Core.StampLines.DEFAULT.config.UI.Mouse.maxDragPoints} drag.points`, () => {
         events.forEach((event) => {
           Mouse.Handles.onMouseDrag(event);
         });

@@ -1,6 +1,9 @@
 describe('Utils.Identity', () => {
-  let baseID = 'test';
-  let ID = Test.Lib.Utils.Identity;
+  let baseID, ID;
+  before(() => {
+    baseID = 'test';
+    ID = Test.Lib.Utils.Identity;
+  });
   describe('#getUnique', () => {
     it('should return "baseID" if it does not exist in the list', () => {
       let list = {

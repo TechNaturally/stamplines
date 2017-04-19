@@ -7,7 +7,11 @@ export default class PaletteManager extends Component {
     this.palettes = new NamedObjectMap(SL, {
       config: this.config,
       types: Palette.Type,
-      '#onRemove': 'destroy'
+      '#onRemove': [
+        (entry, type) => {
+          this.removePaletteFromDock(entry.id);
+        },
+        'destroy']
     });
     this.configure();
   }
@@ -36,12 +40,17 @@ export default class PaletteManager extends Component {
     if (removed && this.SL.UI.Dock) {
       if (removed.constructor === Array) {
         removed.forEach((removed) => {
-          this.SL.UI.Dock.removePalette(removed.id);
+          this.removePaletteFromDock(removed.id);
         });
       } else {
-        this.SL.UI.Dock.removePalette(removed.id);
+        this.removePaletteFromDock(removed.id);
       }
     }
     return removed;
+  }
+  removePaletteFromDock(id) {
+    if (id && this.SL.UI.Dock) {
+      this.SL.UI.Dock.removePalette(id);
+    }
   }
 }

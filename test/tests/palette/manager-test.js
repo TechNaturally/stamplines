@@ -1,13 +1,26 @@
 describe('Palette.Manager', () => {
-  let canvas = $('<canvas></canvas>');
-  let SL = new Test.Lib.Core.StampLines(canvas);
+  let canvas, SL;
+  before(() => {
+    canvas = $('<canvas></canvas>');
+    SL = new Test.Lib.Core.StampLines(canvas);
+  });
   after(() => {
     SL.destroy();
+    SL = undefined;
   });
+  beforeEach(() => {
+    SL.resetPalettes();
+  });
+
   describe('Constructor', () => {
-    let PaletteManager = new Test.Lib.Palette.Manager(SL, SL.config.Palettes);
+    let PaletteManager;
+    before(() => {
+      SL.resetPalettes();
+      PaletteManager = new Test.Lib.Palette.Manager(SL, SL.config.Palettes);
+    });
     after(() => {
       PaletteManager.removePalette();
+      PaletteManager = undefined;
     });
     it('should initialize', () => {
       expect(PaletteManager).to.exist;
@@ -17,16 +30,23 @@ describe('Palette.Manager', () => {
     });
   });
 
+
   describe('#configure', () => {
-    let PaletteManager = new Test.Lib.Palette.Manager(SL, {
-      'Stamps': {},
-      'Lines': {}
+    let PaletteManager;
+    before(() => {
+      SL.resetPalettes();
+      PaletteManager = new Test.Lib.Palette.Manager(SL, {
+        'Stamps': {},
+        'Lines': {}
+      });
     });
-    after(() => {
+    afterEach(() => {
       PaletteManager.removePalette();
     });
+
     describe('should add configured palettes', () => {
       it('should attempt to determine palette type based on id', () => {
+        PaletteManager.removePalette();
         PaletteManager.configure({
           'stamps': {}
         });
@@ -61,30 +81,37 @@ describe('Palette.Manager', () => {
   });
 
   describe('#getPalette', () => {
-    let PaletteManager = new Test.Lib.Palette.Manager(SL, {
-      'Stamps': {},
-      'Lines': {}
+    let PaletteManager;
+    before(() => {
+      SL.resetPalettes();
+      PaletteManager = new Test.Lib.Palette.Manager(SL, {
+        'Stamps': {},
+        'Lines': {}
+      });
     });
     after(() => {
       PaletteManager.removePalette();
+      PaletteManager = undefined;
     });
     it('should return a palette by id', () => {
       let stampsPalette = PaletteManager.getPalette('Stamps');
       expect(stampsPalette).to.exist;
     });
   });
-
   describe('#addPalette', () => {
-    let PaletteManager;
-    let palettesConfig = {
-      'Stamps': {},
-      'Lines': {},
-      'myStamps': {
-        'type': 'Stamps',
-        'foo': 'bar'
-      }
-    };
+    let PaletteManager, palettesConfig;
+    before(() => {
+      palettesConfig = {
+        'Stamps': {},
+        'Lines': {},
+        'myStamps': {
+          'type': 'Stamps',
+          'foo': 'bar'
+        }
+      };
+    });
     beforeEach(() => {
+      SL.resetPalettes();
       PaletteManager = new Test.Lib.Palette.Manager(SL, palettesConfig);
       PaletteManager.removePalette();
     });
@@ -109,7 +136,6 @@ describe('Palette.Manager', () => {
         expect(palette).to.exist;
       });
       it('should add a palette with the given id and configure it using its config for the id', () => {
-
         let palette = PaletteManager.addPalette('Stamps', 'myStamps');
         expect(palette.config).to.equal(palettesConfig['myStamps']);
       });
@@ -130,18 +156,21 @@ describe('Palette.Manager', () => {
       });
     });
   });
-
   describe('#removePalette', () => {
-    let PaletteManager;
-    let palettesConfig = {
-      'Stamps': {},
-      'Lines': {}
-    };
+    let PaletteManager, palettesConfig;
+    before(() => {
+      palettesConfig = {
+        'Stamps': {},
+        'Lines': {}
+      };
+    });
     beforeEach(() => {
+      SL.resetPalettes();
       PaletteManager = new Test.Lib.Palette.Manager(SL, palettesConfig);
     });
     after(() => {
       PaletteManager.removePalette();
+      PaletteManager = undefined;
     });
     describe('- given no id', () => {
       it('should remove all palettes', () => {

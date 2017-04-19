@@ -1,6 +1,9 @@
 describe('Palette', () => {
-  Test.assertSL();
-  let Palette = Test.Lib.Palette.Palette;
+  let Palette;
+  before(() => {
+    Test.assertSL();
+    Palette = Test.Lib.Palette.Palette;
+  });
   it('should exist', () => {
     expect(Palette).to.exist;
   });

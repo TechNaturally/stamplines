@@ -1,9 +1,17 @@
 describe('UI.Dock', () => {
-  Test.assertSL();
-  let PaperCanvas = Test.SL.UI.PaperCanvas;
-  let Dock = new Test.Lib.UI.Dock(Test.SL.UI, $.extend({
-    paperCanvas: PaperCanvas
-  }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Dock));
+  let PaperCanvas, Dock;
+  before(() => {
+    Test.assertSL();
+    PaperCanvas = Test.SL.UI.PaperCanvas;
+    Dock = new Test.Lib.UI.Dock(Test.SL.UI, $.extend({
+      paperCanvas: PaperCanvas
+    }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Dock));
+  });
+  after(() => {
+    Dock.destroy();
+    Dock = undefined;
+    PaperCanvas = undefined;
+  });
 
   describe('Constructor', () => {
     it('should initialize', () => {
@@ -44,7 +52,7 @@ describe('UI.Dock', () => {
     });
     it('should track the palette by id', () => {
       paletteID = Dock.addPalette(palette, paletteID);
-      expect(Dock.Palettes).to.have.property(Dock.UI.classify(paletteID));
+      expect(Dock.Palettes).to.have.property(paletteID);
     });
     it('should return the id of the palette', () => {
       paletteID = Dock.addPalette(palette, paletteID);
@@ -52,12 +60,12 @@ describe('UI.Dock', () => {
     });
     it('should generate a new id if no id is given', () => {
       paletteID = Dock.addPalette(palette);
-      expect(paletteID).to.equal(Dock.UI.classify(palette.paletteType));
+      expect(paletteID).to.equal(palette.paletteType.toLowerCase());
     });
     it('should generate a new sequential id if no id is given', () => {
       paletteID = Dock.addPalette(palette);
       let paletteID1 = Dock.addPalette(palette);
-      expect(paletteID1).to.equal(Dock.UI.classify(palette.paletteType)+'-1');
+      expect(paletteID1).to.equal(palette.paletteType.toLowerCase()+'-1');
       Dock.removePalette(paletteID1);
     });
     it('should throw an error if the requested id exists', () => {
@@ -76,7 +84,7 @@ describe('UI.Dock', () => {
     });
     it('should create a DOM element attached to DOM.dock', () => {
       paletteID = Dock.addPalette(palette, paletteID);
-      let paletteDOM = Dock.UI.DOM.dock.children(`.sl-palette.${paletteID}`);
+      let paletteDOM = Dock.UI.DOM.dock.children('.sl-palette.sl-palette-'+Dock.UI.classify(paletteID));
       expect(paletteDOM[0]).to.equal(palette.DOM.palette[0]);
     });
   });

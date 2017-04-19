@@ -8,7 +8,7 @@ var Test = {
   SL: undefined,
   assertCanvas() {
     if(!this.Canvas){
-      this.Canvas = $('canvas').first();
+      this.Canvas = $('<canvas></canvas>');
     }
     if(!this.Canvas || !this.Canvas.length){
       throw 'Could not find a canvas element to test on!';

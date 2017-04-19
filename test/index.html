@@ -43,6 +43,8 @@
     <script>
     $(function documentReady(){
       mocha.run();
+      let SL = new StampLines('#canvas');
+      SL.loadConfig('assets/StampLines.json');
     });
     </script>
   </body>

@@ -8,7 +8,7 @@ export default class StampLines {
     this.config = config;
     if (this.config) {
       this.DOM = {
-        canvas: canvas
+        canvas: $(canvas)
       };
       this._paper = new PaperCanvas(this, { canvas: this.DOM.canvas });
       this.init();
@@ -63,6 +63,9 @@ export default class StampLines {
     this.Palettes = new Palette.Manager(this, config);
   }
   resetPalettes() {
+    if(this.Palettes){
+      this.Palettes.removePalette('*');
+    }
   }
   initUtils() {
     let config = this.config.Util || {};

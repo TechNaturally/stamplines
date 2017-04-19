@@ -1,6 +1,9 @@
 describe('UI', () => {
-  Test.assertSL();
-  let UI = new Test.Lib.UI.UI(Test.SL, Test.SL.config.UI, {paper: Test.SL.Paper});
+  let UI;
+  before(() => {
+    Test.assertSL();
+    UI = new Test.Lib.UI.UI(Test.SL, Test.SL.config.UI, {paper: Test.SL.Paper});
+  });
   describe('Constructor', () => {
     it('should initialize', () => {
       expect(UI).to.exist;

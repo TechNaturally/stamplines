@@ -1,6 +1,13 @@
 describe('Utils.RemoteLoader', () => {
   describe('Constructor', () => {
-    let RemoteLoader = new Test.Lib.Utils.RemoteLoader(Test.SL);
+    let RemoteLoader;
+    before(() => {
+      Test.assertSL();
+      RemoteLoader = new Test.Lib.Utils.RemoteLoader(Test.SL);
+    });
+    after(() => {
+      RemoteLoader = undefined;
+    });
     it('should initialize', () => {
       expect(RemoteLoader).to.exist;
     });
@@ -10,9 +17,15 @@ describe('Utils.RemoteLoader', () => {
   });
 
   describe('#load', () => {
-    let path = 'assets/StampLines.json';
-    let path2 = 'assets/StampLines-2.json';
-    let RemoteLoader = new Test.Lib.Utils.RemoteLoader(Test.SL, {path: path});
+    let path, path2, RemoteLoader;
+    before(() => {
+      path = 'assets/StampLines.json';
+      path2 = 'assets/StampLines-2.json';
+      RemoteLoader = new Test.Lib.Utils.RemoteLoader(Test.SL, {path: path});
+    });
+    after(() => {
+      RemoteLoader = undefined;
+    });
     it('should return a Promise', (done) => {
       let loaded = RemoteLoader.load(path);
       expect(loaded.constructor.name).to.equal('Promise');

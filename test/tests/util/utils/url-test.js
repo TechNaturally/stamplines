@@ -1,10 +1,13 @@
 describe('Utils.URL', () => {
-  let baseDomain = 'http://localhost:8000';
-  let basePath = '/test/';
-  let baseURL = `${baseDomain}${basePath}`;
-  let relativePath = 'sub-path';
-  let absolutePath = `${basePath}${relativePath}`;
-  let URL = `${baseDomain}${absolutePath}`;
+  let baseDomain, basePath, baseURL, relativePath, absolutePath, URL;
+  before(() => {
+    baseDomain = 'http://localhost:8000';
+    basePath = '/test/';
+    baseURL = `${baseDomain}${basePath}`;
+    relativePath = 'sub-path';
+    absolutePath = `${basePath}${relativePath}`;
+    URL = `${baseDomain}${absolutePath}`;
+  });
 
   describe('#Window.getBaseDomain', () => {
     it('should return the protocol and domain name portion of the current URL', () => {
