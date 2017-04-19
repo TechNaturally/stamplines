@@ -78,9 +78,9 @@ describe('UI.Dock', () => {
       paletteID = Dock.addPalette(palette, paletteID);
       expect(palette.DOM.palette).to.exist;
     });
-    it('should create a DOM element with class .sl-palette.test-palette', () => {
+    it('should create a DOM element with class .sl-palette.sl-palette-test-palette', () => {
       paletteID = Dock.addPalette(palette, paletteID);
-      expect(palette.DOM.palette.is('.sl-palette.test-palette')).to.be.true;
+      expect(palette.DOM.palette.is('.sl-palette.sl-palette-test-palette')).to.be.true;
     });
     it('should create a DOM element attached to DOM.dock', () => {
       paletteID = Dock.addPalette(palette, paletteID);

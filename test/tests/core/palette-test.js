@@ -42,7 +42,7 @@ describe('Core.Palette', () => {
     });
     it('should track the palette element in palette.DOM', () => {
       let paletteDOM = palette.generateDOM();
-      expect(palette.DOM.palette).to.exist;
+      expect(palette.DOM.palette).to.equal(paletteDOM);
     });
   });
   describe('#destroyDOM', () => {

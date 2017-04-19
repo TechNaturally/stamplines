@@ -1,5 +1,10 @@
 .stamplines {
   border: 1px solid #999;
+  ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+  }
 }
 .sl-canvas,
 .sl-dock {
@@ -11,4 +16,53 @@
 .sl-dock {
   width: 100%;
   border-top: 1px solid #999;
+
+  .sl-palette {
+    line-height: 0;
+    padding: 6px;
+    + .sl-palette {
+      border-top: 1px dotted #999;
+    }
+  }
+}
+.sl-palette-items {
+  .sl-palette-item {
+    display: inline-block;
+    margin: 6px;
+  }
+}
+.sl-palette-button {
+  display: block;
+  cursor: pointer;
+  padding: 6px;
+  border: 3px dashed transparent;
+  border-radius: 6px;
+  &:hover {
+    border-color: #77F;
+  }
+}
+.sl-palette-content {
+  line-height: 1.0em;
+  text-align: center;
+  + .sl-palette-content {
+    margin-top: 4px;
+  }
+}
+.sl-palette-img {
+  img {
+    display: inline;
+  }
+  min-width: 25px;
+  min-height: 25px;
+}
+.sl-palette-stamps {
+  .sl-palette-img {
+    height: 50px;
+    line-height: 50px;
+    img {
+      display: inline;
+      vertical-align: middle;
+      max-height: 100%;
+    }
+  }
 }

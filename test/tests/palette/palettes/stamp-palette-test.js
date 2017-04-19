@@ -46,6 +46,5 @@ describe('Palette.Type.Stamps', () => {
       let paletteDOM = StampPalette.generateDOM();
       expect(StampPalette.DOM.palette).to.equal(paletteDOM);
     });
-//    it('should return a DOM element');
   });
 });
