@@ -7,7 +7,9 @@
         "semi": "error",
         "strict": "error",
         "indent": ["warn", 2],
-        "brace-style": "warn",
+        "brace-style": ["warn", "stroustrup"],
+        "keyword-spacing": "warn",
+        "space-before-blocks": "warn",
         "quotes": ["warn", "single"],
         "prefer-arrow-callback": "warn",
         "eol-last": "error"

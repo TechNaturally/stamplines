@@ -63,7 +63,7 @@ export default class StampLines {
     this.Palettes = new Palette.Manager(this, config);
   }
   resetPalettes() {
-    if(this.Palettes){
+    if (this.Palettes) {
       this.Palettes.removePalette('*');
     }
   }

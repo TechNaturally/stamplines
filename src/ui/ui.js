@@ -14,12 +14,12 @@ export default class UI extends Component {
     this.unwrapDOM();
   }
   destroyDock() {
-    if(this.Dock){
+    if (this.Dock) {
       this.Dock.destroy();
     }
   }
   destroyMouse() {
-    if(this.Mouse){
+    if (this.Mouse) {
       this.Mouse.destroy();
     }
   }
@@ -66,7 +66,7 @@ export default class UI extends Component {
       this.DOM.wrapper = $('<div></div>');
       this.DOM.wrapper.addClass(wrapperClass);
       var canvasStyle = window.getComputedStyle(this.DOM.canvas[0]);
-      if(canvasStyle.width){
+      if (canvasStyle.width) {
         this.DOM.wrapper.css('width', canvasStyle.width);
       }
       this.DOM.canvas.before(this.DOM.wrapper);

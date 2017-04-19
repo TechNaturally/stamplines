@@ -7,15 +7,15 @@ var Test = {
   Lib: StampLinesTest,
   SL: undefined,
   assertCanvas() {
-    if(!this.Canvas){
+    if (!this.Canvas) {
       this.Canvas = $('<canvas></canvas>');
     }
-    if(!this.Canvas || !this.Canvas.length){
+    if (!this.Canvas || !this.Canvas.length) {
       throw 'Could not find a canvas element to test on!';
     }
   },
   assertSL() {
-    if(!this.SL){
+    if (!this.SL) {
       this.assertCanvas();
       this.SL = new StampLines(this.Canvas);
     }

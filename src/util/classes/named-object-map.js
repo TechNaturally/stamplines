@@ -15,9 +15,11 @@ export default class NamedObjectMap extends Component {
       }
       if (typeof callback == 'string' && typeof forEntry[callback] == 'function') {
         forEntry[callback]();
-      } else if(typeof callback == 'function') {
+      }
+      else if (typeof callback == 'function') {
         callback(forEntry, type);
-      } else if (callback.constructor === Array) {
+      }
+      else if (callback.constructor === Array) {
         callback.forEach((callback) => {
           this.runCallback(callback, forEntry, type);
         });
@@ -30,12 +32,14 @@ export default class NamedObjectMap extends Component {
       type.forEach((type) => {
         if (typeof type == 'string') {
           added.push(this.addEntry(type));
-        } else if (typeof type == 'object') {
+        }
+        else if (typeof type == 'object') {
           added.push(this.addEntry(type.type, type.id, type.config));
         }
       });
       return added;
-    } else if (type && typeof type == 'string'){
+    }
+    else if (type && typeof type == 'string') {
       let allowed = this.config.types;
       if (allowed) {
         if (!id || !this.config.exclusiveIDs) {
@@ -53,7 +57,8 @@ export default class NamedObjectMap extends Component {
             this.runCallback('#onAdd', newEntry, type);
           }
           return this.table[id];
-        } else if (allowed[type]) {
+        }
+        else if (allowed[type]) {
           // if it is a singleton object type, it always gets returned no matter what id
           return allowed[type];
         }
@@ -74,12 +79,14 @@ export default class NamedObjectMap extends Component {
       id.forEach((id) => {
         if (typeof id == 'string') {
           removed.push(this.removeEntry(id));
-        } else if (typeof id == 'object' && id.id) {
+        }
+        else if (typeof id == 'object' && id.id) {
           removed.push(this.removeEntry(id.id));
         }
       });
       return removed;
-    } else if (id && typeof id == 'string') {
+    }
+    else if (id && typeof id == 'string') {
       if (this.table[id]) {
         let remove = this.table[id];
         this.runCallback('#onRemove', remove);
@@ -97,7 +104,8 @@ export default class NamedObjectMap extends Component {
       }
       if (typeof addEntry == 'function') {
         addEntry(type, id, config[id]);
-      } else {
+      }
+      else {
         this.addEntry(type, id, config[id]);
       }
     }

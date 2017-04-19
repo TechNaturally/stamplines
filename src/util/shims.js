@@ -10,7 +10,7 @@ String.prototype.toDashCase = function() {
             return '-'+$1.toLowerCase();
           });
 };
-String.prototype.toCamelCase = function(){
+String.prototype.toCamelCase = function() {
   return this
           .replace(/([\-_\.][a-z])/g, ($1) => {
             return $1.toUpperCase().replace('-','');

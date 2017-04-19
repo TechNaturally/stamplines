@@ -39,7 +39,8 @@ export default class Utils extends Component {
     if (Available[type]) {
       if (typeof Available[type] != 'function') {
         return Available[type];
-      } else {
+      }
+      else {
         return new Available[type](this.SL, config);
       }
     }

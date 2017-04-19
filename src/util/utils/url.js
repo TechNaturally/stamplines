@@ -6,7 +6,7 @@ var URL = {
     },
     getBasePath: () => {
       let url = window.location.pathname;
-      if(window.location.pathname.slice(-1) != '/'){
+      if (window.location.pathname.slice(-1) != '/') {
         // doesn't end with /, treat as a file
         let pathSplit = url.split('/');
         url = pathSplit.slice(0, pathSplit.length-1).join('/')+'/';
@@ -35,16 +35,19 @@ var URL = {
   toAbsolutePath: (uri) => {
     if (URL.isAbsolutePath(uri) || URL.isURL(uri)) {
       return uri;
-    } else if(URL.isRelativePath(uri)) {
+    }
+    else if (URL.isRelativePath(uri)) {
       return URL.Window.getBasePath()+uri;
     }
   },
   toURL: (uri) => {
     if (URL.isAbsolutePath(uri)) {
       return URL.Window.getBaseDomain()+uri;
-    } else if(URL.isRelativePath(uri)) {
+    }
+    else if (URL.isRelativePath(uri)) {
       return URL.Window.getBasePathURL()+uri;
-    } else if(URL.isURL(uri)) {
+    }
+    else if (URL.isURL(uri)) {
       return uri;
     }
   }

@@ -42,7 +42,8 @@ export default class PaletteManager extends Component {
         removed.forEach((removed) => {
           this.removePaletteFromDock(removed.id);
         });
-      } else {
+      }
+      else {
         this.removePaletteFromDock(removed.id);
       }
     }

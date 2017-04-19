@@ -21,7 +21,8 @@ export default class ToolBelt extends paper.Tool {
       for (var i=0; i < type.length; i++) {
         this.enable(type[i]);
       }
-    } else if (type && typeof type == 'string' && !this.Belt[type] && Tools[type]) {
+    }
+    else if (type && typeof type == 'string' && !this.Belt[type] && Tools[type]) {
       var newTool = new Tools[type](this.SL, this.config);
       this.Belt[type] = newTool;
       if (!newTool.name) {

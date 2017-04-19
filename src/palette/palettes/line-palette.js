@@ -19,14 +19,14 @@ export default class LinePalette extends Palette {
     var height = (this.config.preview && this.config.preview.height ) || 25;
     var linePreviewCanvas = $(`<canvas width="${width}" height="${height}"></canvas>`);
     var linePreview = linePreviewCanvas[0].getContext('2d');
-    if(item.style){
-      if(item.style.strokeColor){
+    if (item.style) {
+      if (item.style.strokeColor) {
         linePreview.strokeStyle = item.style.strokeColor;
       }
-      if(item.style.strokeWidth){
+      if (item.style.strokeWidth) {
         linePreview.lineWidth = item.style.strokeWidth;
       }
-      if(item.style.dashArray){
+      if (item.style.dashArray) {
         linePreview.setLineDash(item.style.dashArray);
       }
     }
@@ -55,7 +55,7 @@ export default class LinePalette extends Palette {
     lineContent.addClass('sl-line-content sl-line-img');
     lineContent.attr('draggable', false);
     let imagePath = this.getImagePath(item);
-    if(imagePath){
+    if (imagePath) {
       lineContent.append($(`<img src="${imagePath}" draggable="false" />`));
     }
     lineButton.append(lineContent);

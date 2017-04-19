@@ -5,7 +5,7 @@ var Identity = {
     while (inList[tryID] && (max < 0 || tryCount < max)) {
       tryID = baseID+'-'+(++tryCount);
     }
-    if(max >= 0 && inList[tryID]){
+    if (max >= 0 && inList[tryID]) {
       return undefined;
     }
     return tryID;

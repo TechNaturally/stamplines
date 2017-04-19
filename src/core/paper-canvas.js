@@ -43,7 +43,7 @@ export default class PaperCanvas extends Component {
   configure(config) {
     config = super.configure(config);
     this.canvas = config.canvas;
-    if(this.canvas && this.canvas.length){
+    if (this.canvas && this.canvas.length) {
       let activeProject = paper.project;
 
       // create + track the new paper.Project
@@ -56,7 +56,7 @@ export default class PaperCanvas extends Component {
       }
 
       // add the class to the canvas
-      if(!this.canvas.hasClass('sl-canvas')){
+      if (!this.canvas.hasClass('sl-canvas')) {
         this.canvas.addClass('sl-canvas');
       }
     }
@@ -68,11 +68,11 @@ export default class PaperCanvas extends Component {
 
   registerHandlers(handlers) {
     var view = this.view || paper.view;
-    if(!view){
+    if (!view) {
       throw 'No view to register handlers on!';
     }
-    if(handlers){
-      if(typeof handlers != 'object'){
+    if (handlers) {
+      if (typeof handlers != 'object') {
         throw 'Cannot register invalid handlers!';
       }
       Object.keys(handlers).forEach((handler) => {
