@@ -32,12 +32,19 @@ var URL = {
   isURL: (uri) => {
     return !!(uri && URL.RX_HTTP.test(uri));
   },
+  toAbsolutePath: (uri) => {
+    if (URL.isAbsolutePath(uri) || URL.isURL(uri)) {
+      return uri;
+    } else if(URL.isRelativePath(uri)) {
+      return URL.Window.getBasePath()+uri;
+    }
+  },
   toURL: (uri) => {
-    if(URL.isAbsolutePath(uri)){
+    if (URL.isAbsolutePath(uri)) {
       return URL.Window.getBaseDomain()+uri;
-    } else if(URL.isRelativePath(uri)){
+    } else if(URL.isRelativePath(uri)) {
       return URL.Window.getBasePathURL()+uri;
-    } else if(URL.isURL(uri)){
+    } else if(URL.isURL(uri)) {
       return uri;
     }
   }
