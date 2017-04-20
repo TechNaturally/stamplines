@@ -57,6 +57,7 @@ export default class StampLines {
     if (this.Tools) {
       this.Tools.destroy();
     }
+    this.Tools = undefined;
   }
   initPalettes() {
     let config = this.config.Palettes || {};
