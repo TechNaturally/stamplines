@@ -6,6 +6,7 @@ export default class Component {
     this.SL = SL;
     this.config = config;
   }
+  destroy() {}
   get type() {
     return 'Component';
   }
