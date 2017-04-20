@@ -112,7 +112,7 @@ StampLines.DEFAULT = {
       Stamps: {}
     },
     Tools: {
-      enable: ['Select', 'Rotate', 'Scale']
+      enable: ['Select', 'Rotate', 'Scale', 'CreateLine', 'EditLine', 'CreateStamp']
     },
     UI: {
       DOM: {

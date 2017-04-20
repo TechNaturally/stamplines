@@ -6,7 +6,7 @@ describe('StampLines', () => {
 
     // initialize SL with dummy canvas and empty config
     canvas = $('<canvas></canvas>');
-    SL = new Test.Lib.Core.StampLines(canvas, {});
+    SL = new Test.Lib.Core.StampLines(canvas);
   });
   after(() => {
     SL.destroy();
@@ -40,6 +40,15 @@ describe('StampLines', () => {
       });
       it('should have core Rotate tool', () => {
         expect(SL.Tools.Belt.Rotate).to.exist;
+      });
+      it('should have CreateLine tool', () => {
+        expect(SL.Tools.Belt.CreateLine).to.exist;
+      });
+      it('should have EditLine tool', () => {
+        expect(SL.Tools.Belt.EditLine).to.exist;
+      });
+      it('should have CreateStamp tool', () => {
+        expect(SL.Tools.Belt.CreateStamp).to.exist;
       });
     });
     it('should have Palettes property constructed by PaletteManager', () => {
