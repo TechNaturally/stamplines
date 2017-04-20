@@ -21,7 +21,7 @@ var babelify = require('babelify');
 
 // linting
 var eslint = require('gulp-eslint');
-//var eslintify = require('eslintify');
+var eslintify = require('eslintify');
 
 // SASS compiler
 var sass = require('gulp-sass');
@@ -93,7 +93,7 @@ var bify = function(src, name) {
   src = src || PKG.path.src.main;
   name = name || PKG.name;
   return browserify(src, { debug: true, standalone: name })
-//          .transform(eslintify, {})
+          .transform(eslintify, {formatter: 'stylish'})
           .transform(babelify, {presets: ["es2015"], plugins: ['add-module-exports']});
 };
 
