@@ -3,7 +3,7 @@ describe('UI.Dock', () => {
   before(() => {
     Test.assertSL();
     PaperCanvas = Test.SL.UI.PaperCanvas;
-    Dock = new Test.Lib.UI.Dock(Test.SL.UI, $.extend({
+    Dock = new Test.Lib.UI.Dock(Test.SL, $.extend({
       paperCanvas: PaperCanvas
     }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Dock));
   });

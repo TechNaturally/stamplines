@@ -1,7 +1,11 @@
-export default class UIComponent {
-  constructor(UI, config={}) {
+import Component from './component.js';
+export default class UIComponent extends Component {
+  constructor(SL, config, UI) {
+    super(SL, config);
+    if (!UI && this.SL) {
+      UI = this.SL.UI;
+    }
     this.UI = UI;
-    this.config = config;
   }
   destroy() {
     if (typeof this.destroyDOM == 'function') {

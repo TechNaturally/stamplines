@@ -3,7 +3,7 @@ describe('UI.Mouse', () => {
   before(() => {
     Test.assertSL();
     PaperCanvas = Test.SL.UI.PaperCanvas;
-    Mouse = new Test.Lib.UI.Mouse(Test.SL.UI, $.extend({
+    Mouse = new Test.Lib.UI.Mouse(Test.SL, $.extend({
       paperCanvas: PaperCanvas
     }, Test.Lib.Core.StampLines.DEFAULT.config.UI.Mouse));
   });

@@ -1,7 +1,7 @@
 import UIComponent from '../core/ui-component.js';
 export default class Mouse extends UIComponent {
-  constructor(UI, config={}) {
-    super(UI, config);
+  constructor(SL, config, UI) {
+    super(SL, config, UI);
     var State = this.State = {
       active: false,
       lastMove: null,
@@ -60,6 +60,7 @@ export default class Mouse extends UIComponent {
       }
     };
     this.register();
+    this.configure();
   }
   get type() {
     return 'UI.Mouse';

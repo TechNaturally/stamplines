@@ -2,6 +2,7 @@ describe('UI', () => {
   let UI;
   before(() => {
     Test.assertSL();
+    // last argument is the "control" object
     UI = new Test.Lib.UI.UI(Test.SL, Test.SL.config.UI, {paper: Test.SL.Paper});
   });
   describe('Constructor', () => {

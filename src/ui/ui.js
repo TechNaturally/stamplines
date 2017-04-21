@@ -37,11 +37,11 @@ export default class UI extends Component {
 
     // initialize Dock
     this.config.Dock = this.config.Dock || {};
-    this.Dock = new Dock(this, this.config.Dock);
+    this.Dock = new Dock(this.SL, this.config.Dock, this);
 
     // initialize Mouse
     this.config.Mouse = this.config.Mouse || {};
-    this.Mouse = new Mouse(this, this.config.Mouse);
+    this.Mouse = new Mouse(this.SL, this.config.Mouse, this);
 
     return this.config;
   }
