@@ -55,6 +55,11 @@ export default class PaperCanvas extends Component {
         paper.project = activeProject;
       }
 
+      // disable right-click menu on canvas
+      this.canvas.bind('contextmenu', (event) => {
+        return false;
+      });
+
       // add the class to the canvas
       if (!this.canvas.hasClass('sl-canvas')) {
         this.canvas.addClass('sl-canvas');

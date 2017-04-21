@@ -54,9 +54,7 @@ export default class Mouse extends UIComponent {
           }
         }
       },
-      onClick: function(event) {
-        console.log('Mouse.onClick =>', event);
-      },
+      onClick: function(event) {},
       onDoubleClick: function(event) {
         console.log('Mouse.onDoubleClick =>', event);
       }
