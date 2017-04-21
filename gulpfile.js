@@ -52,7 +52,8 @@ const PKG = {
         './test/tests/tools/*.js', './test/tests/tools/**/*.js', 
         './test/tests/util/*.js', './test/tests/util/**/*.js',
         './test/tests/**/*.js'
-      ]
+      ],
+      fonts: ['./libs/icomoon/fonts/*']
     },
     dest: {
       build: './dist/',
@@ -82,6 +83,9 @@ const PKG = {
     webserver: {
       root: './',
       open: '/test'
+    },
+    lib: {
+      icomoon: './libs/icomoon'
     }
   }
 };
@@ -159,7 +163,7 @@ gulp.task('default', ['dev']);
 gulp.task('check', ['clean', 'build', 'test', 'lint']);
 
 // dev environment watches with a livereload on localhost:8000
-gulp.task('dev', ['watch:tests', 'watch:src'], function() {
+gulp.task('dev', ['build:fonts', 'watch:tests', 'watch:src'], function() {
   gulp.src(PKG.path.webserver.root)
       .pipe(webserver({
         open: PKG.path.webserver.open,
@@ -194,7 +198,7 @@ gulp.task('clean:testLib', function() {
 
 
 /** BUILD TASKS **/
-gulp.task('build', ['clean:build', 'build:js', 'build:sass']);
+gulp.task('build', ['clean:build', 'build:fonts', 'build:js', 'build:sass']);
 
 // builds javascript using browserify
 gulp.task('build:js', ['clean:js', 'lint:js'], function() {
@@ -202,11 +206,16 @@ gulp.task('build:js', ['clean:js', 'lint:js'], function() {
 });
 
 // builds sass
-gulp.task('build:sass', ['clean:sass'], function() {
+gulp.task('build:sass', ['clean:sass', 'build:sass:icomoon'], function() {
   buildSass(true);
 });
 gulp.task('build:sass:watched', function() {
   buildSass();
+});
+gulp.task('build:sass:icomoon', function() {
+  return gulp.src(PKG.path.lib.icomoon+'/style.css')
+    .pipe(rename('style.scss'))
+    .pipe(gulp.dest(PKG.path.lib.icomoon));
 });
 
 // builds tests
@@ -227,6 +236,12 @@ gulp.task('build:tests', ['clean:tests'], function() {
 });
 gulp.task('build:testLib', ['clean:testLib'], function() {
   bundleJS(bify(PKG.path.src.testLib, PKG.name+'Test'), PKG.path.dest.testLib.path, PKG.path.dest.testLib.js, false);
+});
+
+// builds fonts
+gulp.task('build:fonts', function(){
+  gulp.src(PKG.path.src.fonts)
+    .pipe(gulp.dest(PKG.path.dest.build+'fonts/'));
 });
 
 
