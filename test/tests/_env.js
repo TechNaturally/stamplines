@@ -19,6 +19,7 @@ var Test = {
       this.assertCanvas();
       this.SL = new StampLines(this.Canvas);
     }
+    this.SL.activate();
   }
 };
 // to test dynamic loading, set expected file contents

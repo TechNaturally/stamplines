@@ -2,6 +2,7 @@ import UIComponent from '../core/ui-component.js';
 export default class Mouse extends UIComponent {
   constructor(SL, config, UI) {
     super(SL, config, UI);
+    config = this.config;
     var State = this.State = {
       active: false,
       lastMove: null,
@@ -16,21 +17,18 @@ export default class Mouse extends UIComponent {
     this.Handles = {
       config: config,
       State: State,
-      onMouseEnter(event) {
-        this.State.active = true;
-      },
-      onMouseLeave: function(event) {
-        this.State.active = false;
-      },
-      onMouseMove: function(event) {
+      onMouseMove: (event) => {
         this.State.lastMove = event;
         this.State.point.set(event.point);
+        this.delegateEvent('onMouseMove', event);
       },
-      onMouseDown: function(event) {
+      onMouseDown: (event) => {
         this.State.button.active = event.event.button;
         this.State.button.downAt = event.point;
+        this.delegateEvent('onMouseDown', event);
       },
-      onMouseUp: function(event) {
+      onMouseUp: (event) => {
+        this.delegateEvent('onMouseUp', event);
         setTimeout(() => {
           this.State.button.last = ((this.State.button.active || this.State.button.active===0) ? this.State.button.active : null);
           this.State.button.active = null;
@@ -38,7 +36,7 @@ export default class Mouse extends UIComponent {
           this.State.button.drag = null;
         }, 0);
       },
-      onMouseDrag: function(event) {
+      onMouseDrag: (event) => {
         this.State.point.set(event.point);
 
         if (!this.State.button.drag) {
@@ -53,10 +51,13 @@ export default class Mouse extends UIComponent {
             this.State.button.drag.points.splice(0, (this.State.button.drag.points.length-this.config.maxDragPoints));
           }
         }
+        this.delegateEvent('onMouseDrag', event);
       },
-      onClick: function(event) {},
-      onDoubleClick: function(event) {
-        console.log('Mouse.onDoubleClick =>', event);
+      onClick: (event) => {
+        this.delegateEvent('onClick', event);
+      },
+      onDoubleClick: (event) => {
+        this.delegateEvent('onDoubleClick', event);
       }
     };
     this.register();

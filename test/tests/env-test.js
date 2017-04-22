@@ -16,8 +16,10 @@ describe('Test Environment', () => {
   });
 
   describe('Test.SL', () => {
-    it('should exist', () => {
+    beforeEach(() => {
       Test.assertSL();
+    });
+    it('should exist', () => {
       expect(Test.SL).to.exist;
     });
     it('should be constructed by StampLines', () => {

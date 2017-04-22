@@ -6,8 +6,7 @@ describe('Tools.ToolBelt', () => {
   let expectedDefaultTool = 'Select';
   before(() => {
     Test.assertSL();
-    ToolBelt = new Test.Lib.Tools.ToolBelt();
-    ToolBelt.init(Test.SL, toolsConfig);
+    ToolBelt = new Test.Lib.Tools.ToolBelt(Test.SL, toolsConfig);
   });
   describe('Constructor', () => {
     it('should initialize', () => {
@@ -16,11 +15,6 @@ describe('Tools.ToolBelt', () => {
     it('should be constructed by ToolBelt', () => {
       expect(ToolBelt.constructor.name).to.equal('ToolBelt');
     });
-    it('should have className of Tool (paper.js inheritence)', () => {
-      expect(ToolBelt.className).to.equal('Tool');
-    });
-  });
-  describe('#init', () => {
     it('should set the SL property of type StampLines', () => {
       expect(ToolBelt.SL.constructor.name).to.equal('StampLines');
     });

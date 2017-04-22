@@ -15,6 +15,7 @@ export default class StampLines {
     }
   }
   destroy() {
+    this.deactivate();
     this.reset();
   }
   init() {
@@ -50,8 +51,7 @@ export default class StampLines {
         config.enable.push(enable);
       }
     }
-    this.Tools = new ToolBelt();
-    this.Tools.init(this, config);
+    this.Tools = new ToolBelt(this, config);
   }
   resetTools() {
     if (this.Tools) {
@@ -76,6 +76,30 @@ export default class StampLines {
     if (this.Utils) {
       this.Utils.disable('*');
     }
+  }
+
+  activate() {
+    if (StampLines.ACTIVE && StampLines.ACTIVE != this) {
+      StampLines.ACTIVE.deactivate();
+    }
+    if (this.Paper) {
+      this.Paper.activate();
+    }
+    if (this.UI) {
+      this.UI.activate();
+    }
+    StampLines.ACTIVE = this;
+  }
+  deactivate() {
+    if (StampLines.ACTIVE===this) {
+      StampLines.ACTIVE = undefined;
+    }
+    if (this.UI) {
+      this.UI.deactivate();
+    }
+  }
+  isActive() {
+    return !!(StampLines.ACTIVE===this);
   }
 
   loadConfig(source) {
@@ -120,6 +144,7 @@ StampLines.DEFAULT = {
         useWrapper: true
       },
       Dock: {},
+      Keyboard: {},
       Mouse: {
         maxDragPoints: 3
       }

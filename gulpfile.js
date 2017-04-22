@@ -46,10 +46,10 @@ const PKG = {
       sass: ['./src/**/*.scss'],
       testLib: './test/tests/lib.js',
       tests: [
-        '!./test/tests/lib.js', './test/tests/*.js', './test/tests/core/**/*.js', 
-        './test/tests/palette/palette-test.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js', 
-        './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js', 
-        './test/tests/tools/*.js', './test/tests/tools/**/*.js', 
+        '!./test/tests/lib.js', './test/tests/*.js', './test/tests/core/**/*.js',
+        './test/tests/palette/palette-test.js', './test/tests/palette/*.js', './test/tests/palette/**/*.js',
+        './test/tests/ui/ui-test.js', './test/tests/ui/**/*.js',
+        './test/tests/tools/*.js', './test/tests/tools/**/*.js',
         './test/tests/util/*.js', './test/tests/util/**/*.js',
         './test/tests/**/*.js'
       ],

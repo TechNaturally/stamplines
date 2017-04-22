@@ -14,8 +14,8 @@
       }
       .stamplines {
         margin: 15px;
+        display: inline-block;
       }
-      
     </style>
   </head>
   <body>
@@ -42,9 +42,9 @@
     <script src="tests.js"></script>
     <script>
     $(function documentReady(){
-      mocha.run();
       let SL = new StampLines('#canvas');
       SL.loadConfig('assets/StampLines.json');
+      mocha.run();
     });
     </script>
   </body>

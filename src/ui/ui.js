@@ -1,6 +1,7 @@
 import {default as Component} from '../core/component.js';
 import {default as Dock} from './dock.js';
 import {default as Mouse} from './mouse.js';
+import {default as Keyboard} from './keyboard.js';
 export default class UI extends Component {
   constructor(SL, config={}, control={}) {
     super(SL, config);
@@ -28,6 +29,23 @@ export default class UI extends Component {
     return 'UI';
   }
 
+  activate() {
+    if (this.DOM.wrapper) {
+      this.DOM.wrapper.addClass('sl-active');
+    }
+    this.Dock.activate();
+    this.Mouse.activate();
+    this.Keyboard.activate();
+  }
+  deactivate() {
+    if (this.DOM.wrapper) {
+      this.DOM.wrapper.removeClass('sl-active');
+    }
+    this.Dock.deactivate();
+    this.Mouse.deactivate();
+    this.Keyboard.deactivate();
+  }
+
   configure(config) {
     config = super.configure(config);
 
@@ -42,6 +60,10 @@ export default class UI extends Component {
     // initialize Mouse
     this.config.Mouse = this.config.Mouse || {};
     this.Mouse = new Mouse(this.SL, this.config.Mouse, this);
+
+    // initialize Keyboard
+    this.config.Keyboard = this.config.Keyboard || {};
+    this.Keyboard = new Keyboard(this.SL, this.config.Keyboard, this);
 
     return this.config;
   }

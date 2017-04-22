@@ -17,11 +17,16 @@ export default class PaperCanvas extends Component {
   }
   activate() {
     if (this.paperProject && paper.project != this.paperProject) {
-      paper.project = this.paperProject;
+      this.paperProject.activate();
     }
   }
   deactivate() {
-    this.SL.Paper.activate();
+    if (this.SL.Paper && this.isActive()) {
+      this.SL.Paper.activate();
+    }
+  }
+  isActive () {
+    return (paper.project === this.paperProject);
   }
   destroy() {
     if (this.paperProject) {
@@ -64,10 +69,22 @@ export default class PaperCanvas extends Component {
       if (!this.canvas.hasClass('sl-canvas')) {
         this.canvas.addClass('sl-canvas');
       }
+
+      this.view.onMouseLeave = (event) => {
+        this.leftActive = !!(paper.view == this.view);
+      };
+      this.canvas.on('mouseenter.stamplines', (event) => {
+        this.SL.activate();
+      });
+      this.canvas.on('mouseleave.stamplines', (event) => {
+        setTimeout(() => {
+          if (!this.leftActive) {
+            this.SL.deactivate();
+          }
+        }, 0);
+      });
     }
-
     this.registerHandlers(this.Handles);
-
     return this.config;
   }
 
@@ -82,7 +99,9 @@ export default class PaperCanvas extends Component {
       }
       Object.keys(handlers).forEach((handler) => {
         var callback = handlers[handler];
-        view[handler] = callback;
+        if (typeof callback == 'function') {
+          view[handler] = callback;
+        }
       });
     }
   }

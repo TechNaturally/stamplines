@@ -30,12 +30,6 @@ describe('UI.Mouse', () => {
     it('should exist', () => {
       expect(PaperView).to.exist;
     });
-    it('should be bound to Mouse.Handles.onMouseEnter', () => {
-      expect(PaperView.onMouseEnter).to.equal(Mouse.Handles.onMouseEnter);
-    });
-    it('should be bound to Mouse.Handles.onMouseLeave', () => {
-      expect(PaperView.onMouseLeave).to.equal(Mouse.Handles.onMouseLeave);
-    });
     it('should be bound to Mouse.Handles.onMouseMove', () => {
       expect(PaperView.onMouseMove).to.equal(Mouse.Handles.onMouseMove);
     });
@@ -64,18 +58,6 @@ describe('UI.Mouse', () => {
         point: new paper.Point(0, 0),
         target: PaperCanvas.view
       };
-    });
-    describe('#onMouseEnter', () => {
-      it('should set State.active to true', () => {
-        Mouse.Handles.onMouseEnter(event);
-        expect(Mouse.State.active).to.be.true;
-      });
-    });
-    describe('#onMouseLeave', () => {
-      it('should set State.active to false', () => {
-        Mouse.Handles.onMouseLeave(event);
-        expect(Mouse.State.active).to.be.false;
-      });
     });
     describe('#onMouseMove', () => {
       var point;

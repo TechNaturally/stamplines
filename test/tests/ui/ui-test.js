@@ -9,14 +9,17 @@ describe('UI', () => {
     it('should initialize', () => {
       expect(UI).to.exist;
     });
-    it('should be constrcuted by UI', () => {
+    it('should be constructed by UI', () => {
       expect(UI.constructor.name).to.equal('UI');
     });
-    it('should have a Dock', () => {
-      expect(UI.Dock).to.exist;
+    it('should have a Dock constructed by Dock', () => {
+      expect(UI.Dock.constructor.name).to.equal('Dock');
     });
-    it('should have a Mouse', () => {
-      expect(UI.Mouse).to.exist;
+    it('should have a Mouse constructed by Mouse', () => {
+      expect(UI.Mouse.constructor.name).to.equal('Mouse');
+    });
+    it('should have a Keyboard constructed by Keyboard', () => {
+      expect(UI.Keyboard.constructor.name).to.equal('Keyboard');
     });
   });
 });
