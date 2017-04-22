@@ -26,4 +26,10 @@ export default class Tool extends Component {
   deactivate() {
     this.active = false;
   }
+  start() {
+    this.Belt.activateTool(this.constructor.name);
+  }
+  finish(checkForActive=true) {
+    this.Belt.deactivateTool(checkForActive, this);
+  }
 }
