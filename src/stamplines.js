@@ -146,7 +146,22 @@ StampLines.DEFAULT = {
       Dock: {},
       Keyboard: {},
       Mouse: {
-        maxDragPoints: 3
+        maxDragPoints: 3,
+        Cursors: {
+          custom: {
+            'plus': {icon:'plus'},
+            'minus': {icon:'minus'},
+            'rotate': {icon:'rotate-right'},
+            'move': {icon:'arrows'},
+            'expand-nesw': {icon:'expand'},
+            'expand-senw': {icon:'expand flip-horizontal'},
+            'expand-ns': {icon:'arrows-v'},
+            'expand-ew': {icon:'arrows-h'},
+            'link': {icon:'link'},
+            'unlink': {icon:'unlink'},
+            'crosshairs': {icon:'crosshairs'}
+          }
+        }
       }
     },
     Util: {

@@ -7,5 +7,8 @@ export class Select extends Tool {
     return 0;
   }
   refreshUI() {
+    if (this.isActive()) {
+      this.SL.UI.Mouse.Cursor.activateCursor('crosshair');
+    }
   }
 }

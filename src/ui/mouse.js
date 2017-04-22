@@ -1,4 +1,5 @@
 import UIComponent from '../core/ui-component.js';
+import CursorManager from './cursor-manager.js';
 export default class Mouse extends UIComponent {
   constructor(SL, config, UI) {
     super(SL, config, UI);
@@ -60,10 +61,25 @@ export default class Mouse extends UIComponent {
         this.delegateEvent('onDoubleClick', event);
       }
     };
+    this.Cursor = new CursorManager(SL, this.config.Cursors, this.UI);
     this.register();
     this.configure();
   }
   get type() {
     return 'UI.Mouse';
+  }
+  activate() {
+    super.activate();
+    this.Cursor.activate();
+  }
+  deactivate() {
+    super.deactivate();
+    this.Cursor.deactivate();
+  }
+  delegateEvent(callback, event, delegateTo) {
+    if (this.Cursor && typeof this.Cursor[callback] == 'function') {
+      this.Cursor[callback](event);
+    }
+    super.delegateEvent(callback, event, delegateTo);
   }
 }

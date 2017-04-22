@@ -8,6 +8,15 @@
     margin: 0px;
   }
 }
+.sl-cursor {
+  display: block;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1000;
+  &.flip-horizontal {
+    transform: scaleX(-1.0);
+  }
+}
 .sl-canvas,
 .sl-dock {
   display: block;

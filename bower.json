@@ -17,8 +17,7 @@
   ],
   "dependencies": {
     "paper": "^0.10.3",
-    "jquery": "^3.1.1",
-    "jquery-awesome-cursor": "^0.3.1"
+    "jquery": "^3.1.1"
   },
   "resolutions": {
     "jquery": "^3.1.1"

@@ -19,6 +19,7 @@ import {default as UI} from '../../src/ui/ui.js';
 import {default as Dock} from '../../src/ui/dock.js';
 import {default as Mouse} from '../../src/ui/mouse.js';
 import {default as Keyboard} from '../../src/ui/keyboard.js';
+import {default as CursorManager} from '../../src/ui/cursor-manager.js';
 
 import {default as Utils} from '../../src/util/utils.js';
 import {Grid, RemoteLoader, Identity, URL} from '../../src/util/utils/_index.js';
@@ -59,7 +60,8 @@ export default {
     UI: UI,
     Dock: Dock,
     Mouse: Mouse,
-    Keyboard: Keyboard
+    Keyboard: Keyboard,
+    CursorManager: CursorManager
   },
   Utils: {
     Classes: {
