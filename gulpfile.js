@@ -2,6 +2,7 @@
 
 // gulp core
 var gulp = require('gulp');
+var runSequence = require('run-sequence');
 var gutil = require('gulp-util');
 var webserver = require('gulp-webserver');
 var sourcemaps = require('gulp-sourcemaps');
@@ -160,7 +161,9 @@ function buildSass(minify){
 /** MAIN TASKS **/
 // default is to start up the development environment
 gulp.task('default', ['dev']);
-gulp.task('check', ['clean', 'build', 'test', 'lint']);
+gulp.task('check', function(callback) {
+  runSequence('clean', 'build', 'test', 'lint', callback);
+});
 
 // dev environment watches with a livereload on localhost:8000
 gulp.task('dev', ['build:fonts', 'watch:tests', 'watch:src'], function() {
@@ -212,7 +215,7 @@ gulp.task('build:sass', ['clean:sass', 'build:sass:icomoon'], function() {
 gulp.task('build:sass:watched', function() {
   buildSass();
 });
-gulp.task('build:sass:icomoon', function() {
+gulp.task('build:sass:icomoon', ['build:fonts'], function() {
   return gulp.src(PKG.path.lib.icomoon+'/style.css')
     .pipe(rename('style.scss'))
     .pipe(gulp.dest(PKG.path.lib.icomoon));
