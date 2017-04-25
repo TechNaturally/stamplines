@@ -3,6 +3,7 @@ export default class StampPalette extends Palette {
   constructor(SL, config) {
     super(SL, config);
     this.id = 'Stamps';
+    this.symbols = {};
   }
   get paletteType() {
     return 'Stamps';
@@ -12,6 +13,18 @@ export default class StampPalette extends Palette {
       return this.config.stamps;
     }
     return super.paletteItems;
+  }
+  configureItem(item) {
+    if (item.id) {
+      let imgPath = this.getImagePath(item);
+      if (imgPath.slice(-3).toLowerCase() == 'svg') {
+        this.SL.Paper.project.importSVG(imgPath, (symbolItem, svg) => {
+          symbolItem.remove();
+          symbolItem.style.strokeScaling = false;
+          this.symbols[item.id] = new paper.Symbol(symbolItem);
+        });
+      }
+    }
   }
   getImagePath(item) {
     let imageName;
@@ -35,18 +48,25 @@ export default class StampPalette extends Palette {
       return imagePath;
     }
   }
+  getStampSymbol(stamp) {
+    if (stamp && stamp.id) {
+      return this.symbols[stamp.id];
+    }
+  }
   generateDOMItem(item) {
     let itemName = (item.name || item.id);
     let stampButton = $('<a></a>');
     stampButton.addClass('sl-palette-button');
     stampButton.addClass('sl-stamp-button');
     stampButton.data('Stamp', item);
+    stampButton.data('Palette', this);
     stampButton.attr('alt', itemName);
     stampButton.attr('title', itemName);
-    stampButton.click((event) => {
+    stampButton.on('mousedown', (event) => {
       let target = $(event.currentTarget);
       let stamp = target.data('Stamp');
-      console.log('Create a new Stamp => ', stamp);
+      let palette = target.data('Palette');
+      this.SL.Tools.Belt['CreateStamp'].loadStamp(stamp, palette);
     });
     let stampContent = $('<div></div>');
     stampContent.addClass('sl-palette-content sl-palette-img');
@@ -64,5 +84,13 @@ export default class StampPalette extends Palette {
       stampButton.append(stampContent);
     }
     return stampButton;
+  }
+  placeStamp(item, position) {
+    let symbol = this.getStampSymbol(item);
+    if (symbol) {
+      let stamp = symbol.place(position);
+      this.addPaperItem(stamp);
+      return stamp;
+    }
   }
 }

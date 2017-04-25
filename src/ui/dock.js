@@ -43,7 +43,11 @@ export default class Dock extends UIComponent {
       }
     }
 
-    let paletteDOM = palette.generateDOM().addClass('sl-palette-'+this.UI.classify(id));
+    if (!palette.DOM.palette) {
+      palette.generateDOM();
+    }
+    let paletteDOM = palette.DOM.palette;
+    paletteDOM.addClass('sl-palette-'+this.UI.classify(id));
     this.UI.DOM.dock.append(paletteDOM);
 
     this.Palettes[id] = palette;

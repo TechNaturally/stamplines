@@ -3,10 +3,12 @@ export default class Palette extends Component {
   constructor(SL, config) {
     super(SL, config);
     this.DOM = {};
+    this.PaperItems = [];
     this.configure();
   }
   destroy() {
     this.destroyDOM();
+    this.destroyPaperItems();
   }
   get type() {
     return 'Palette';
@@ -21,14 +23,46 @@ export default class Palette extends Component {
     return [];
   }
 
+  configureItem(item) {
+    // sub-classes should implement this
+  }
+  generateDOMItem(item) {
+    // sub-classes should implement this
+  }
+
   configure(config) {
     config = super.configure(config);
     if (this.DOM.palette) {
       this.generateDOM();
     }
+    this.configureItems(this.paletteItems);
     return this.config;
   }
+  configureItems(items) {
+    items.forEach((item) => {
+      this.configureItem(item);
+    });
+  }
 
+  addPaperItem(item) {
+    this.PaperItems.push(item);
+  }
+  destroyPaperItems() {
+    this.PaperItems.forEach((item) => {
+      if (item) {
+        item.remove();
+      }
+    });
+    this.PaperItems.length = 0;
+  }
+
+  destroyDOM() {
+    this.emptyDOM();
+    if (this.DOM.palette) {
+      this.DOM.palette.remove();
+      this.DOM.palette = undefined;
+    }
+  }
   emptyDOM() {
     let persist = ['palette'];
     for (let entry in this.DOM) {
@@ -37,6 +71,8 @@ export default class Palette extends Component {
       }
       this.DOM[entry] = undefined;
     }
+    // all DOM elements should be children of DOM.palette
+    // DOM.palette.empty() should remove everything
     if (this.DOM.palette) {
       this.DOM.palette.empty();
     }
@@ -51,12 +87,6 @@ export default class Palette extends Component {
     this.generateDOMItemsList();
     return this.DOM.palette;
   }
-  destroyDOM() {
-    if (this.DOM.palette) {
-      this.DOM.palette.remove();
-      this.DOM.palette = undefined;
-    }
-  }
   generateDOMItemsList() {
     let items = this.paletteItems;
     if (!items) {
@@ -70,26 +100,27 @@ export default class Palette extends Component {
       this.DOM.itemsList.addClass('sl-palette-items-'+this.SL.UI.classify(this.paletteType));
       this.DOM.palette.append(this.DOM.itemsList);
     }
+    this.DOM.itemsList.empty();
+    this.DOM.items = {};
 
     // the list items
-    this.DOM.items = {};
     items.forEach((item) => {
-      let itemDOM = this.generateDOMItem(item);
-      if (itemDOM) {
-        let listItemDOM = $('<li></li>');
-        listItemDOM.addClass('sl-palette-item');
-        listItemDOM.addClass('sl-palette-item-'+this.SL.UI.classify(this.paletteType));
-        listItemDOM.addClass('sl-palette-item-'+this.SL.UI.classify(this.paletteType)+'-'+item.id);
-
-        listItemDOM.append(itemDOM);
-
-        this.DOM.itemsList.append(listItemDOM);
-        this.DOM.items[item.id] = listItemDOM;
-        return this.DOM.items[item.id];
-      }
+      this.generateDOMListItem(item);
     });
   }
-  generateDOMItem(item) {
-    // sub-classes should implement this
+  generateDOMListItem(item) {
+    let itemDOM = this.generateDOMItem(item);
+    if (itemDOM) {
+      let listItemDOM = $('<li></li>');
+      listItemDOM.addClass('sl-palette-item');
+      listItemDOM.addClass('sl-palette-item-'+this.SL.UI.classify(this.paletteType));
+      listItemDOM.addClass('sl-palette-item-'+this.SL.UI.classify(this.paletteType)+'-'+item.id);
+
+      listItemDOM.append(itemDOM);
+
+      this.DOM.itemsList.append(listItemDOM);
+      this.DOM.items[item.id] = listItemDOM;
+      return this.DOM.items[item.id];
+    }
   }
 }
