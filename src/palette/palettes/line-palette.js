@@ -43,12 +43,14 @@ export default class LinePalette extends Palette {
     lineButton.addClass('sl-palette-button');
     lineButton.addClass('sl-line-button');
     lineButton.data('Line', item);
+    lineButton.data('Palette', this);
     lineButton.attr('alt', itemName);
     lineButton.attr('title', itemName);
     lineButton.click((event) => {
       let target = $(event.currentTarget);
       let line = target.data('Line');
-      console.log('Create a new Line => ', line);
+      let palette = target.data('Palette');
+      this.SL.Tools.Belt['CreateLine'].loadLine(line, palette);
     });
     let lineContent = $('<div></div>');
     lineContent.addClass('sl-palette-content sl-palette-img');
