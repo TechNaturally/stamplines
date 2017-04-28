@@ -1,0 +1,97 @@
+import Util from '../../core/util.js';
+export class Snap extends Util {
+  constructor(SL, config) {
+    super(SL, config);
+    this.name = 'Snap';
+
+    this.Snappers = {
+      point: { map: {}, order: [] },
+      rectangle: { map: {}, order: [] },
+      rotation: { map: {}, order: [] }
+    };
+  }
+  reset() {
+    super.reset();
+    for (let type in this.Snappers) {
+      this.Snappers[type].map = {};
+      this.Snappers[type].order = [];
+    }
+  }
+
+  Point(point, config={}) {
+  }
+  Rectangle(rectangle, config={}) {
+  }
+  Rotation(angle, config={}) {
+  }
+
+  addSnapper(type, config) {
+    if (!this.hasSnapperType(type)) {
+      throw `Cannot add Snapper of invalid type: "${type}"!`;
+    }
+    if (!config) {
+      throw 'Cannot add a Snapper with no configuration!';
+    }
+    if (typeof config.callback != 'function') {
+      throw 'Cannot add a Snapper with no callback!';
+    }
+    let ID = this.SL.Utils.gets('Identity');
+    if (ID) {
+      config.id = ID.getUnique((config.id || type.toLowerCase()), this.Snappers[type].map);
+    }
+    if (config.id) {
+      if (!this.Snappers[type].map[config.id]) {
+        this.Snappers[type].map[config.id] = config;
+        if (this.Snappers[type].order.indexOf(config.id) == -1) {
+          this.Snappers[type].order.push(config.id);
+        }
+        this.refreshSnapperOrder(type);
+      }
+      return this.Snappers[type].map[config.id];
+    }
+  }
+  dropSnapper(type, id) {
+    if (!this.hasSnapperType(type)) {
+      throw `Cannot drop Snapper of invalid type: "${type}"!`;
+    }
+    if (id) {
+      let orderIdx = this.Snappers[type].order.indexOf(id);
+      if (orderIdx != -1) {
+        this.Snappers[type].order.splice(orderIdx, 1);
+      }
+      let snapper = this.Snappers[type].map[id];
+      this.Snappers[type].map[id] = undefined;
+      delete this.Snappers[type].map[id];
+      return snapper;
+    }
+  }
+  hasSnapperType(type) {
+    return !!(this.Snappers[type] && this.Snappers[type].map && this.Snappers[type].order);
+  }
+  refreshSnapperOrder(type) {
+    if (this.hasSnapperType(type)) {
+      this.Snappers[type].order.sort((id1, id2) => {
+        let prio1 = this.Snappers[type].map[id1].priority;
+        let prio2 = this.Snappers[type].map[id2].priority;
+        if ((prio1 == -1 || prio1 === undefined) && prio2 >= 0) {
+          return 1;
+        }
+        else if ((prio2 == -1 || prio2 === undefined) && prio1 >= 0) {
+          return -1;
+        }
+        return (prio1 - prio2);
+      });
+    }
+  }
+  runSnappers(type, value, config={}) {
+    if (this.hasSnapperType(type)) {
+      this.Snappers[type].order.forEach((id) => {
+        let snapper = this.Snappers[type].map[id];
+        if (typeof snapper.callback == 'function') {
+          value = snapper.callback(value, config);
+        }
+      });
+      return value;
+    }
+  }
+}

@@ -22,7 +22,7 @@ import {default as Keyboard} from '../../src/ui/keyboard.js';
 import {default as CursorManager} from '../../src/ui/cursor-manager.js';
 
 import {default as Utils} from '../../src/util/utils.js';
-import {Grid, RemoteLoader, Identity, URL} from '../../src/util/utils/_index.js';
+import {Grid, RemoteLoader, Snap, Identity, URL} from '../../src/util/utils/_index.js';
 import {default as NamedObjectMap} from '../../src/util/classes/named-object-map.js';
 
 export default {
@@ -70,6 +70,7 @@ export default {
     Utils: Utils,
     Grid: Grid,
     RemoteLoader: RemoteLoader,
+    Snap: Snap,
     Identity: Identity,
     URL: URL
   }
