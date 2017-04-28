@@ -1,4 +1,16 @@
 import Component from '../../core/component.js';
+/** NamedObjectMap manages a map of configurable typed-objects
+Config options:
+ - types: a map of ClassNames to their definition (ie. a singleton object, or a constructor function)
+ - exclusiveIDs: boolean, if true will not attempt to auto-increment when adding an entry with existing id
+ - #onAdd: function(s) to call when a new NamedObject entry has been initialized and added
+ - #onRemove: function(s) to call when a NamedObject entry has been removed
+
+ #onAdd/#onRemove function(s) may be defined as:
+ - string: calls this function if it is a method on the added/removed item
+ - function(entry, type): explicitly defined function (type argument only in #onAdd)
+ - array(string|function): an array of strings and/or functions to be called in order
+*/
 export default class NamedObjectMap extends Component {
   constructor(SL, config) {
     super(SL, config);
@@ -42,6 +54,7 @@ export default class NamedObjectMap extends Component {
     else if (type && typeof type == 'string') {
       let allowed = this.config.types;
       if (allowed) {
+        // exclusiveIDs option will not attempt to auto-increment existing ID's
         if (!id || !this.config.exclusiveIDs) {
           let ID = this.SL.Utils.gets('Identity');
           if (ID) {

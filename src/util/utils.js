@@ -7,7 +7,7 @@ export default class Utils extends Component {
     this.active = new NamedObjectMap(SL, {
       config: this.config,
       types: Available,
-      exclusiveIDs: true,
+      exclusiveIDs: true, // exclusiveIDs option will not attempt to auto-increment existing ID's
       '#onAdd': [
         (entry, type) => {
           entry.name = (entry.name || type);
