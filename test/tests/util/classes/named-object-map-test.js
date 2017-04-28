@@ -120,11 +120,11 @@ describe('Classes.NamedObjectMap', () => {
     describe('should enable configured entries', () => {
       it('should attempt to determine entry type based on id', () => {
         NOL.readConfigured({
-          'grid': {
+          'Grid': {
             'size': 50
           }
         });
-        expect(NOL.getEntry('grid').constructor.name).to.equal('Grid');
+        expect(NOL.getEntry('Grid').constructor.name).to.equal('Grid');
       });
       it('should enable entry with an explicitly defined type', () => {
         NOL.readConfigured({
@@ -136,17 +136,17 @@ describe('Classes.NamedObjectMap', () => {
       });
       it('should replace previously enabled entries with the same id', () => {
         NOL.readConfigured({
-          'grid': {
+          'Grid': {
             'size': 50
           }
         });
-        let grid1 = NOL.getEntry('grid');
+        let grid1 = NOL.getEntry('Grid');
         NOL.readConfigured({
-          'grid': {
+          'Grid': {
             'size': 32
           }
         });
-        let grid2 = NOL.getEntry('grid');
+        let grid2 = NOL.getEntry('Grid');
         expect(grid2).to.not.equal(grid1);
       });
     });
@@ -157,10 +157,10 @@ describe('Classes.NamedObjectMap', () => {
     beforeEach(() => {
       NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
       NOL.readConfigured({
-        'grid': {
+        'Grid': {
           'size': 50
         },
-        'loader': {
+        'Loader': {
           'type': 'RemoteLoader'
         }
       });
@@ -183,8 +183,8 @@ describe('Classes.NamedObjectMap', () => {
     });
     describe('- given an id', () => {
       it('should remove the enty of id', () => {
-        NOL.removeEntry('grid');
-        let entry = NOL.getEntry('grid');
+        NOL.removeEntry('Grid');
+        let entry = NOL.getEntry('Grid');
         expect(entry).to.not.exist;
       });
     });

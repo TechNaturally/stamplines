@@ -44,17 +44,17 @@ describe('Utils', () => {
       });
       it('should replace previously enabled utilities with the same id', () => {
         Utils.configure({
-          'grid': {
+          'Grid': {
             'size': 50
           }
         });
-        let grid1 = Utils.get('grid');
+        let grid1 = Utils.get('Grid');
         Utils.configure({
-          'grid': {
+          'Grid': {
             'size': 32
           }
         });
-        let grid2 = Utils.get('grid');
+        let grid2 = Utils.get('Grid');
         expect(grid2).to.not.equal(grid1);
       });
     });
@@ -64,7 +64,7 @@ describe('Utils', () => {
     let Utils;
     before(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL, {
-        'grid': {
+        'Grid': {
           'size': 50
         }
       });
@@ -74,7 +74,7 @@ describe('Utils', () => {
       Utils = undefined;
     });
     it('should return an active utility by id', () => {
-      let grid = Utils.get('grid');
+      let grid = Utils.get('Grid');
       expect(grid).to.exist;
     });
   });
@@ -174,8 +174,8 @@ describe('Utils', () => {
     let Utils;
     beforeEach(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL, {
-        'grid': {},
-        'loader': {type: 'RemoteLoader'}
+        'Grid': {},
+        'Loader': {type: 'RemoteLoader'}
       });
     });
     afterEach(() => {
@@ -196,8 +196,8 @@ describe('Utils', () => {
     });
     describe('- given an id', () => {
       it('should disable the utility of id', () => {
-        Utils.disable('grid');
-        let util = Utils.get('grid');
+        Utils.disable('Grid');
+        let util = Utils.get('Grid');
         expect(util).to.not.exist;
       });
     });

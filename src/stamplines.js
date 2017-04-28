@@ -165,7 +165,7 @@ StampLines.DEFAULT = {
       }
     },
     Util: {
-      grid: {
+      Grid: {
         size: 25
       }
     }
