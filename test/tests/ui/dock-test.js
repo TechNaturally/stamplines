@@ -72,7 +72,7 @@ describe('UI.Dock', () => {
       paletteID = Dock.addPalette(palette, paletteID);
       expect(() => {
         paletteID = Dock.addPalette(palette, paletteID);
-      }).to.throw(`Palette with id ${paletteID} already exists!`);
+      }).to.throw(`id ${paletteID} already exists`);
     });
     it('should create a DOM element', () => {
       paletteID = Dock.addPalette(palette, paletteID);
