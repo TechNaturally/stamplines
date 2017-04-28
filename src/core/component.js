@@ -6,11 +6,15 @@ export default class Component {
     this.SL = SL;
     this.config = config;
   }
-  destroy() {}
+  destroy() {
+    this.reset();
+  }
+  reset() {}
   get type() {
     return 'Component';
   }
   configure(config) {
+    this.reset();
     this.config = config || this.config || {};
     return this.config;
   }

@@ -7,7 +7,8 @@ export default class UIComponent extends Component {
     }
     this.UI = UI;
   }
-  destroy() {
+  reset() {
+    super.reset();
     if (typeof this.destroyDOM == 'function') {
       this.destroyDOM();
     }

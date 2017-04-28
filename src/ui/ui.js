@@ -9,7 +9,8 @@ export default class UI extends Component {
     this.PaperCanvas = control.paper;
     this.configure();
   }
-  destroy() {
+  reset() {
+    super.reset();
     this.destroyDock();
     this.destroyMouse();
     this.unwrapDOM();

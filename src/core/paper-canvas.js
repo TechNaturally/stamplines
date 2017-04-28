@@ -28,7 +28,8 @@ export default class PaperCanvas extends Component {
   isActive () {
     return (paper.project === this.paperProject);
   }
-  destroy() {
+  reset() {
+    super.reset();
     if (this.paperProject) {
       this.paperProject.remove();
       this.paperProject = undefined;
@@ -85,6 +86,9 @@ export default class PaperCanvas extends Component {
       });
     }
     this.registerHandlers(this.Handles);
+
+    // @TODO: initialize a Util.Bounds(this.canvas)
+
     return this.config;
   }
 

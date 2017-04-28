@@ -6,7 +6,8 @@ export default class Palette extends Component {
     this.PaperItems = [];
     this.configure();
   }
-  destroy() {
+  reset() {
+    super.reset();
     this.destroyDOM();
     this.destroyPaperItems();
   }
@@ -45,9 +46,11 @@ export default class Palette extends Component {
   }
 
   addPaperItem(item) {
+    // @TODO: paper shape tracking
     this.PaperItems.push(item);
   }
   destroyPaperItems() {
+    // @TODO: paper shape tracking
     this.PaperItems.forEach((item) => {
       if (item) {
         item.remove();

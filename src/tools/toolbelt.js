@@ -10,7 +10,8 @@ export default class ToolBelt extends Component {
     }
     this.checkActiveTool();
   }
-  destroy() {
+  reset() {
+    super.reset();
     for (let type in this.Belt) {
       this.Belt[type].destroy();
       this.Belt[type] = undefined;
@@ -96,6 +97,7 @@ export default class ToolBelt extends Component {
   }
   checkMouseTarget() {
     // @TODO: check SL.UI.Mouse.State.point
+    // if targetChanged, this.refreshUI();
   }
   refreshUI() {
     this.runTools('refreshUI');
