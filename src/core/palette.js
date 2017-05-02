@@ -3,13 +3,11 @@ export default class Palette extends Component {
   constructor(SL, config) {
     super(SL, config);
     this.DOM = {};
-    this.PaperItems = [];
     this.configure();
   }
   reset() {
     super.reset();
     this.destroyDOM();
-    this.destroyPaperItems();
   }
   get type() {
     return 'Palette';
@@ -43,20 +41,6 @@ export default class Palette extends Component {
     items.forEach((item) => {
       this.configureItem(item);
     });
-  }
-
-  addPaperItem(item) {
-    // @TODO: paper shape tracking
-    this.PaperItems.push(item);
-  }
-  destroyPaperItems() {
-    // @TODO: paper shape tracking
-    this.PaperItems.forEach((item) => {
-      if (item) {
-        item.remove();
-      }
-    });
-    this.PaperItems.length = 0;
   }
 
   destroyDOM() {

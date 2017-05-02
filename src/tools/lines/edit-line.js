@@ -27,8 +27,7 @@ export class EditLine extends Tool {
     }
     if (this.Append.line && this.Append.line.segments.length < 2) {
       // 1 point == 1 segment, so there is no line if there are less than 2 points
-      // @TODO: paper shape tracking
-      this.Append.line.remove();
+      this.SL.Paper.destroyPaperItem(this.Append.line);
     }
     this.Append.line = null;
     this.Append.from = null;

@@ -33,7 +33,7 @@ export class CreateStamp extends Tool {
     this.loaded.stamp = undefined;
     delete this.loaded.stamp;
     this.loaded.palette = undefined;
-    delete this.loaded.paletted;
+    delete this.loaded.palette;
   }
 
   refreshUI() {

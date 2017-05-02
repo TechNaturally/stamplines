@@ -24,7 +24,7 @@ export class CreateLine extends EditLine {
     this.loaded.line = undefined;
     delete this.loaded.line;
     this.loaded.palette = undefined;
-    delete this.loaded.paletted;
+    delete this.loaded.palette;
   }
 
   refreshUI() {
@@ -52,8 +52,7 @@ export class CreateLine extends EditLine {
     super.onMouseMove(event);
     if (this.isActive()) {
       if (!this.Append.line && this.Append.to && this.Append.from) {
-        // @TODO: paper shape tracking
-        this.Append.line = new paper.Path.Line(this.Append.from.point, this.Append.to.point);
+        this.Append.line = this.SL.Paper.generatePaperItem({Source: this.loaded.palette}, paper.Path.Line, this.Append.from.point, this.Append.to.point);
         this.Append.to = this.Append.line.segments[this.Append.line.segments.length-1];
         if (this.loaded.line && this.loaded.line.style) {
           this.applyStyle(this.Append.line, this.loaded.line.style);

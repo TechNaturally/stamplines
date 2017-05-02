@@ -4,6 +4,7 @@ export default class StampPalette extends Palette {
     super(SL, config);
     this.id = 'Stamps';
     this.symbols = {};
+    this.PaperItems = [];
   }
   get paletteType() {
     return 'Stamps';
@@ -21,9 +22,15 @@ export default class StampPalette extends Palette {
         this.SL.Paper.project.importSVG(imgPath, (symbolItem, svg) => {
           symbolItem.remove();
           symbolItem.style.strokeScaling = false;
-          this.symbols[item.id] = new paper.Symbol(symbolItem);
+          this.symbols[item.id] = this.SL.Paper.generatePaperItem({Class:'template'}, paper.Symbol, symbolItem);
         });
       }
+    }
+  }
+  destroyPaperItems() {
+    super.destroyPaperItems();
+    for (let id in this.symbols) {
+      this.SL.Paper.destroyPaperItem(this.symbols[id]);
     }
   }
   getImagePath(item) {
@@ -88,8 +95,7 @@ export default class StampPalette extends Palette {
   placeStamp(item, position) {
     let symbol = this.getStampSymbol(item);
     if (symbol) {
-      let stamp = symbol.place(position);
-      this.addPaperItem(stamp);
+      let stamp = this.SL.Paper.generatePaperItem({Source: this}, paper.SymbolItem, symbol, position);
       return stamp;
     }
   }
