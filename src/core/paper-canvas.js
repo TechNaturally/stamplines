@@ -15,10 +15,11 @@ export default class PaperCanvas extends Component {
     };
     this.Layers = {
       'TEMPLATE': -1,
+      'GROUPED': -1,
       'BG': 0,
       'CONTENT': 250,
-      'UI': 500,
       'UI_BG': 450,
+      'UI': 500,
       'UI_FG': 550
     };
     this.defaultClass = 'Content';
@@ -69,7 +70,7 @@ export default class PaperCanvas extends Component {
     config = super.configure(config);
 
     // initialize the paperProject on the canvas
-    this.canvas = config.canvas;
+    this.canvas = $(config.canvas);
     if (this.canvas && this.canvas.length) {
       let activeProject = paper.project;
 
@@ -135,7 +136,7 @@ export default class PaperCanvas extends Component {
         attributes.Layer = this.Layers[attributes.Class.toUpperCase()];
       }
     }
-    if (attributes.Layer && typeof attributes.Layer == 'string' && this.Layers[attributes.Layer.toUpperCase()]) {
+    if (attributes.Layer && typeof attributes.Layer == 'string' && this.Layers[attributes.Layer.toUpperCase()] != undefined) {
       // map string Layer id to numerical Layer id
       attributes.Layer = this.Layers[attributes.Layer.toUpperCase()];
     }
@@ -145,7 +146,7 @@ export default class PaperCanvas extends Component {
       throw 'Cannot generate PaperItem without Layer attribute!';
     }
     else if (Number(attributes.Layer) != attributes.Layer) {
-      throw 'Cannot generate PaperItem with invalid Layer attribute!';
+      throw `Cannot generate PaperItem with invalid Layer attribute! (${attributes.Layer})`;
     }
     if (attributes.Class == undefined) {
       throw 'Cannot generate PaperItem without Class attribute!';
@@ -280,6 +281,14 @@ export default class PaperCanvas extends Component {
       item.remove();
     }
     return item;
+  }
+
+  applyStyle(item, style) {
+    if (item && style) {
+      for (var prop in style) {
+        item[prop] = style[prop];
+      }
+    }
   }
 
   sortLayers() {

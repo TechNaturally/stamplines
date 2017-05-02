@@ -32,11 +32,4 @@ export default class Tool extends Component {
   finish(checkForActive=true) {
     this.Belt.deactivateTool(checkForActive, this);
   }
-  applyStyle(item, style) {
-    if (item && style) {
-      for (var prop in style) {
-        item[prop] = style[prop];
-      }
-    }
-  }
 }

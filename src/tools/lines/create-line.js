@@ -17,7 +17,7 @@ export class CreateLine extends EditLine {
     }
     this.refreshUI();
     if (this.Append.line && this.loaded.line && this.loaded.line.style) {
-      this.applyStyle(this.Append.line, this.loaded.line.style);
+      this.SL.Paper.applyStyle(this.Append.line, this.loaded.line.style);
     }
   }
   unloadLine() {
@@ -55,7 +55,7 @@ export class CreateLine extends EditLine {
         this.Append.line = this.SL.Paper.generatePaperItem({Source: this.loaded.palette}, paper.Path.Line, this.Append.from.point, this.Append.to.point);
         this.Append.to = this.Append.line.segments[this.Append.line.segments.length-1];
         if (this.loaded.line && this.loaded.line.style) {
-          this.applyStyle(this.Append.line, this.loaded.line.style);
+          this.SL.Paper.applyStyle(this.Append.line, this.loaded.line.style);
         }
       }
     }
