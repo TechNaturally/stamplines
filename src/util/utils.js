@@ -15,7 +15,6 @@ export default class Utils extends Component {
         'activate'],
       '#onRemove': 'deactivate'
     });
-    this.configure();
   }
   get type() {
     return 'Utils';

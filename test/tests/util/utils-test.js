@@ -3,6 +3,7 @@ describe('Utils', () => {
     let Utils;
     before(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL, Test.SL.config.Utils);
+      Utils.configure();
     });
     after(() => {
       Utils.disable();
@@ -20,6 +21,7 @@ describe('Utils', () => {
     let Utils;
     before(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL);
+      Utils.configure();
     });
     after(() => {
       Utils.disable();
@@ -68,6 +70,7 @@ describe('Utils', () => {
           'size': 50
         }
       });
+      Utils.configure();
     });
     after(() => {
       Utils.disable();
@@ -83,6 +86,7 @@ describe('Utils', () => {
     let Utils;
     before(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL, {});
+      Utils.configure();
     });
     after(() => {
       Utils.disable();
@@ -123,6 +127,7 @@ describe('Utils', () => {
     });
     beforeEach(() => {
       Utils = new Test.Lib.Utils.Utils(Test.SL, utilsConfig);
+      Utils.configure();
     });
     afterEach(() => {
       Utils.disable();
@@ -177,6 +182,7 @@ describe('Utils', () => {
         'Grid': {},
         'Loader': {type: 'RemoteLoader'}
       });
+      Utils.configure();
     });
     afterEach(() => {
       Utils.disable();

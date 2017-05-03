@@ -20,16 +20,26 @@ export default class StampLines {
   }
   init() {
     this.reset();
+    this.initUtils();
     this.initUI();
     this.initTools();
-    this.initUtils();
     this.initPalettes();
   }
   reset() {
     this.resetPalettes();
-    this.resetUtils();
     this.resetTools();
     this.resetUI();
+    this.resetUtils();
+  }
+  initUtils() {
+    let config = this.config.Util || {};
+    this.Utils = new Utils(this, config);
+    this.Utils.configure();
+  }
+  resetUtils() {
+    if (this.Utils) {
+      this.Utils.disable('*');
+    }
   }
   initUI() {
     let config = this.config.UI || {};
@@ -66,15 +76,6 @@ export default class StampLines {
   resetPalettes() {
     if (this.Palettes) {
       this.Palettes.removePalette('*');
-    }
-  }
-  initUtils() {
-    let config = this.config.Util || {};
-    this.Utils = new Utils(this, config);
-  }
-  resetUtils() {
-    if (this.Utils) {
-      this.Utils.disable('*');
     }
   }
 
