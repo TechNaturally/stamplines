@@ -19,10 +19,13 @@ export class Snap extends Util {
   }
 
   Point(point, config={}) {
+    return this.runSnappers('point', point, config);
   }
   Rectangle(rectangle, config={}) {
+    return this.runSnappers('rectangle', rectangle, config);
   }
   Rotation(angle, config={}) {
+    return this.runSnappers('rotation', angle, config);
   }
 
   addSnapper(type, config) {
@@ -47,6 +50,7 @@ export class Snap extends Util {
         }
         this.refreshSnapperOrder(type);
       }
+      this.Snappers[type].map[config.id].id = config.id;
       return this.Snappers[type].map[config.id];
     }
   }
@@ -88,7 +92,10 @@ export class Snap extends Util {
       this.Snappers[type].order.forEach((id) => {
         let snapper = this.Snappers[type].map[id];
         if (typeof snapper.callback == 'function') {
-          value = snapper.callback(value, config);
+          let newValue = snapper.callback(value, config);
+          if (newValue !== undefined) {
+            value = newValue;
+          }
         }
       });
       return value;
