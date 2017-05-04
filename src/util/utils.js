@@ -13,7 +13,7 @@ export default class Utils extends Component {
           entry.name = (entry.name || type);
         },
         'activate'],
-      '#onRemove': 'deactivate'
+      '#onRemove': ['deactivate', 'destroy']
     });
   }
   get type() {

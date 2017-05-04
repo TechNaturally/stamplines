@@ -2,7 +2,6 @@ import Component from '../core/component.js';
 export default class Util extends Component {
   constructor(SL, config) {
     super(SL, config);
-    this.configure();
   }
   get type() {
     return 'Util';
