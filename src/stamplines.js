@@ -168,7 +168,12 @@ StampLines.DEFAULT = {
     Util: {
       Snap: {},
       Grid: {
-        size: 25
+        size: 20,
+        style: {
+          strokeWidth: 0.5,
+          strokeColor: (2.0/3.0),
+          opacity: 0.25
+        }
       }
     }
   }
