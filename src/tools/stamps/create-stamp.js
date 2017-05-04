@@ -26,6 +26,19 @@ export class CreateStamp extends Tool {
   placeStamp(point) {
     if (this.loaded.palette && this.loaded.stamp) {
       let stamp = this.loaded.palette.placeStamp(this.loaded.stamp, point.clone());
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        let width = stamp.definition.item.strokeBounds.width;
+        let height = stamp.definition.item.strokeBounds.height;
+        let bounds = new paper.Rectangle({
+          x: point.x-width/2.0,
+          y: point.y-height/2.0,
+          width: width,
+          height: height
+        });
+        bounds = Snap.Rectangle(bounds);
+        stamp.bounds.set(bounds);
+      }
     }
     this.finish();
   }
