@@ -37,14 +37,19 @@ export class EditLine extends Tool {
   onMouseMove(event) {
     if (this.isActive()) {
       if (this.Append.from) {
+        let point = event.point.clone();
+        let Snap = this.SL.Utils.get('Snap');
+        if (Snap) {
+          point = Snap.Point(point, {interactive: true});
+        }
         if (!this.Append.to) {
-          this.Append.to = { point: event.point.clone() };
+          this.Append.to = { point: point };
           if (this.Append.line) {
             this.Append.to = this.Append.line.add(this.Append.to.point);
           }
         }
         else {
-          this.Append.to.point.set(event.point);
+          this.Append.to.point.set(point);
         }
       }
     }
@@ -55,6 +60,10 @@ export class EditLine extends Tool {
         if (this.Append.line && this.Append.to) {
           this.Append.from = this.Append.to;
           this.Append.to = null;
+          let Snap = this.SL.Utils.get('Snap');
+          if (Snap) {
+            Snap.Point(this.Append.from.point);
+          }
         }
       }
       else if (event.event.button == 2) {

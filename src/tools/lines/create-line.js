@@ -37,7 +37,12 @@ export class CreateLine extends EditLine {
     if (this.isActive()) {
       if (event.event.button === 0) {
         if (!this.Append.from && this.loaded.line) {
-          this.Append.from = { point: event.point.clone() };
+          let point = event.point.clone();
+          let Snap = this.SL.Utils.get('Snap');
+          if (Snap) {
+            point = Snap.Point(point);
+          }
+          this.Append.from = { point: point };
           // setting Append.from initiates the sequence:
           // - EditLine::onMouseMove sees Append.from and sets Append.to
           // - CreateLine::onMouseMove sees Append.to and !Append.line and creates new paper.Path.Line
