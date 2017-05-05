@@ -190,9 +190,48 @@ describe('Utils.Snap', () => {
   });
 
   describe('#Point', () => {
-    it('should return a snapped clone of a point');
+    it('should return a paper.Point', () => {
+      let checkPoint = Snap.Point();
+      expect(checkPoint.constructor).equal(paper.Point);
+    });
+    it('should return a clone of a point', () => {
+      let testPoint = new paper.Point;
+      let checkPoint = Snap.Point(testPoint);
+      expect(checkPoint).to.not.equal(testPoint);
+    });
+  });
+  describe('#PointMin', () => {
+    it('should return a paper.Point', () => {
+      let checkPoint = Snap.PointMin();
+      expect(checkPoint.constructor).equal(paper.Point);
+    });
+    it('should return a clone of a point', () => {
+      let testPoint = new paper.Point;
+      let checkPoint = Snap.PointMin(testPoint);
+      expect(checkPoint).to.not.equal(testPoint);
+    });
+  });
+  describe('#PointMax', () => {
+    it('should return a paper.Point', () => {
+      let checkPoint = Snap.PointMax();
+      expect(checkPoint.constructor).equal(paper.Point);
+    });
+    it('should return a clone of a point', () => {
+      let testPoint = new paper.Point;
+      let checkPoint = Snap.PointMax(testPoint);
+      expect(checkPoint).to.not.equal(testPoint);
+    });
   });
   describe('#Rectangle', () => {
+    it('should return a paper.Rectangle', () => {
+      let checkRect = Snap.Rectangle();
+      expect(checkRect.constructor).equal(paper.Rectangle);
+    });
+    it('should return a clone of a rectangle', () => {
+      let testRect = new paper.Rectangle;
+      let checkRect = Snap.Rectangle(testRect);
+      expect(checkRect).to.not.equal(testRect);
+    });
     describe('- when called with config.scheme==\'move\'', () => {
       it('should reposition the rectangle to fit in bounds');
     });

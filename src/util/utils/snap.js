@@ -21,16 +21,16 @@ export class Snap extends Util {
   }
 
   Point(point, config={}) {
-    return this.runSnappers('point', point, config);
+    return this.runSnappers('point', new paper.Point(point), config);
   }
   PointMin(point, config={}) {
-    return this.runSnappers('pointMin', point, config);
+    return this.runSnappers('pointMin', new paper.Point(point), config);
   }
   PointMax(point, config={}) {
-    return this.runSnappers('pointMax', point, config);
+    return this.runSnappers('pointMax', new paper.Point(point), config);
   }
   Rectangle(rectangle, config={}) {
-    return this.runSnappers('rectangle', rectangle, config);
+    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), config);
   }
   Rotation(angle, config={}) {
     return this.runSnappers('rotation', angle, config);

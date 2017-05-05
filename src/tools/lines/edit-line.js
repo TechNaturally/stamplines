@@ -62,7 +62,7 @@ export class EditLine extends Tool {
           this.Append.to = null;
           let Snap = this.SL.Utils.get('Snap');
           if (Snap) {
-            Snap.Point(this.Append.from.point);
+            this.Append.from.point.set(Snap.Point(this.Append.from.point));
           }
         }
       }
