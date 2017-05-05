@@ -1,4 +1,5 @@
 // dynamic (instanceable) utilities
+export {Bounds} from './bounds.js';
 export {Grid} from './grid.js';
 export {RemoteLoader} from './remote-loader.js';
 export {Snap} from './snap.js';

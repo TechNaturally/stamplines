@@ -5,6 +5,10 @@ describe('Utils.Grid', () => {
     Test.assertSL();
     Grid = new Test.Lib.Utils.Grid(Test.SL, Test.SL.Utils.config.Grid);
   });
+  after(() => {
+    Grid.destroy();
+    Grid = undefined;
+  });
   describe('Constructor', () => {
     it('should initialize', () => {
       expect(Grid).to.exist;

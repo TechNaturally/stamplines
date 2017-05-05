@@ -167,6 +167,7 @@ StampLines.DEFAULT = {
     },
     Util: {
       Snap: {},
+      Bounds: {},
       Grid: {
         size: 20,
         style: {

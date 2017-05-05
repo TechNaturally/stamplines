@@ -110,8 +110,6 @@ export default class PaperCanvas extends Component {
 
     this.registerHandlers(this.Handles);
 
-    // @TODO: initialize a Util.Bounds(this.canvas)
-
     return this.config;
   }
 

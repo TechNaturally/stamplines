@@ -144,11 +144,13 @@ export class Grid extends Util {
         this.Snappers = {};
       }
       this.Snappers.point = Snap.addSnapper('point', {
+        priority: 50,
         callback: (point, config) => {
           return this.snapPoint(point, config);
         }
       });
       this.Snappers.rectangle = Snap.addSnapper('rectangle', {
+        priority: 50,
         callback: (rectangle, config) => {
           return this.snapRectangle(rectangle, config);
         }
