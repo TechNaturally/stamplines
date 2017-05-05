@@ -46,7 +46,7 @@ export class Bounds extends Util {
       this.padding.left = padding.left || this.padding.left;
     }
     else {
-      this.padding.top = this.padding.right = this.padding.bottom = this.padding.left = padding;
+      this.padding.top = this.padding.right = this.padding.bottom = this.padding.left = (padding || 0);
     }
   }
 

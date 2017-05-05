@@ -6,6 +6,8 @@ export class Snap extends Util {
 
     this.Snappers = {
       point: { map: {}, order: [] },
+      pointMin: { map: {}, order: [] },
+      pointMax: { map: {}, order: [] },
       rectangle: { map: {}, order: [] },
       rotation: { map: {}, order: [] }
     };
@@ -20,6 +22,12 @@ export class Snap extends Util {
 
   Point(point, config={}) {
     return this.runSnappers('point', point, config);
+  }
+  PointMin(point, config={}) {
+    return this.runSnappers('pointMin', point, config);
+  }
+  PointMax(point, config={}) {
+    return this.runSnappers('pointMax', point, config);
   }
   Rectangle(rectangle, config={}) {
     return this.runSnappers('rectangle', rectangle, config);

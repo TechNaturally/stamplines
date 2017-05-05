@@ -176,12 +176,38 @@ export class Grid extends Util {
       return;
     }
     let def = this.getCurrentDefinition();
+    let min = { Col: -1, Row: -1 };
+    let max = { Col: -1, Row: -1 };
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      let pointMin = Snap.PointMin(new paper.Point);
+      min.Col = Math.ceil(pointMin.x / def.cell.width);
+      min.Row = Math.ceil(pointMin.y / def.cell.height);
+
+      let pointMax = Snap.PointMax(new paper.Point);
+      max.Col = Math.floor(pointMax.x / def.cell.width);
+      max.Row = Math.floor(pointMax.y / def.cell.height);
+    }
     let newPoint = new paper.Point(def.offset).add(point);
-    let targetCol = Math.round(newPoint.x / def.cell.width);
-    let targetRow = Math.round(newPoint.y / def.cell.height);
+    let target = {
+      Col: Math.round(newPoint.x / def.cell.width),
+      Row: Math.round(newPoint.y / def.cell.height)
+    };
+    if (min.Col >= 0 && target.Col < min.Col) {
+      target.Col = min.Col;
+    }
+    else if (max.Col >= 0 && target.Col > max.Col) {
+      target.Col = max.Col;
+    }
+    if (min.Row >= 0 && target.Row < min.Row) {
+      target.Row = min.Row;
+    }
+    else if (max.Row >= 0 && target.Row > max.Row) {
+      target.Row = max.Row;
+    }
     newPoint.set({
-      x: (targetCol * def.cell.width) - def.offset.x,
-      y: (targetRow * def.cell.height) - def.offset.y
+      x: (target.Col * def.cell.width) - def.offset.x,
+      y: (target.Row * def.cell.height) - def.offset.y
     });
     point.set(newPoint);
     return point;
@@ -192,14 +218,43 @@ export class Grid extends Util {
     }
     let rectangleWidth = rectangle.width;
     let rectangleHeight = rectangle.height;
-    let def = this.getCurrentDefinition();
-    let topLeft = this.snapPoint(new paper.Point({ x:rectangle.left, y:rectangle.top }));
-    let bottomRight = this.snapPoint(new paper.Point({x:topLeft.x+rectangleWidth, y:topLeft.y+rectangleHeight}));
+    let topLeft = new paper.Point({x: rectangle.left, y: rectangle.top});
+    let bottomRight = new paper.Point({x: rectangle.right, y: rectangle.bottom});
+    let pointMax;
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      pointMax = Snap.PointMax(new paper.Point);
+    }
+    let snapped = {
+      left: undefined,
+      top: undefined,
+      right: undefined,
+      bottom: undefined
+    };
+    // first try horizontal snapping based on Left
+    snapped.left = this.snapPoint(new paper.Point(topLeft));
+    snapped.right = this.snapPoint(new paper.Point(snapped.left.x+rectangleWidth, bottomRight.y));
+    if (pointMax != undefined && (snapped.left.x+rectangleWidth) > pointMax.x) {
+      // if horizontal snapping by Left would exceed pointMax, re-snap horizontally based on Right
+      snapped.right = this.snapPoint(new paper.Point(bottomRight));
+      snapped.left = this.snapPoint(new paper.Point(snapped.right.x-rectangleWidth, topLeft.y));
+    }
+
+    // first try vertical snapping based on Top
+    snapped.top = this.snapPoint(new paper.Point(topLeft));
+    snapped.bottom = this.snapPoint(new paper.Point(bottomRight.x, snapped.top.y+rectangleHeight));
+    if (pointMax != undefined && (snapped.top.y+rectangleHeight) > pointMax.y) {
+      // if vertical snapping by Top would exceed pointMax, re-snap vertically based on Bottom
+      snapped.bottom = this.snapPoint(new paper.Point(bottomRight));
+      snapped.top = this.snapPoint(new paper.Point(topLeft.x, snapped.bottom.y-rectangleHeight));
+    }
+
+    // apply the snapped sides
     rectangle.set({
-      left: topLeft.x,
-      top: topLeft.y,
-      right: bottomRight.x,
-      bottom: bottomRight.y
+      top: snapped.top.y,
+      left: snapped.left.x,
+      bottom: snapped.bottom.y,
+      right: snapped.right.x
     });
     return rectangle;
   }
