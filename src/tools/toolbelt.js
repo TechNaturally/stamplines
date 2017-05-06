@@ -5,7 +5,10 @@ export default class ToolBelt extends Component {
     super(SL, config);
     this.Belt = {};
     this.State = {
-      activeTool: undefined
+      activeTool: undefined,
+      Mouse: {
+        Hover: {}
+      }
     };
     if (config.enable) {
       this.enableTool(config.enable);
@@ -18,6 +21,8 @@ export default class ToolBelt extends Component {
       this.Belt[type].destroy();
       this.Belt[type] = undefined;
     }
+    this.State.activeTool = undefined;
+    this.State.Mouse.Hover = {};
   }
 
   enableTool(type) {
@@ -57,6 +62,7 @@ export default class ToolBelt extends Component {
         activate.activate();
       }
       if (activate != wasActive) {
+        this.checkMouseTarget();
         this.refreshUI();
       }
       return activate;
@@ -98,8 +104,18 @@ export default class ToolBelt extends Component {
     }
   }
   checkMouseTarget() {
-    // @TODO: check SL.UI.Mouse.State.point
-    // if targetChanged, this.refreshUI();
+    if (this.SL.UI.Mouse.State.active && this.SL.UI.Mouse.State.point) {
+      var oldTarget = this.State.Mouse.Hover.target;
+      var target = this.SL.Paper.project.hitTest(this.SL.UI.Mouse.State.point);
+      this.State.Mouse.Hover.target = target;
+      this.State.Mouse.Hover.targetItem = ((target && target.item) ? target.item : null);
+      this.State.Mouse.Hover.targetLocked = (target && target.item && target.item.data && target.item.data.locked);
+      if ( ((!target && oldTarget) || (target && !oldTarget) 
+        || (target && oldTarget && (target.item != oldTarget.item || target.segment != oldTarget.segment)))) {
+        this.runTools('onMouseHoverTargetChange', {target: target, oldTarget: oldTarget});
+        this.refreshUI();
+      }
+    }
   }
   refreshUI() {
     this.runTools('refreshUI');
