@@ -70,10 +70,12 @@ export default class Mouse extends UIComponent {
   }
   activate() {
     super.activate();
+    this.State.active = true;
     this.Cursor.activate();
   }
   deactivate() {
     super.deactivate();
+    this.State.active = false;
     this.Cursor.deactivate();
   }
   delegateEvent(callback, event, delegateTo) {
