@@ -4,7 +4,9 @@ export default class ToolBelt extends Component {
   constructor(SL, config) {
     super(SL, config);
     this.Belt = {};
-    this.ActiveTool = undefined;
+    this.State = {
+      activeTool: undefined
+    };
     if (config.enable) {
       this.enableTool(config.enable);
     }
@@ -35,7 +37,7 @@ export default class ToolBelt extends Component {
   }
   disableTool(type) {
     if (type && this.Belt[type]) {
-      if (this.ActiveTool == this.Belt[type]) {
+      if (this.State.ActiveTool == this.Belt[type]) {
         this.deactivateTool();
       }
       this.Belt[type].destroy();
@@ -45,12 +47,12 @@ export default class ToolBelt extends Component {
   }
   activateTool(type) {
     if (this.Belt[type]) {
-      let wasActive = this.ActiveTool;
+      let wasActive = this.State.ActiveTool;
       let activate = this.Belt[type];
       if (wasActive && activate != wasActive) {
         this.deactivateTool(false);
       }
-      this.ActiveTool = activate;
+      this.State.ActiveTool = activate;
       if (activate && !activate.isActive() && typeof activate.activate == 'function') {
         activate.activate();
       }
@@ -61,14 +63,14 @@ export default class ToolBelt extends Component {
     }
   }
   deactivateTool(checkForActive=true, activeTool=null) {
-    let deactivate = this.ActiveTool;
+    let deactivate = this.State.ActiveTool;
     if (activeTool && deactivate != activeTool) {
       return;
     }
     if (deactivate && typeof deactivate.deactivate == 'function') {
       deactivate.deactivate();
     }
-    this.ActiveTool = undefined;
+    this.State.ActiveTool = undefined;
     if (deactivate) {
       this.refreshUI();
     }

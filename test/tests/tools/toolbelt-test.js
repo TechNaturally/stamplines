@@ -22,7 +22,7 @@ describe('Tools.ToolBelt', () => {
       expect(ToolBelt.Belt).to.have.all.keys(toolsConfig.enable);
     });
     it(`should have ${expectedDefaultTool} tool active`, () => {
-      expect(ToolBelt.ActiveTool).to.equal(ToolBelt.Belt[expectedDefaultTool]);
+      expect(ToolBelt.State.ActiveTool).to.equal(ToolBelt.Belt[expectedDefaultTool]);
     });
   });
 
@@ -50,21 +50,21 @@ describe('Tools.ToolBelt', () => {
       it(`should revert active tool to ${expectedDefaultTool}`, () => {
         ToolBelt.activateTool('Rotate');
         ToolBelt.deactivateTool();
-        expect(ToolBelt.ActiveTool).to.equal(ToolBelt.Belt[expectedDefaultTool]);
+        expect(ToolBelt.State.ActiveTool).to.equal(ToolBelt.Belt[expectedDefaultTool]);
       });
     });
     describe('- when called with checkForActive == false', () => {
-      it('should have no ActiveTool', () => {
+      it('should have no State.ActiveTool', () => {
         ToolBelt.activateTool('Rotate');
         ToolBelt.deactivateTool(false);
-        expect(ToolBelt.ActiveTool).to.not.exist;
+        expect(ToolBelt.State.ActiveTool).to.not.exist;
       });
     });
   });
   describe('#checkActiveTool', () => {
     it('should activate the tool with currently highest activation priority', () => {
       ToolBelt.checkActiveTool();
-      expect(ToolBelt.ActiveTool).to.equal(ToolBelt.Belt[expectedDefaultTool]);
+      expect(ToolBelt.State.ActiveTool).to.equal(ToolBelt.Belt[expectedDefaultTool]);
     });
   });
 
