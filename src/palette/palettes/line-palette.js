@@ -14,6 +14,14 @@ export default class LinePalette extends Palette {
     return super.paletteItems;
   }
 
+  createLine(from, to, lineDef) {
+    let line = this.SL.Paper.generatePaperItem({Source: this, Type: 'Line'}, paper.Path.Line, from.point, to.point);
+    if (lineDef && lineDef.style) {
+      this.SL.Paper.applyStyle(line, lineDef.style);
+    }
+    return line;
+  }
+
   getImagePath(item) {
     var width = (this.config.preview && this.config.preview.width ) || 50;
     var height = (this.config.preview && this.config.preview.height ) || 25;

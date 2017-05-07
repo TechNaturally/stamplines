@@ -56,12 +56,9 @@ export class CreateLine extends EditLine {
   onMouseMove(event) {
     super.onMouseMove(event);
     if (this.isActive()) {
-      if (!this.Append.line && this.Append.to && this.Append.from) {
-        this.Append.line = this.SL.Paper.generatePaperItem({Source: this.loaded.palette}, paper.Path.Line, this.Append.from.point, this.Append.to.point);
+      if (!this.Append.line && this.Append.to && this.Append.from && this.loaded.palette) {
+        this.Append.line = this.loaded.palette.createLine(this.Append.from, this.Append.to, this.loaded.line);
         this.Append.to = this.Append.line.segments[this.Append.line.segments.length-1];
-        if (this.loaded.line && this.loaded.line.style) {
-          this.SL.Paper.applyStyle(this.Append.line, this.loaded.line.style);
-        }
       }
     }
   }
