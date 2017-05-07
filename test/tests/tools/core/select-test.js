@@ -34,8 +34,27 @@ describe('Tools.Core.Select', () => {
     });
   });
   describe('+activationPriority', () => {
-    it('should equal 0', () => {
-      expect(Select.activationPriority).to.equal(0);
+    describe('- when State.multi and Belt.State.Mouse.Hover.targetItem', () => {
+      let wasMulti, wasHoverTargetItem;
+      before(() => {
+        wasMulti = Select.State.multi;
+        Select.State.multi = true;
+
+        wasHoverTargetItem = Select.Belt.State.Mouse.Hover.targetItem;
+        Select.Belt.State.Mouse.Hover.targetItem = {};
+      });
+      after(() => {
+        Select.State.multi = wasMulti;
+        Select.Belt.State.Mouse.Hover.targetItem = wasHoverTargetItem;
+      });
+      it('should equal 25', () => {
+        expect(Select.activationPriority).to.equal(25);
+      });
+    });
+    describe('- otherwise', () => {
+      it('should equal 0', () => {
+        expect(Select.activationPriority).to.equal(0);
+      });
     });
   });
   describe('#configure', () => {
@@ -307,11 +326,12 @@ describe('Tools.Core.Select', () => {
         expect(Select.UI.outline).to.exist;
       });
       it('should set the bounds of UI.outline to the bounds of Group + config.padding', () => {
+        let groupBounds = Select.Group.bounds;
         Select.refreshUIOutline();
-        expect(Select.UI.outline.bounds.x).eql(40);
-        expect(Select.UI.outline.bounds.y).eql(40);
-        expect(Select.UI.outline.bounds.width).eql(70);
-        expect(Select.UI.outline.bounds.height).eql(70);
+        expect(Select.UI.outline.bounds.left).eql(Select.Group.bounds.left - Select.config.padding);
+        expect(Select.UI.outline.bounds.top).eql(Select.Group.bounds.top - Select.config.padding);
+        expect(Select.UI.outline.bounds.right).eql(Select.Group.bounds.right + Select.config.padding);
+        expect(Select.UI.outline.bounds.bottom).eql(Select.Group.bounds.bottom + Select.config.padding);
       });
     });
     describe('- when called with no items selected', () => {

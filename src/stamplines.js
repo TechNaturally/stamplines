@@ -131,14 +131,14 @@ export default class StampLines {
 }
 StampLines.Palette = Palette;
 StampLines.DEFAULT = {
-  coreTools: ['Select', 'Rotate', 'Scale'],
+  coreTools: ['Select', 'Move', 'Rotate', 'Scale'],
   config: {
     Palettes: {
       Lines: {},
       Stamps: {}
     },
     Tools: {
-      enable: ['Select', 'Rotate', 'Scale', 'CreateLine', 'EditLine', 'CreateStamp']
+      enable: ['Select', 'Move', 'Rotate', 'Scale', 'CreateLine', 'EditLine', 'CreateStamp']
     },
     UI: {
       DOM: {

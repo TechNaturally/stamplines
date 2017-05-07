@@ -17,12 +17,15 @@ export class Select extends Tool {
     delete this.Group;
   }
   get activationPriority() {
+    if (this.State.multi && this.Belt.State.Mouse.Hover.targetItem) {
+      return 25;
+    }
     return 0;
   }
   configure(config) {
     config = super.configure(config);
     if (config.padding == undefined) {
-      config.padding = 10;
+      config.padding = 6;
     }
     if (!config.colorSingle) {
       config.colorSingle = '#009DEC';
@@ -123,9 +126,9 @@ export class Select extends Tool {
         }
       }
       this.SL.UI.Mouse.Cursor.activateCursor(cursor);
-      this.refreshUIOutline();
       this.refreshSelected();
     }
+    this.refreshUIOutline();
   }
   resetUI() {
     this.resetUIOutline();

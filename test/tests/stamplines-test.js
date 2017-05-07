@@ -35,6 +35,9 @@ describe('StampLines', () => {
       it('should have core Select tool', () => {
         expect(SL.Tools.Belt.Select).to.exist;
       });
+      it('should have core Move tool', () => {
+        expect(SL.Tools.Belt.Move).to.exist;
+      });
       it('should have core Scale tool', () => {
         expect(SL.Tools.Belt.Scale).to.exist;
       });

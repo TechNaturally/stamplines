@@ -11,7 +11,7 @@ import {default as PaletteManager} from '../../src/palette/manager.js';
 import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/palettes/_index.js';
 
 import {default as ToolBelt} from '../../src/tools/toolbelt.js';
-import {Select, Scale, Rotate} from '../../src/tools/core/_index.js';
+import {Select, Move, Scale, Rotate} from '../../src/tools/core/_index.js';
 import {CreateLine, EditLine} from '../../src/tools/lines/_index.js';
 import {CreateStamp} from '../../src/tools/stamps/_index.js';
 
@@ -45,6 +45,7 @@ export default {
     ToolBelt: ToolBelt,
     Core: {
       Select: Select,
+      Move: Move,
       Scale: Scale,
       Rotate: Rotate
     },
