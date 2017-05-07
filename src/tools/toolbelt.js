@@ -171,6 +171,12 @@ export default class ToolBelt extends Component {
   onSelectionChange(event) {
     this.runTools('onSelectionChange', event);
   }
+  onSelectionHover(event) {
+    this.runTools('onSelectionHover', event);
+  }
+  onSelectionUnhover(event) {
+    this.runTools('onSelectionUnhover', event);
+  }
 }
 ToolBelt.RUN_ON = {
   ALL: 0,
