@@ -47,6 +47,7 @@ describe('Tools.Core.Move', () => {
         spy.withArgs('move');
         Move.refreshUI();
         expect(spy.callCount).to.be.at.least(1);
+        Move.SL.UI.Mouse.Cursor.activateCursor.restore();
       });
     });
   });

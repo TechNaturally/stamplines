@@ -99,6 +99,7 @@ describe('Core.Component', () => {
       testItems.forEach((testItem) => {
         expect(spy.withArgs(testItem).callCount).to.equal(1);
       });
+      component.SL.Paper.destroyPaperItem.restore();
     });
     it('should empty the PaperItems list', () => {
       testItems.forEach((testItem) => {

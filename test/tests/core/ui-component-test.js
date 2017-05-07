@@ -23,6 +23,7 @@ describe('Core.UI.Component', () => {
       let spy = sinon.spy(SL.Tools, testEvent);
       UIComponent.delegateEvent(testEvent, {});
       expect(spy.callCount).to.equal(1);
+      SL.Tools[testEvent].restore();
     });
   });
 });

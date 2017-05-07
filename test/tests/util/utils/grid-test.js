@@ -370,7 +370,7 @@ describe('Utils.Grid', () => {
     after(() => {
       Grid.configure(origConfig);
     });
-    function runTests(tests, debug) {
+    function runTests(tests) {
       let def = Grid.getCurrentDefinition();
       let testPoint = new paper.Point(0, 0);
       let checkPoint = new paper.Point(0, 0);
@@ -397,7 +397,7 @@ describe('Utils.Grid', () => {
     });
     it('should allow for an offset', () => {
       Grid.configure(testConfig2);
-      runTests(tests2, true);
+      runTests(tests2);
       Grid.configure(origConfig);
     });
   });
@@ -428,7 +428,7 @@ describe('Utils.Grid', () => {
     after(() => {
       Grid.configure(origConfig);
     });
-    function runTests(tests, debug) {
+    function runTests(tests) {
       let def = Grid.getCurrentDefinition();
       let testRect = new paper.Rectangle(0, 0, 0, 0);
       let checkRect = new paper.Rectangle(0, 0, 0, 0);
@@ -459,7 +459,7 @@ describe('Utils.Grid', () => {
     });
     it('should allow for an offset', () => {
       Grid.configure(testConfig2);
-      runTests(tests2, true);
+      runTests(tests2);
       Grid.configure(origConfig);
     });
   });
