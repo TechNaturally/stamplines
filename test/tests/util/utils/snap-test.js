@@ -188,7 +188,6 @@ describe('Utils.Snap', () => {
       // remember the facetious example callback allows us to pass an increment
     });
   });
-
   describe('#Point', () => {
     it('should return a paper.Point', () => {
       let checkPoint = Snap.Point();
@@ -241,8 +240,52 @@ describe('Utils.Snap', () => {
     });
   });
   describe('#Rotation', () => {
-    it('should return a snapped angle');
-  });
+    let tests, testSlices, testIncrement;
+    before(() => {
+      testSlices = 12;
+      testIncrement = 360.0 / testSlices;
+      tests = [
+        { angle: 12.0, expect: 0 },
+        { angle: 17.0, expect: 30 },
+        { angle: 44.9, expect: 30 },
+        { angle: 45.0, expect: 60 },
+        { angle: 45.1, expect: 60 }
+      ];
+    });
+    function runTests(tests, config={}) {
+      tests.forEach((test, index) => {
+        // establish expectations
+        let expectAngle = test.expect;
+        if (!config.angleIncrement && !config.slices) {
+          expectAngle = test.angle;
+        }
 
-  
+        // snap the angle
+        let checkAngle = Snap.Rotation(test.angle, config);
+
+        // check the expectations
+        try {
+          expect(checkAngle).to.equal(expectAngle);
+        }
+        catch (error) {
+          throw `Failed on test [${index+1}/${tests.length}]: ${error}`;
+        }
+      });
+    }
+    describe('- when given no config.angleIncrement and no config.slices', () => {
+      it('should return the same angle', () => {
+        runTests(tests, {});
+      });
+    });
+    describe('- when given config.slices and no config.angleIncrement', () => {
+      it('should return the closest multiple of 360.0/slices', () => {
+        runTests(tests, {slices: testSlices});
+      });
+    });
+    describe('- when given config.angleIncrement', () => {
+      it('should return the closest multiple of angleIncrement', () => {
+        runTests(tests, {slices: testSlices, angleIncrement: testIncrement});
+      });
+    });
+  });  
 });

@@ -33,6 +33,12 @@ export class Snap extends Util {
     return this.runSnappers('rectangle', new paper.Rectangle(rectangle), config);
   }
   Rotation(angle, config={}) {
+    if (!config.angleIncrement && config.slices) {
+      config.angleIncrement = 360.0/config.slices;
+    }
+    if (config.angleIncrement) {
+      angle = Math.round(angle / config.angleIncrement) * config.angleIncrement;
+    }
     return this.runSnappers('rotation', angle, config);
   }
 
