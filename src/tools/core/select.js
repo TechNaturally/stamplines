@@ -3,7 +3,7 @@ export class Select extends Tool {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
     this.Items = [];
-    this.Group = this.SL.Paper.generatePaperItem({Source: this, Class: 'SELECTED', Layer: 'UI_BG'}, paper.Group);
+    this.Group = this.SL.Paper.generatePaperItem({Source: this, Class: 'SELECTED', Layer: 'CONTENT_ACTIVE'}, paper.Group);
     this.State = {
       multi: false
     };
@@ -83,7 +83,6 @@ export class Select extends Tool {
       item.selected = true;
       item.data.parentOrig = item.parent;
       this.Group.appendBottom(item);
-      this.Group.bringToFront();
       this.refreshUI();
     }
   }

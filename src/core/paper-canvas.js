@@ -18,6 +18,7 @@ export default class PaperCanvas extends Component {
       'GROUPED': -1,
       'BG': 0,
       'CONTENT': 250,
+      'CONTENT_ACTIVE': 275,
       'UI_BG': 450,
       'UI': 500,
       'UI_FG': 550
