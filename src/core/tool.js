@@ -5,6 +5,9 @@ export default class Tool extends Component {
     this.Belt = Belt;
     this.configure();
   }
+  configure(config) {
+    return super.configure($.extend({}, config));
+  }
   get type() {
     return 'Tool';
   }
