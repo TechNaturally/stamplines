@@ -188,6 +188,50 @@ describe('Utils.Snap', () => {
       // remember the facetious example callback allows us to pass an increment
     });
   });
+  describe('#Equal', () => {
+    let testsTrue, testsFalse, testThreshold;
+    before(() => {
+      testThreshold = 1;
+      testsTrue = [
+        {value1: 2, value2: 1},
+        {value1: 2, value2: 2},
+        {value1: 2, value2: 3}
+      ];
+      testsFalse = [
+        {value1: 2, value2: 0},
+        {value1: 2, value2: 4}
+      ];
+    });
+    function runTests(tests, config) {
+      tests.forEach((test, index) => {
+        let value1 = (config.flip ? test.value2 : test.value1);
+        let value2 = (config.flip ? test.value1 : test.value2);
+
+        // snap equality
+        let checkEqual = Snap.Equal(value1, value2, testThreshold);
+
+        // check the expectations
+        try {
+          expect(checkEqual).to.equal(config.expect);
+        }
+        catch (error) {
+          throw `Failed on test [${index+1}/${tests.length}]: ${error}`;
+        }
+      });
+    }
+    it('should return true if value1 is within threshold of value2', () => {
+      runTests(testsTrue, {expect: true});
+    });
+    it('should return true if value2 is within threshold of value1', () => {
+      runTests(testsTrue, {expect: true, flip: true});
+    });
+    it('should return false if value1 is not within threshold of value2', () => {
+      runTests(testsFalse, {expect: false});
+    });
+    it('should return false if value2 is not within threshold of value1', () => {
+      runTests(testsFalse, {expect: false, flip: true});
+    });
+  });
   describe('#Point', () => {
     it('should return a paper.Point', () => {
       let checkPoint = Snap.Point();

@@ -20,6 +20,9 @@ export class Snap extends Util {
     }
   }
 
+  Equal(value1, value2, threshold=1.0/10000000.0) {
+    return (value1 >= value2-threshold && value1 <= value2+threshold);
+  }
   Point(point, config={}) {
     return this.runSnappers('point', new paper.Point(point), config);
   }
