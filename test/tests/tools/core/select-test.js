@@ -261,6 +261,56 @@ describe('Tools.Core.Select', () => {
       });
     });
   });
+  describe('#count', () => {
+    let testItems;
+    before(() => {
+      testItems = [
+        Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 20, 20, 40, 60),
+        Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 100, 100, 20, 40),
+        Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 75, 75, 20, 40),
+        Select.SL.Paper.generatePaperItem({Type: 'Line'}, paper.Path.Line, {x: 20, y: 20}, {x: 40, y: 60}),
+        Select.SL.Paper.generatePaperItem({Type: 'Line'}, paper.Path.Line, {x: 75, y: 75}, {x: 20, y: 40})
+      ];
+    });
+    after(() => {
+      for (let item of testItems) {
+        Select.SL.Paper.destroyPaperItem(item);
+      }
+    });
+    beforeEach(() => {
+      for (let item of testItems) {
+        Select.Select(item);
+      }
+    });
+    afterEach(() => {
+      Select.Unselect();
+    });
+    it('should return the number of selected items', () => {
+      let count = Select.count();
+      expect(count).to.equal(testItems.length);
+    });
+  });
+  describe('#hasItems', () => {
+    let testItem;
+    before(() => {
+      testItem =  Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 20, 20, 40, 60);
+    });
+    after(() => {
+      Select.SL.Paper.destroyPaperItem(testItem);
+    });
+    afterEach(() => {
+      Select.Unselect();
+    });
+    it('should return true when there are selected items', () => {
+      Select.Select(testItem);
+      let hasItems = Select.hasItems();
+      expect(hasItems).to.be.true;
+    });
+    it('should return false when there are no selected items', () => {
+      let hasItems = Select.hasItems();
+      expect(hasItems).to.be.false;
+    });
+  });
   describe('#refreshUI', () => {
     let wasActive;
     beforeEach(() => {

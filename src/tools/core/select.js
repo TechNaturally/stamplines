@@ -84,6 +84,7 @@ export class Select extends Tool {
       item.data.parentOrig = item.parent;
       this.Group.appendBottom(item);
       this.refreshUI();
+      this.Belt.onSelectionItemSelected({ item: item });
     }
   }
   Unselect(item) {
@@ -96,19 +97,29 @@ export class Select extends Tool {
           item.data.parentOrig.addChild(item);
           item.data.parentOrig = undefined;
         }
+        this.Belt.onSelectionItemUnselected({ item: item });
       }
     }
     else {
       // no item, unselect all
+      let unselected = [];
       for (let item of this.Items) {
         item.selected = false;
         if (item.data && item.data.parentOrig) {
           item.data.parentOrig.addChild(item);
           item.data.parentOrig = undefined;
         }
+        unselected.push(item);
       }
+      this.Belt.onSelectionItemUnselected({ items: unselected });
       this.Items.length = 0;
     }
+  }
+  count() {
+    return this.Items.length;
+  }
+  hasItems() {
+    return !!(this.Items.length);
   }
   refreshUI() {
     if (this.isActive()) {
@@ -191,7 +202,7 @@ export class Select extends Tool {
         else {
           this.Unselect();
         }
-        this.refreshUI();
+        this.Belt.refreshUI();
         this.onMouseMove();
         this.Belt.checkActiveTool();
       }

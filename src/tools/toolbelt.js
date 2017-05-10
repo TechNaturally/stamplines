@@ -168,8 +168,11 @@ export default class ToolBelt extends Component {
   onDoubleClick(event) {
     this.runTools('onDoubleClick', event);
   }
-  onSelectionChange(event) {
-    this.runTools('onSelectionChange', event);
+  onSelectionItemSelected(event) {
+    this.runTools('onSelectionItemSelected', event);
+  }
+  onSelectionItemUnselected(event) {
+    this.runTools('onSelectionItemUnselected', event);
   }
   onSelectionHover(event) {
     this.runTools('onSelectionHover', event);
