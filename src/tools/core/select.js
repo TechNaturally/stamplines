@@ -115,6 +115,32 @@ export class Select extends Tool {
       this.Items.length = 0;
     }
   }
+  SnapSelected(config={}) {
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      if (config.lines == undefined) {
+        config.lines = true;
+      }
+      config.lineOpts = config.lineOpts || {};
+      if (config.bounds == undefined) {
+        config.bounds = true;
+      }
+      config.boundOpts = config.boundOpts || {};
+      for (let item of this.Items) {
+        if (item && item.data) {
+          if (config.lines && item.data.Type == 'Line' && item.segments) {
+            for (let segment of item.segments) {
+              segment.point.set(Snap.Point(segment.point, config.lineOpts));
+            }
+          }
+          else if (config.bounds && item.bounds) {
+            item.bounds.set(Snap.Rectangle(item.bounds, config.boundOpts));
+          }
+        }
+      }
+      this.Belt.refreshUI();
+    }
+  }
   count() {
     return this.Items.length;
   }

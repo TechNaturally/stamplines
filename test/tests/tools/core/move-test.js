@@ -52,8 +52,6 @@ describe('Tools.Core.Move', () => {
     });
   });
 
-
-
   describe('#onMouseDrag', () => {
     let Select;
     let testItem;
@@ -127,66 +125,21 @@ describe('Tools.Core.Move', () => {
     });
   });
   describe('#onMouseUp', () => {
-    let Select, Snap;
+    let Select;
     let wasActive;
-    let testItems, testLines;
     before(() => {
-      Select = Move.Belt.Belt.Select;
-      Snap = Move.SL.Utils.get('Snap');
       wasActive = Move.active;
       Move.active = true;
-      testItems = [
-        Move.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 20, 20, 40, 60),
-        Move.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 100, 100, 20, 40),
-        Move.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 75, 75, 20, 40)
-      ];
-
-      testLines = [
-        Move.SL.Paper.generatePaperItem({Type: 'Line'}, paper.Path.Line, {x: 20, y: 20}, {x: 40, y: 60}),
-        Move.SL.Paper.generatePaperItem({Type: 'Line'}, paper.Path.Line, {x: 75, y: 75}, {x: 20, y: 40})
-      ];
+      Select = Move.Belt.Belt.Select;
     });
     after(() => {
-      for (let item of testItems) {
-        Move.SL.Paper.destroyPaperItem(item);
-      }
-      for (let item of testLines) {
-        Move.SL.Paper.destroyPaperItem(item);
-      }
       Move.active = wasActive;
     });
-    afterEach(() => {
-      Select.Unselect();
-    });
-    it('should snap each Stamp into place', () => {
-      let spy = sinon.spy(Snap, 'Rectangle');
-      let spyArgs = [];
-      for (let item of testItems) {
-        Select.Select(item);
-        spy.withArgs(item.bounds);
-        spyArgs.push(item.bounds);
-      }
+    it('should call Select.SnapSelected', () => {
+      let spy = sinon.spy(Select, 'SnapSelected');
       Move.onMouseUp();
-      for (let args of spyArgs) {
-        expect(spy.withArgs(args).callCount).to.equal(1);
-      }
-      Snap.Rectangle.restore();
-    });
-    it('should snap each point of each Line into place', () => {
-      let spy = sinon.spy(Snap, 'Point');
-      let spyArgs = [];
-      for (let item of testLines) {
-        Select.Select(item);
-        for (let segment of item.segments) {
-          spy.withArgs(segment.point);
-          spyArgs.push(segment.point);
-        }
-      }
-      Move.onMouseUp();
-      for (let args of spyArgs) {
-        expect(spy.withArgs(args).callCount).to.equal(1);
-      }
-      Snap.Point.restore();
+      expect(spy.callCount).to.equal(1);
+      Select.SnapSelected.restore();
     });
   });
 });

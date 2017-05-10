@@ -30,23 +30,7 @@ export class Move extends Tool {
   }
   onMouseUp(event) {
     if (this.isActive()) {
-      let Snap = this.SL.Utils.get('Snap');
-      if (Snap) {
-        let Select = this.Belt.Belt.Select;
-        for (let item of Select.Items) {
-          if (item && item.data) {
-            if (item.data.Type == 'Line' && item.segments) {
-              for (let segment of item.segments) {
-                segment.point.set(Snap.Point(segment.point));
-              }
-            }
-            else if (item.bounds) {
-              item.bounds.set(Snap.Rectangle(item.bounds));
-            }
-          }
-        }
-        this.Belt.refreshUI();
-      }
+      this.Belt.Belt.Select.SnapSelected();
     }
   }
 }
