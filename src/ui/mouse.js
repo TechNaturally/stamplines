@@ -38,6 +38,7 @@ export default class Mouse extends UIComponent {
         }, 0);
       },
       onMouseDrag: (event) => {
+        this.State.lastMove = event;
         this.State.point.set(event.point);
 
         if (!this.State.button.drag) {
