@@ -174,10 +174,15 @@ StampLines.DEFAULT = {
       Bounds: {},
       Grid: {
         size: 20,
+        strong: 4,
         style: {
           strokeWidth: 0.5,
           strokeColor: (2.0/3.0),
           opacity: 0.25
+        },
+        strongStyle: {
+          strokeWidth: 1.0,
+          opacity: 0.3
         }
       }
     }

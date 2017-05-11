@@ -264,6 +264,10 @@ export class Grid extends Util {
     let def = this.getCurrentDefinition();
     let grid = this.SL.Paper.generatePaperItem({Class:'UI', Layer:'BG', Grid:'GRID', Source: this}, paper.Group);
     let n, pt1, pt2;
+    let strong = this.config.strong;
+    let strongStyle = $.extend({}, style, 
+      { strokeWidth: (style.strokeWidth ? style.strokeWidth*2.0 : 2.0) },
+      this.config.strongStyle);
 
     // render vertical lines
     n = 0;
@@ -272,7 +276,11 @@ export class Grid extends Util {
     while (n <= def.cols) {
       pt2.x = pt1.x;
       let gridLine = this.SL.Paper.generatePaperItem({Class:'UI.Grid', Layer:'GROUPED', Grid:'COL-'+n}, paper.Path.Line, pt1, pt2);
-      this.SL.Paper.applyStyle(gridLine, style);
+      let applyStyle = style;
+      if (strong && n % strong == 0) {
+        applyStyle = strongStyle;
+      }
+      this.SL.Paper.applyStyle(gridLine, applyStyle);
       grid.addChild(gridLine);
       pt1.x += def.cell.width;
       n++;
@@ -285,7 +293,11 @@ export class Grid extends Util {
     while (n <= def.rows) {
       pt2.y = pt1.y;
       let gridLine = this.SL.Paper.generatePaperItem({Class:'UI.Grid', Layer:'GROUPED', Grid:'ROW-'+n}, paper.Path.Line, pt1, pt2);
-      this.SL.Paper.applyStyle(gridLine, style);
+      let applyStyle = style;
+      if (strong && n % strong == 0) {
+        applyStyle = strongStyle;
+      }
+      this.SL.Paper.applyStyle(gridLine, applyStyle);
       grid.addChild(gridLine);
       pt1.y += def.cell.height;
       n++;
