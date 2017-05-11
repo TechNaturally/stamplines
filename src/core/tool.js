@@ -3,7 +3,7 @@ export default class Tool extends Component {
   constructor(SL, config, Belt) {
     super(SL, config);
     this.Belt = Belt;
-    this.configure();
+    this.configure(config);
   }
   configure(config) {
     return super.configure($.extend({}, config));
