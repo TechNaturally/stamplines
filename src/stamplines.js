@@ -138,7 +138,11 @@ StampLines.DEFAULT = {
       Stamps: {}
     },
     Tools: {
-      enable: ['Select', 'Move', 'Rotate', 'Scale', 'CreateLine', 'EditLine', 'CreateStamp']
+      enable: ['Select', 'Move', 'Rotate', 'Scale', 'CreateLine', 'EditLine', 'CreateStamp'],
+      Rotate: {
+        slices: (360/45),
+        snap: true
+      }
     },
     UI: {
       DOM: {
