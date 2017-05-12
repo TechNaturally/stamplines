@@ -188,6 +188,35 @@ describe('Utils.Snap', () => {
       // remember the facetious example callback allows us to pass an increment
     });
   });
+  describe('#Around', () => {
+    let tests, testThreshold;
+    before(() => {
+      testThreshold = 1;
+      tests = [
+        {target: 2, value: 0, expect: 0},
+        {target: 2, value: 1, expect: 2},
+        {target: 2, value: 2, expect: 2},
+        {target: 2, value: 3, expect: 2},
+        {target: 2, value: 4, expect: 4}
+      ];
+    });
+    function runTests(tests, threshold) {
+      tests.forEach((test, index) => {
+        let checkAround = Snap.Around(test.target, test.value, threshold);
+
+        // check the expectations
+        try {
+          expect(checkAround).to.equal(test.expect);
+        }
+        catch (error) {
+          throw `Failed on test [${index+1}/${tests.length}]: ${error}`;
+        }
+      });
+    }
+    it('should return the target if the value is within threshold', () => {
+      runTests(tests, testThreshold);
+    });
+  });
   describe('#Equal', () => {
     let testsTrue, testsFalse, testThreshold;
     before(() => {
