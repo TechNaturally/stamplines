@@ -305,7 +305,7 @@ describe('Utils.Grid', () => {
     });
     it('should register the point snapper', () => {
       Grid.registerSnappers();
-      expect(Snap.Snappers.point.map[Grid.Snappers.point.id]).to.equal(Grid.Snappers.point);
+      expect(Snap.Snaps.point.map[Grid.Snappers.point.id]).to.equal(Grid.Snappers.point);
     });
     it('should initialize the rectangle snapper', () => {
       Grid.registerSnappers();
@@ -313,7 +313,7 @@ describe('Utils.Grid', () => {
     });
     it('should register the rectangle snapper', () => {
       Grid.registerSnappers();
-      expect(Snap.Snappers.rectangle.map[Grid.Snappers.rectangle.id]).to.equal(Grid.Snappers.rectangle);
+      expect(Snap.Snaps.rectangle.map[Grid.Snappers.rectangle.id]).to.equal(Grid.Snappers.rectangle);
     });
   });
   describe('#unregisterSnappers', () => {
@@ -331,7 +331,7 @@ describe('Utils.Grid', () => {
     it('should unregister the point snapper', () => {
       let snapper = Grid.Snappers.point;
       Grid.unregisterSnappers();
-      expect(Snap.Snappers.point.map[snapper.id]).to.not.exist;
+      expect(Snap.Snaps.point.map[snapper.id]).to.not.exist;
     });
     it('should stop tracking the rectangle snapper', () => {
       Grid.unregisterSnappers();
@@ -340,7 +340,7 @@ describe('Utils.Grid', () => {
     it('should unregister the rectangle snapper', () => {
       let snapper = Grid.Snappers.rectangle;
       Grid.unregisterSnappers();
-      expect(Snap.Snappers.rectangle.map[snapper.id]).to.not.exist;
+      expect(Snap.Snaps.rectangle.map[snapper.id]).to.not.exist;
     });
   });
   describe('#snapPoint', () => {

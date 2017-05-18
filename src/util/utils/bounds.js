@@ -50,7 +50,7 @@ export class Bounds extends Util {
     }
   }
 
-  snapPoint(point, config) {
+  snapPoint(point, config={}) {
     let shift = {x: 0, y: 0};
     let check;
 
@@ -81,21 +81,23 @@ export class Bounds extends Util {
     });
     return point;
   }
-  snapPointMin(point, config) {
+  snapPointMin(point, config={}) {
     point.set({
       x: this.padding.left,
       y: this.padding.top
     });
     return point;
   }
-  snapPointMax(point, config) {
+  snapPointMax(point, config={}) {
     point.set({
       x: (this.SL.Paper.view.size.width-this.padding.right),
       y: (this.SL.Paper.view.size.height-this.padding.bottom)
     });
     return point;
   }
-  snapRectangle(rectangle, config) {
+  snapRectangle(rectangle, config={}) {
+    // @TODO: support config.position
+    // @TODO: support config.size (uses config.anchor)
     let shift = {x: 0, y: 0};
     let point = new paper.Point(0, 0);
     point.set({
@@ -126,6 +128,11 @@ export class Bounds extends Util {
       height: rectangle.height
     });
     return rectangle;
+  }
+  snapItem(item, config={}) {
+    // @TODO: support item.rotation
+    // use this.snapRectangle(item.bounds, config);
+    return item;
   }
 
   registerSnappers() {
@@ -158,6 +165,12 @@ export class Bounds extends Util {
           return this.snapRectangle(rectangle, config);
         }
       });
+      this.Snappers.item = Snap.addSnapper('item', {
+        priority: 100,
+        callback: (item, config) => {
+          return this.snapItem(item, config);
+        }
+      });
     }
   }
   unregisterSnappers() {
@@ -180,6 +193,10 @@ export class Bounds extends Util {
     if (Snap && this.Snappers.rectangle) {
       Snap.dropSnapper('rectangle', this.Snappers.rectangle.id);
       this.Snappers.rectangle = undefined;
+    }
+    if (Snap && this.Snappers.item) {
+      Snap.dropSnapper('item', this.Snappers.item.id);
+      this.Snappers.item = undefined;
     }
   }
 }

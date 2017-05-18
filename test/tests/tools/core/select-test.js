@@ -263,22 +263,21 @@ describe('Tools.Core.Select', () => {
   });
   describe('#SnapSelected', () => {
     let Snap;
-    let testItems, testLines;
+    let testStamps, testLines;
     before(() => {
       Snap = Select.SL.Utils.get('Snap');
-      testItems = [
+      testStamps = [
         Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 20, 20, 40, 60),
         Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 100, 100, 20, 40),
         Select.SL.Paper.generatePaperItem({Type: 'Stamp'}, paper.Shape.Rectangle, 75, 75, 20, 40)
       ];
-
       testLines = [
         Select.SL.Paper.generatePaperItem({Type: 'Line'}, paper.Path.Line, {x: 20, y: 20}, {x: 40, y: 60}),
         Select.SL.Paper.generatePaperItem({Type: 'Line'}, paper.Path.Line, {x: 75, y: 75}, {x: 20, y: 40})
       ];
     });
     after(() => {
-      for (let item of testItems) {
+      for (let item of testStamps) {
         Select.SL.Paper.destroyPaperItem(item);
       }
       for (let item of testLines) {
@@ -288,35 +287,24 @@ describe('Tools.Core.Select', () => {
     afterEach(() => {
       Select.Unselect();
     });
-    it('should snap each Stamp into place', () => {
-      let spy = sinon.spy(Snap, 'Rectangle');
+    it('should snap each Selected item into place', () => {
+      let spy = sinon.spy(Snap, 'Item');
       let spyArgs = [];
-      for (let item of testItems) {
+      for (let item of testStamps) {
         Select.Select(item);
-        spy.withArgs(item.bounds);
-        spyArgs.push(item.bounds);
+        spy.withArgs(item);
+        spyArgs.push(item);
       }
-      Select.SnapSelected();
-      for (let args of spyArgs) {
-        expect(spy.withArgs(args).callCount).to.equal(1);
-      }
-      Snap.Rectangle.restore();
-    });
-    it('should snap each point of each Line into place', () => {
-      let spy = sinon.spy(Snap, 'Point');
-      let spyArgs = [];
       for (let item of testLines) {
         Select.Select(item);
-        for (let segment of item.segments) {
-          spy.withArgs(segment.point);
-          spyArgs.push(segment.point);
-        }
+        spy.withArgs(item);
+        spyArgs.push(item);
       }
       Select.SnapSelected();
       for (let args of spyArgs) {
         expect(spy.withArgs(args).callCount).to.equal(1);
       }
-      Snap.Point.restore();
+      Snap.Item.restore();
     });
   });
   describe('#count', () => {

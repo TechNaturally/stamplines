@@ -41,6 +41,7 @@ describe('Utils.Snap', () => {
   });
   beforeEach(() => {
     Snap.reset();
+    Snap.configure();
   });
 
   describe('Constructor', () => {
@@ -51,7 +52,7 @@ describe('Utils.Snap', () => {
       expect(Snap.constructor.name).to.equal('Snap');
     });
     it('should have Snappers with keys: [point, rectangle, rotation]', () => {
-      expect(Snap.Snappers).to.contain.all.keys(['point', 'rectangle', 'rotation']);
+      expect(Snap.Snaps).to.contain.all.keys(['point', 'rectangle', 'rotation']);
     });
   });
   describe('#reset', () => {
@@ -62,10 +63,10 @@ describe('Utils.Snap', () => {
         Snap.addSnapper(testType2, $.extend({}, testSnappers[id]));
       }
       Snap.reset();
-      expect(Snap.Snappers[testType].map).to.be.empty;
-      expect(Snap.Snappers[testType].order).to.be.empty;
-      expect(Snap.Snappers[testType2].map).to.be.empty;
-      expect(Snap.Snappers[testType2].order).to.be.empty;
+      expect(Snap.Snaps[testType].map).to.be.empty;
+      expect(Snap.Snaps[testType].order).to.be.empty;
+      expect(Snap.Snaps[testType2].map).to.be.empty;
+      expect(Snap.Snaps[testType2].order).to.be.empty;
     });
   });
 
@@ -76,11 +77,11 @@ describe('Utils.Snap', () => {
     });
     it('should add and track a Snapper by id', () => {
       Snap.addSnapper(testType, $.extend({}, testSnapper));
-      expect(Snap.Snappers[testType].map['test-1']).to.exist;
+      expect(Snap.Snaps[testType].map['test-1']).to.exist;
     });
     it('should add and track a Snapper\'s id in the order list', () => {
       Snap.addSnapper(testType, $.extend({}, testSnapper));
-      expect(Snap.Snappers[testType].order).to.contain('test-1');
+      expect(Snap.Snaps[testType].order).to.contain('test-1');
     });
     it('should generate a sequential id if a Snapper with the same id already exists', () => {
       let testSnapper1 = Snap.addSnapper(testType, $.extend({}, testSnapper));
@@ -91,7 +92,7 @@ describe('Utils.Snap', () => {
       for (let id in testSnappers) {
         Snap.addSnapper(testType, $.extend({}, testSnappers[id]));
       }
-      expect(Snap.Snappers[testType].order).to.eql(testSnappersOrder);
+      expect(Snap.Snaps[testType].order).to.eql(testSnappersOrder);
     });
     it('should throw an error when given invalid type', () => {
       expect(() => {
@@ -113,8 +114,8 @@ describe('Utils.Snap', () => {
     it('should remove a Snapper by id from its type\'s map and order list', () => {
       let testSnapper1 = Snap.addSnapper(testType, $.extend({}, testSnapper));
       Snap.dropSnapper(testType, testSnapper1.id);
-      expect(Snap.Snappers[testType].map[testSnapper1.id]).to.not.exist;
-      expect(Snap.Snappers[testType].order.indexOf(testSnapper1.id)).to.eql(-1);
+      expect(Snap.Snaps[testType].map[testSnapper1.id]).to.not.exist;
+      expect(Snap.Snaps[testType].order.indexOf(testSnapper1.id)).to.eql(-1);
     });
     it('should return the removed Snapper', () => {
       let testSnapper1 = Snap.addSnapper(testType, $.extend({}, testSnapper));
@@ -132,16 +133,16 @@ describe('Utils.Snap', () => {
       }).to.throw(/Snapper of invalid type/);
     });
   });
-  describe('#refreshSnapperOrder', () => {
+  describe('#refreshSnapOrder', () => {
     it('should sort Snappers by priority', () => {
       // similar to #addSnapper test case, but inject Snappers manually
-      // #refreshSnapperOrder is intended to be a lower-level method so this is for testing only
+      // #refreshSnapOrder is intended to be a lower-level method so this is for testing only
       for (let id in testSnappers) {
-        Snap.Snappers[testType].map[id] = $.extend({}, testSnappers[id]);
-        Snap.Snappers[testType].order.push(id);
+        Snap.Snaps[testType].map[id] = $.extend({}, testSnappers[id]);
+        Snap.Snaps[testType].order.push(id);
       }
-      Snap.refreshSnapperOrder(testType);
-      expect(Snap.Snappers[testType].order).to.eql(testSnappersOrder);
+      Snap.refreshSnapOrder(testType);
+      expect(Snap.Snaps[testType].order).to.eql(testSnappersOrder);
     });
   });
   describe('#runSnappers', () => {
@@ -152,13 +153,14 @@ describe('Utils.Snap', () => {
     });
     afterEach(() => {
       Snap.reset();
+      Snap.configure();
     });
     it('should run Snappers in order', () => {
       // spy on the callbacks
       let spies = [];
       let spied = [];
-      Snap.Snappers[testType].order.forEach((id) => {
-        let snapper = Snap.Snappers[testType].map[id];
+      Snap.Snaps[testType].order.forEach((id) => {
+        let snapper = Snap.Snaps[testType].map[id];
         if (typeof snapper.callback == 'function') {
           let spy = sinon.spy(snapper, 'callback');
           spied.push(snapper.callback);
@@ -179,12 +181,12 @@ describe('Utils.Snap', () => {
     });
     it('should chain the snapper value', () => {
       let value = Snap.runSnappers(testType, 0);
-      expect(value).to.eql(Snap.Snappers[testType].order.length);
+      expect(value).to.eql(Snap.Snaps[testType].order.length);
       // remember the facetious example callback simply increments by 1
     });
     it('should be configurable and chain the snapper value', () => {
       let value = Snap.runSnappers(testType, 0, {increment: 10});
-      expect(value).to.eql(Snap.Snappers[testType].order.length*10);
+      expect(value).to.eql(Snap.Snaps[testType].order.length*10);
       // remember the facetious example callback allows us to pass an increment
     });
   });

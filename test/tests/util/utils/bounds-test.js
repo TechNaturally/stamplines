@@ -171,7 +171,7 @@ describe('Utils.Bounds', () => {
     });
     it('should register the point snapper', () => {
       Bounds.registerSnappers();
-      expect(Snap.Snappers.point.map[Bounds.Snappers.point.id]).to.equal(Bounds.Snappers.point);
+      expect(Snap.Snaps.point.map[Bounds.Snappers.point.id]).to.equal(Bounds.Snappers.point);
     });
     it('should initialize the pointMin snapper', () => {
       Bounds.registerSnappers();
@@ -179,7 +179,7 @@ describe('Utils.Bounds', () => {
     });
     it('should register the pointMin snapper', () => {
       Bounds.registerSnappers();
-      expect(Snap.Snappers.pointMin.map[Bounds.Snappers.pointMin.id]).to.equal(Bounds.Snappers.pointMin);
+      expect(Snap.Snaps.pointMin.map[Bounds.Snappers.pointMin.id]).to.equal(Bounds.Snappers.pointMin);
     });
     it('should initialize the pointMax snapper', () => {
       Bounds.registerSnappers();
@@ -187,7 +187,7 @@ describe('Utils.Bounds', () => {
     });
     it('should register the pointMax snapper', () => {
       Bounds.registerSnappers();
-      expect(Snap.Snappers.pointMax.map[Bounds.Snappers.pointMax.id]).to.equal(Bounds.Snappers.pointMax);
+      expect(Snap.Snaps.pointMax.map[Bounds.Snappers.pointMax.id]).to.equal(Bounds.Snappers.pointMax);
     });
     it('should initialize the rectangle snapper', () => {
       Bounds.registerSnappers();
@@ -195,7 +195,7 @@ describe('Utils.Bounds', () => {
     });
     it('should register the rectangle snapper', () => {
       Bounds.registerSnappers();
-      expect(Snap.Snappers.rectangle.map[Bounds.Snappers.rectangle.id]).to.equal(Bounds.Snappers.rectangle);
+      expect(Snap.Snaps.rectangle.map[Bounds.Snappers.rectangle.id]).to.equal(Bounds.Snappers.rectangle);
     });
   });
   describe('#unregisterSnappers', () => {
@@ -213,7 +213,7 @@ describe('Utils.Bounds', () => {
     it('should unregister the point snapper', () => {
       let snapper = Bounds.Snappers.point;
       Bounds.unregisterSnappers();
-      expect(Snap.Snappers.point.map[snapper.id]).to.not.exist;
+      expect(Snap.Snaps.point.map[snapper.id]).to.not.exist;
     });
     it('should stop tracking the pointMin snapper', () => {
       Bounds.unregisterSnappers();
@@ -222,7 +222,7 @@ describe('Utils.Bounds', () => {
     it('should unregister the pointMin snapper', () => {
       let snapper = Bounds.Snappers.point;
       Bounds.unregisterSnappers();
-      expect(Snap.Snappers.point.map[snapper.id]).to.not.exist;
+      expect(Snap.Snaps.point.map[snapper.id]).to.not.exist;
     });
     it('should stop tracking the pointMax snapper', () => {
       Bounds.unregisterSnappers();
@@ -231,7 +231,7 @@ describe('Utils.Bounds', () => {
     it('should unregister the pointMax snapper', () => {
       let snapper = Bounds.Snappers.point;
       Bounds.unregisterSnappers();
-      expect(Snap.Snappers.point.map[snapper.id]).to.not.exist;
+      expect(Snap.Snaps.point.map[snapper.id]).to.not.exist;
     });
     it('should stop tracking the rectangle snapper', () => {
       Bounds.unregisterSnappers();
@@ -240,7 +240,7 @@ describe('Utils.Bounds', () => {
     it('should unregister the rectangle snapper', () => {
       let snapper = Bounds.Snappers.rectangle;
       Bounds.unregisterSnappers();
-      expect(Snap.Snappers.rectangle.map[snapper.id]).to.not.exist;
+      expect(Snap.Snaps.rectangle.map[snapper.id]).to.not.exist;
     });
   });
 

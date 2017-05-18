@@ -386,7 +386,10 @@ export class Rotate extends Tool {
     if (this.State.Mouse.Dragging) {
       this.State.Mouse.Dragging = false;
       this.resetUI();
-      this.Belt.Belt.Select.SnapSelected();
+      this.Belt.Belt.Select.SnapSelected({
+        position: true,
+        size: false
+      });
       this.Belt.checkActiveTool();
     }
   }

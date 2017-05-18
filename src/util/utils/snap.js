@@ -3,20 +3,28 @@ export class Snap extends Util {
   constructor(SL, config) {
     super(SL, config);
     this.name = 'Snap';
-
-    this.Snappers = {
+    this.Snappers = {};
+    this.Snaps = {
+      item: { map: {}, order: [] },
       point: { map: {}, order: [] },
       pointMin: { map: {}, order: [] },
       pointMax: { map: {}, order: [] },
       rectangle: { map: {}, order: [] },
       rotation: { map: {}, order: [] }
     };
+    this.configure();
+  }
+  configure(config) {
+    config = super.configure(config);
+    this.registerSnappers();
+    return config;
   }
   reset() {
     super.reset();
-    for (let type in this.Snappers) {
-      this.Snappers[type].map = {};
-      this.Snappers[type].order = [];
+    this.unregisterSnappers();
+    for (let type in this.Snaps) {
+      this.Snaps[type].map = {};
+      this.Snaps[type].order = [];
     }
   }
 
@@ -28,6 +36,9 @@ export class Snap extends Util {
   }
   Equal(value1, value2, threshold=1.0/10000000.0) {
     return (this.Around(value2, value1, threshold) == value2);
+  }
+  Item(item, config={}) {
+    return this.runSnappers('item', item, config);
   }
   Point(point, config={}) {
     return this.runSnappers('point', new paper.Point(point), config);
@@ -42,17 +53,11 @@ export class Snap extends Util {
     return this.runSnappers('rectangle', new paper.Rectangle(rectangle), config);
   }
   Rotation(angle, config={}) {
-    if (!config.angleIncrement && config.slices) {
-      config.angleIncrement = 360.0/config.slices;
-    }
-    if (config.angleIncrement) {
-      angle = Math.round(angle / config.angleIncrement) * config.angleIncrement;
-    }
     return this.runSnappers('rotation', angle, config);
   }
 
   addSnapper(type, config) {
-    if (!this.hasSnapperType(type)) {
+    if (!this.hasSnapType(type)) {
       throw `Cannot add Snapper of invalid type: "${type}"!`;
     }
     if (!config) {
@@ -63,43 +68,57 @@ export class Snap extends Util {
     }
     let ID = this.SL.Utils.gets('Identity');
     if (ID) {
-      config.id = ID.getUnique((config.id || type.toLowerCase()), this.Snappers[type].map);
+      config.id = ID.getUnique((config.id || type.toLowerCase()), this.Snaps[type].map);
     }
     if (config.id) {
-      if (!this.Snappers[type].map[config.id]) {
-        this.Snappers[type].map[config.id] = config;
-        if (this.Snappers[type].order.indexOf(config.id) == -1) {
-          this.Snappers[type].order.push(config.id);
+      if (!this.Snaps[type].map[config.id]) {
+        this.Snaps[type].map[config.id] = config;
+        if (this.Snaps[type].order.indexOf(config.id) == -1) {
+          this.Snaps[type].order.push(config.id);
         }
-        this.refreshSnapperOrder(type);
+        this.refreshSnapOrder(type);
       }
-      this.Snappers[type].map[config.id].id = config.id;
-      return this.Snappers[type].map[config.id];
+      this.Snaps[type].map[config.id].id = config.id;
+      return this.Snaps[type].map[config.id];
+    }
+  }
+  runSnappers(type, value, config={}) {
+    if (this.hasSnapType(type)) {
+      this.Snaps[type].order.forEach((id) => {
+        let snapper = this.Snaps[type].map[id];
+        if (typeof snapper.callback == 'function') {
+          let newValue = snapper.callback(value, config);
+          if (newValue !== undefined) {
+            value = newValue;
+          }
+        }
+      });
+      return value;
     }
   }
   dropSnapper(type, id) {
-    if (!this.hasSnapperType(type)) {
+    if (!this.hasSnapType(type)) {
       throw `Cannot drop Snapper of invalid type: "${type}"!`;
     }
     if (id) {
-      let orderIdx = this.Snappers[type].order.indexOf(id);
+      let orderIdx = this.Snaps[type].order.indexOf(id);
       if (orderIdx != -1) {
-        this.Snappers[type].order.splice(orderIdx, 1);
+        this.Snaps[type].order.splice(orderIdx, 1);
       }
-      let snapper = this.Snappers[type].map[id];
-      this.Snappers[type].map[id] = undefined;
-      delete this.Snappers[type].map[id];
+      let snapper = this.Snaps[type].map[id];
+      this.Snaps[type].map[id] = undefined;
+      delete this.Snaps[type].map[id];
       return snapper;
     }
   }
-  hasSnapperType(type) {
-    return !!(this.Snappers[type] && this.Snappers[type].map && this.Snappers[type].order);
+  hasSnapType(type) {
+    return !!(this.Snaps[type] && this.Snaps[type].map && this.Snaps[type].order);
   }
-  refreshSnapperOrder(type) {
-    if (this.hasSnapperType(type)) {
-      this.Snappers[type].order.sort((id1, id2) => {
-        let prio1 = this.Snappers[type].map[id1].priority;
-        let prio2 = this.Snappers[type].map[id2].priority;
+  refreshSnapOrder(type) {
+    if (this.hasSnapType(type)) {
+      this.Snaps[type].order.sort((id1, id2) => {
+        let prio1 = this.Snaps[type].map[id1].priority;
+        let prio2 = this.Snaps[type].map[id2].priority;
         if ((prio1 == -1 || prio1 === undefined) && prio2 >= 0) {
           return 1;
         }
@@ -110,18 +129,70 @@ export class Snap extends Util {
       });
     }
   }
-  runSnappers(type, value, config={}) {
-    if (this.hasSnapperType(type)) {
-      this.Snappers[type].order.forEach((id) => {
-        let snapper = this.Snappers[type].map[id];
-        if (typeof snapper.callback == 'function') {
-          let newValue = snapper.callback(value, config);
-          if (newValue !== undefined) {
-            value = newValue;
-          }
+  
+  snapItem(item, config={}) {
+    let Snap = this;
+    if (config.linePoints == undefined) {
+      config.linePoints = {};
+    }
+    if (config.itemBounds == undefined) {
+      config.itemBounds = {};
+    }
+    if (item && item.data) {
+      if (config.linePoints && item.data.Type == 'Line' && item.segments) {
+        for (let segment of item.segments) {
+          segment.point.set(Snap.Point(segment.point, config.linePoints));
+        }
+      }
+      else if (config.itemBounds && item.bounds) {
+        item.bounds.set(Snap.Rectangle(item.bounds, config.itemBounds));
+      }
+    }
+    return item;
+  }
+  snapRotation(angle, config={}) {
+    if (!config.angleIncrement && config.slices) {
+      config.angleIncrement = 360.0/config.slices;
+    }
+    if (config.angleIncrement) {
+      angle = Math.round(angle / config.angleIncrement) * config.angleIncrement;
+    }
+    return angle;
+  }
+  registerSnappers() {
+    let Snap = this;
+    if (Snap) {
+      if (!this.Snappers) {
+        this.Snappers = {};
+      }
+      // @TODO: not sure about Snap.snapItem
+/**      this.Snappers.item = Snap.addSnapper('item', {
+        priority: 0,
+        callback: (item, config) => {
+          return this.snapItem(item, config);
         }
       });
-      return value;
+      */
+      this.Snappers.rotation = Snap.addSnapper('rotation', {
+        priority: 0,
+        callback: (angle, config) => {
+          return this.snapRotation(angle, config);
+        }
+      });
+    }
+  }
+  unregisterSnappers() {
+    let Snap = this;
+    if (!Snap || !this.Snappers) {
+      return;
+    }
+    if (this.Snappers.item) {
+      Snap.dropSnapper('item', this.Snappers.item.id);
+      this.Snappers.item = undefined;
+    }
+    if (Snap && this.Snappers.rotation) {
+      Snap.dropSnapper('rotation', this.Snappers.rotation.id);
+      this.Snappers.rotation = undefined;
     }
   }
 }

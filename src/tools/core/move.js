@@ -30,7 +30,10 @@ export class Move extends Tool {
   }
   onMouseUp(event) {
     if (this.isActive()) {
-      this.Belt.Belt.Select.SnapSelected();
+      this.Belt.Belt.Select.SnapSelected({
+        position: true,
+        size: false
+      });
     }
   }
 }

@@ -155,6 +155,12 @@ export class Grid extends Util {
           return this.snapRectangle(rectangle, config);
         }
       });
+      this.Snappers.item = Snap.addSnapper('item', {
+        priority: 50,
+        callback: (item, config) => {
+          return this.snapItem(item, config);
+        }
+      });
     }
   }
   unregisterSnappers() {
@@ -170,8 +176,12 @@ export class Grid extends Util {
       Snap.dropSnapper('rectangle', this.Snappers.rectangle.id);
       this.Snappers.rectangle = undefined;
     }
+    if (Snap && this.Snappers.item) {
+      Snap.dropSnapper('item', this.Snappers.item.id);
+      this.Snappers.item = undefined;
+    }
   }
-  snapPoint(point, config) {
+  snapPoint(point, config={}) {
     if (config && config.interactive) {
       return;
     }
@@ -212,10 +222,13 @@ export class Grid extends Util {
     point.set(newPoint);
     return point;
   }
-  snapRectangle(rectangle, config) {
+  snapRectangle(rectangle, config={}) {
     if (config && config.interactive) {
       return;
     }
+    // @TODO: support config.position
+    // @TODO: support config.size (uses config.anchor)
+
     let rectangleWidth = rectangle.width;
     let rectangleHeight = rectangle.height;
     let topLeft = new paper.Point({x: rectangle.left, y: rectangle.top});
@@ -257,6 +270,26 @@ export class Grid extends Util {
       right: snapped.right.x
     });
     return rectangle;
+  }
+  snapItem(item, config={}) {
+    // @TODO: support item.rotation
+    /**
+    let rotation = config.rotation;
+    let rotationPoint = rectangle.center;
+    if (rotation) {
+      item.rotate(-rotation, rectangle.center);
+    }
+    */
+
+    // use this.snapRectangle(item.bounds, config);
+
+    /**
+    // rotate the item back
+    if (rotation) {
+      item.rotate(rotation, item.bounds.center);
+    }
+    */
+    return item;
   }
 
   renderGrid(style) {
