@@ -144,19 +144,19 @@ export class Grid extends Util {
         this.Snappers = {};
       }
       this.Snappers.point = Snap.addSnapper('point', {
-        priority: 50,
+        priority: 75,
         callback: (point, config) => {
           return this.snapPoint(point, config);
         }
       });
       this.Snappers.rectangle = Snap.addSnapper('rectangle', {
-        priority: 50,
+        priority: 75,
         callback: (rectangle, config) => {
           return this.snapRectangle(rectangle, config);
         }
       });
       this.Snappers.item = Snap.addSnapper('item', {
-        priority: 50,
+        priority: 57,
         callback: (item, config) => {
           return this.snapItem(item, config);
         }
@@ -183,7 +183,7 @@ export class Grid extends Util {
   }
   snapPoint(point, config={}) {
     if (config && config.interactive) {
-      return;
+      return point;
     }
     let def = this.getCurrentDefinition();
     let min = { Col: -1, Row: -1 };
@@ -223,19 +223,23 @@ export class Grid extends Util {
     return point;
   }
   snapRectangle(rectangle, config={}) {
-    if (config && config.interactive) {
-      return;
+    if (config && config.interactive && config.size === false) {
+      return rectangle;
     }
-    // @TODO: support config.position
-    // @TODO: support config.size (uses config.anchor)
-
+    let interactive = !!(config && config.interactive);
+    let Geo = this.SL.Utils.get('Geo');
+    let anchor = config.anchor || rectangle.center;
+    if (config.anchorEdge && Geo) {
+      anchor = Geo.Direction.edgePoint(config.anchorEdge, rectangle);
+    }
     let rectangleWidth = rectangle.width;
     let rectangleHeight = rectangle.height;
     let topLeft = new paper.Point({x: rectangle.left, y: rectangle.top});
     let bottomRight = new paper.Point({x: rectangle.right, y: rectangle.bottom});
-    let pointMax;
+    let pointMin, pointMax;
     let Snap = this.SL.Utils.get('Snap');
     if (Snap) {
+      pointMin = Snap.PointMin(new paper.Point);
       pointMax = Snap.PointMax(new paper.Point);
     }
     let snapped = {
@@ -244,22 +248,91 @@ export class Grid extends Util {
       right: undefined,
       bottom: undefined
     };
-    // first try horizontal snapping based on Left
-    snapped.left = this.snapPoint(new paper.Point(topLeft));
-    snapped.right = this.snapPoint(new paper.Point(snapped.left.x+rectangleWidth, bottomRight.y));
-    if (pointMax != undefined && (snapped.left.x+rectangleWidth) > pointMax.x) {
-      // if horizontal snapping by Left would exceed pointMax, re-snap horizontally based on Right
+
+    // horizontal snapping
+    if (anchor.x > rectangle.center.x) {
+      // anchored at right, snap right edge first
       snapped.right = this.snapPoint(new paper.Point(bottomRight));
-      snapped.left = this.snapPoint(new paper.Point(snapped.right.x-rectangleWidth, topLeft.y));
+      if (!interactive) {
+        snapped.left = this.snapPoint(new paper.Point(snapped.right.x-rectangleWidth, topLeft.y));
+      }
+      else {
+        snapped.left = topLeft.clone();
+      }
+      if (pointMin != undefined && (snapped.left.x) < pointMin.x) {
+        // if horizontal snapping by Right would exceed pointMin, re-snap horizontally based on Left
+        snapped.left = this.snapPoint(new paper.Point(topLeft));
+        if (!interactive) {
+          snapped.right = this.snapPoint(new paper.Point(snapped.left.x+rectangleWidth, bottomRight.y));
+        }
+        else {
+          snapped.right = bottomRight.clone();
+        }
+      }
+    }
+    else {
+      // otherwise, snap left edge first
+      // first try horizontal snapping based on Left
+      snapped.left = this.snapPoint(new paper.Point(topLeft));
+      if (!interactive) {
+        snapped.right = this.snapPoint(new paper.Point(snapped.left.x+rectangleWidth, bottomRight.y));
+      }
+      else {
+        snapped.right = bottomRight.clone();
+      }
+      if (pointMax != undefined && (snapped.left.x+rectangleWidth) > pointMax.x) {
+        // if horizontal snapping by Left would exceed pointMax, re-snap horizontally based on Right
+        snapped.right = this.snapPoint(new paper.Point(bottomRight));
+        if (!interactive) {
+          snapped.left = this.snapPoint(new paper.Point(snapped.right.x-rectangleWidth, topLeft.y));
+        }
+        else {
+          snapped.left = topLeft.clone();
+        }
+      }
     }
 
-    // first try vertical snapping based on Top
-    snapped.top = this.snapPoint(new paper.Point(topLeft));
-    snapped.bottom = this.snapPoint(new paper.Point(bottomRight.x, snapped.top.y+rectangleHeight));
-    if (pointMax != undefined && (snapped.top.y+rectangleHeight) > pointMax.y) {
-      // if vertical snapping by Top would exceed pointMax, re-snap vertically based on Bottom
+    // vertical snapping
+    if (anchor.y > rectangle.center.y) {
+      // anchored at bottom, snap bottom edge first
       snapped.bottom = this.snapPoint(new paper.Point(bottomRight));
-      snapped.top = this.snapPoint(new paper.Point(topLeft.x, snapped.bottom.y-rectangleHeight));
+      if (!interactive) {
+        snapped.top = this.snapPoint(new paper.Point(topLeft.x, snapped.bottom.y-rectangleHeight));
+      }
+      else {
+        snapped.top = topLeft.clone();
+      }
+      if (pointMin != undefined && (snapped.top.y) < pointMin.y) {
+        // if vertical snapping by Bottom would exceed pointMin, re-snap vertically based on Top
+        snapped.top = this.snapPoint(new paper.Point(topLeft));
+        if (!interactive) {
+          snapped.bottom = this.snapPoint(new paper.Point(bottomRight.x, snapped.top.y+rectangleHeight));
+        }
+        else {
+          snapped.bottom = bottomRight.clone();
+        }
+      }
+    }
+    else {
+      // otherwise, snap top edge first
+      // first try vertical snapping based on Top
+      snapped.top = this.snapPoint(new paper.Point(topLeft));
+      if (!interactive) {
+        snapped.bottom = this.snapPoint(new paper.Point(bottomRight.x, snapped.top.y+rectangleHeight));
+      }
+      else {
+        snapped.bottom = bottomRight.clone();
+      }
+      if (pointMax != undefined && (snapped.top.y+rectangleHeight) > pointMax.y) {
+        // if vertical snapping by Top would exceed pointMax, re-snap vertically based on Bottom
+        snapped.bottom = this.snapPoint(new paper.Point(bottomRight));
+        if (!interactive) {
+          snapped.top = this.snapPoint(new paper.Point(topLeft.x, snapped.bottom.y-rectangleHeight));
+        }
+        else {
+          snapped.top = topLeft.clone();
+        }
+      }
     }
 
     // apply the snapped sides
@@ -272,23 +345,22 @@ export class Grid extends Util {
     return rectangle;
   }
   snapItem(item, config={}) {
-    // @TODO: support item.rotation
-    /**
-    let rotation = config.rotation;
-    let rotationPoint = rectangle.center;
-    if (rotation) {
-      item.rotate(-rotation, rectangle.center);
+    if (config && config.interactive) {
+      return item;
     }
-    */
-
-    // use this.snapRectangle(item.bounds, config);
-
-    /**
-    // rotate the item back
+    let rotation = item.rotation;
     if (rotation) {
-      item.rotate(rotation, item.bounds.center);
+      item.rotate(-rotation);
     }
-    */
+
+    // @TODO: support for the data.type == 'Line' segments
+
+    let snapped = this.snapRectangle(item.bounds.clone(), config);
+    item.bounds.set(snapped);
+
+    if (rotation) {
+      item.rotate(rotation);
+    }
     return item;
   }
 

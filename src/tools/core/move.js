@@ -21,7 +21,7 @@ export class Move extends Tool {
       bounds.center.set(bounds.center.add(event.delta));
       let Snap = this.SL.Utils.get('Snap');
       if (Snap) {
-        bounds = Snap.Rectangle(bounds, {interactive: true});
+        bounds = Snap.Rectangle(bounds, {interactive: true, size: false});
       }
       let delta = bounds.center.subtract(Select.UI.outline.strokeBounds.center);
       Select.Group.translate(delta);

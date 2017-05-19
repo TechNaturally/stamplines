@@ -131,6 +131,7 @@ export class Snap extends Util {
   }
   
   snapItem(item, config={}) {
+    // @TODO: ** this snapper is not actually registered **
     let Snap = this;
     if (config.linePoints == undefined) {
       config.linePoints = {};

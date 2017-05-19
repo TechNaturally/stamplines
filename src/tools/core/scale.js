@@ -35,13 +35,13 @@ export class Scale extends Tool {
         this.Snappers = {};
       }
       this.Snappers.rectangle = Snap.addSnapper('rectangle', {
-        priority: 75,
+        priority: 25,
         callback: (rectangle, config) => {
           return this.snapRectangle(rectangle, config);
         }
       });
       this.Snappers.item = Snap.addSnapper('item', {
-        priority: 75,
+        priority: 25,
         callback: (item, config) => {
           return this.snapItem(item, config);
         }
