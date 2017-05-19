@@ -32,7 +32,7 @@ export default class StampLines {
     this.resetUtils();
   }
   initUtils() {
-    let config = this.config.Util || {};
+    let config = this.config.Utils || {};
     this.Utils = new Utils(this, config);
     this.Utils.configure();
   }
@@ -142,6 +142,12 @@ StampLines.DEFAULT = {
       Rotate: {
         slices: (360/45),
         snap: true
+      },
+      Scale: {
+        minSize: {
+          width: 50,
+          height: 50
+        }
       }
     },
     UI: {
@@ -169,9 +175,10 @@ StampLines.DEFAULT = {
         }
       }
     },
-    Util: {
+    Utils: {
       Snap: {},
       Bounds: {},
+      Geo: {},
       Grid: {
         size: 20,
         strong: 4,

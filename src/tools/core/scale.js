@@ -2,50 +2,7 @@ import Tool from '../../core/tool.js';
 export class Scale extends Tool {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
-    this.initCalc();
     this.initialized = true;
-  }
-  initCalc() {
-    this.VectorMap = {
-      'N': new paper.Point(0.0, -1.0),
-      'S': new paper.Point(0.0, 1.0),
-      'E': new paper.Point(1.0, 0.0),
-      'W': new paper.Point(-1.0, 0.0),
-      'NE': new paper.Point(1.0, -1.0),
-      'SW': new paper.Point(-1.0, 1.0),
-      'SE': new paper.Point(1.0, 1.0),
-      'NW': new paper.Point(-1.0, -1.0)
-    };
-    let self = this;
-    this.Calc = {
-      directionVector: function(direction, magnitude=1.0) {
-        let vector = self.VectorMap[direction];
-        if (vector) {
-          vector = vector.multiply(magnitude);
-        }
-        return vector;
-      },
-      directionEqual: function(vect1, vect2) {
-        let Snap = self.SL.Utils.get('Snap');
-        return Snap.Equal(vect1.angle, vect2.angle);
-      },
-      edgePoint: function(edge, rectangle, opposite=false) {
-        let result = rectangle.center.clone();
-        if (edge.x < 0) {
-          result.x = (opposite ? rectangle.right : rectangle.left);
-        }
-        else if (edge.x > 0) {
-          result.x = (opposite ? rectangle.left : rectangle.right);
-        }
-        if (edge.y < 0) {
-          result.y = (opposite ? rectangle.bottom : rectangle.top);
-        }
-        else if (edge.y > 0) {
-          result.y = (opposite ? rectangle.top : rectangle.bottom);
-        }
-        return result;
-      }
-    };
   }
   configure(config) {
     config = super.configure(config);
@@ -107,6 +64,10 @@ export class Scale extends Tool {
   }
   snapItem(item, config={}) {
     if (config.size) {
+      let Geo = this.SL.Utils.get('Geo');
+      if (!Geo) {
+        return;
+      }
       let rotation = item.rotation;
       let rotationPoint = item.bounds.center;
       if (rotation) {
@@ -124,7 +85,7 @@ export class Scale extends Tool {
 
         let anchor = config.anchor || item.bounds.center;
         if (config.anchorEdge) {
-          anchor = this.Calc.edgePoint(config.anchorEdge, item.bounds);
+          anchor = Geo.Direction.edgePoint(config.anchorEdge, item.bounds);
         }
 
         let targetBounds = {
@@ -137,7 +98,7 @@ export class Scale extends Tool {
 
         let anchorCheck = config.anchor || item.bounds.center;
         if (config.anchorEdge) {
-          anchorCheck = this.Calc.edgePoint(config.anchorEdge, item.bounds);
+          anchorCheck = Geo.Direction.edgePoint(config.anchorEdge, item.bounds);
         }
         let anchorDelta = new paper.Point({
           x: (anchor.x - anchorCheck.x),
@@ -215,12 +176,16 @@ export class Scale extends Tool {
   }
 
   Scale(items, delta, edge) {
+    let Geo = this.SL.Utils.get('Geo');
+    if (!Geo) {
+      return;
+    }
     if (typeof edge == 'string') {
-      edge = this.Calc.directionVector(edge);
+      edge = Geo.Direction.vector(edge);
     }
     let Snap = this.SL.Utils.get('Snap');
     if (items && edge) {
-      let rotationPoint = this.Calc.edgePoint(edge, this.Belt.Belt.Select.UI.outline.bounds, true);
+      let rotationPoint = Geo.Direction.edgePoint(edge, this.Belt.Belt.Select.UI.outline.bounds, true);
 
       for (let item of items) {
         let scaleDelta = delta.clone();
@@ -252,7 +217,7 @@ export class Scale extends Tool {
         }
 
         // determine the scale anchor point
-        let anchor = this.Calc.edgePoint(scaleEdge, item.bounds, true);
+        let anchor = Geo.Direction.edgePoint(scaleEdge, item.bounds, true);
         if (!anchor) {
           anchor = item.bounds.center;
         }
@@ -280,7 +245,7 @@ export class Scale extends Tool {
         item.bounds.set(targetBounds);
 
         // check the anchor
-        let anchorCheck = this.Calc.edgePoint(scaleEdge, item.bounds, true);
+        let anchorCheck = Geo.Direction.edgePoint(scaleEdge, item.bounds, true);
         if (!anchorCheck) {
           anchorCheck = item.bounds.center;
         }
