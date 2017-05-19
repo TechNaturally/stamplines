@@ -29,19 +29,19 @@ export class Scale extends Tool {
         let Snap = self.SL.Utils.get('Snap');
         return Snap.Equal(vect1.angle, vect2.angle);
       },
-      oppositePoint: function(edge, rectangle) {
+      edgePoint: function(edge, rectangle, opposite=false) {
         let result = rectangle.center.clone();
         if (edge.x < 0) {
-          result.x = rectangle.right;
+          result.x = (opposite ? rectangle.right : rectangle.left);
         }
         else if (edge.x > 0) {
-          result.x = rectangle.left;
+          result.x = (opposite ? rectangle.left : rectangle.right);
         }
         if (edge.y < 0) {
-          result.y = rectangle.bottom;
+          result.y = (opposite ? rectangle.bottom : rectangle.top);
         }
         else if (edge.y > 0) {
-          result.y = rectangle.top;
+          result.y = (opposite ? rectangle.top : rectangle.bottom);
         }
         return result;
       }
@@ -105,14 +105,58 @@ export class Scale extends Tool {
       this.Snappers.item = undefined;
     }
   }
-  snapItem(item, config) {
-    // @TODO: maybe move to StampPalette?
-    // @TODO: support item.rotation
-    // @TODO: support config.size
-    // use this.snapRectangle(item.bounds, {});
+  snapItem(item, config={}) {
+    if (config.size) {
+      let rotation = item.rotation;
+      let rotationPoint = item.bounds.center;
+      if (rotation) {
+        item.rotate(-rotation, rotationPoint);
+      }
+      let bounds = item.bounds;
+      let snapped = this.snapRectangle(bounds.clone(), {});
+
+      if (bounds.width != snapped.width || bounds.height != snapped.height) {
+        let delta = {
+          x: snapped.width - bounds.width,
+          y: snapped.height - bounds.height
+        };
+        let Snap = this.SL.Utils.get('Snap');
+
+        let anchor = config.anchor || item.bounds.center;
+        if (config.anchorEdge) {
+          anchor = this.Calc.edgePoint(config.anchorEdge, item.bounds);
+        }
+
+        let targetBounds = {
+          x: item.bounds.x,
+          y: item.bounds.y,
+          width: snapped.width,
+          height: snapped.height
+        };
+        item.bounds.set(targetBounds);
+
+        let anchorCheck = config.anchor || item.bounds.center;
+        if (config.anchorEdge) {
+          anchorCheck = this.Calc.edgePoint(config.anchorEdge, item.bounds);
+        }
+        let anchorDelta = new paper.Point({
+          x: (anchor.x - anchorCheck.x),
+          y: (anchor.y - anchorCheck.y)
+        });
+        item.bounds.set({
+          x: (item.bounds.x + anchorDelta.x),
+          y: (item.bounds.y + anchorDelta.y),
+          width: snapped.width,
+          height: snapped.height
+        });
+      }
+      if (rotation) {
+        item.rotate(rotation, rotationPoint);
+      }      
+    }
     return item;
   }
-  snapRectangle(rectangle, config) {
+  snapRectangle(rectangle, config={}) {
     if (this.config.minSize) {
       if (this.config.minSize.width && rectangle.width < this.config.minSize.width) {
         rectangle.width = this.config.minSize.width;
@@ -176,12 +220,11 @@ export class Scale extends Tool {
     }
     let Snap = this.SL.Utils.get('Snap');
     if (items && edge) {
-      let dragEdge = edge.clone();
-      let rotationPoint = this.Calc.oppositePoint(dragEdge, this.Belt.Belt.Select.UI.outline.bounds);
+      let rotationPoint = this.Calc.edgePoint(edge, this.Belt.Belt.Select.UI.outline.bounds, true);
 
       for (let item of items) {
         let scaleDelta = delta.clone();
-        let scaleEdge = dragEdge.clone();
+        let scaleEdge = edge.clone();
         let rotation = item.rotation;
 
         // reset rotation to pevent skewing
@@ -209,7 +252,7 @@ export class Scale extends Tool {
         }
 
         // determine the scale anchor point
-        let anchor = this.Calc.oppositePoint(scaleEdge, item.bounds);
+        let anchor = this.Calc.edgePoint(scaleEdge, item.bounds, true);
         if (!anchor) {
           anchor = item.bounds.center;
         }
@@ -227,21 +270,37 @@ export class Scale extends Tool {
           deltaMulti.x = -1.0;
         }
 
-        // calculate scale factor (as multiplier of existing dimension)
-        let bounds = item.bounds;
-        let scale = new paper.Size({
-          width: (bounds.width + scaleDelta.x*deltaMulti.x) / bounds.width,
-          height: (bounds.height + scaleDelta.y*deltaMulti.y) / bounds.height
-        });
-
         // perform the scale
-        item.scale(scale.width, scale.height, anchor);
+        let targetBounds = {
+          x: item.bounds.left,
+          y: item.bounds.top,
+          width: (item.bounds.width + scaleDelta.x*deltaMulti.x),
+          height: (item.bounds.height + scaleDelta.y*deltaMulti.y)
+        };
+        item.bounds.set(targetBounds);
+
+        // check the anchor
+        let anchorCheck = this.Calc.edgePoint(scaleEdge, item.bounds, true);
+        if (!anchorCheck) {
+          anchorCheck = item.bounds.center;
+        }
+        let anchorDelta = new paper.Point({
+          x: (anchor.x - anchorCheck.x),
+          y: (anchor.y - anchorCheck.y)
+        });
+        item.bounds.set({
+          x: item.bounds.left + anchorDelta.x,
+          y: item.bounds.top + anchorDelta.y,
+          width: item.bounds.width,
+          height: item.bounds.height
+        });
 
         Snap.Item(item, {
           interactive: true,
           size: true,
           position: false,
-          anchor: anchor
+          anchor: anchor,
+          anchorEdge: scaleEdge.rotate(180.0)
         });
 
         // rotate the item back
