@@ -96,8 +96,6 @@ export class Bounds extends Util {
     return point;
   }
   snapRectangle(rectangle, config={}) {
-    // @TODO: support config.position
-    // @TODO: support config.size (uses config.anchor)
     let shift = {x: 0, y: 0};
     let point = new paper.Point(0, 0);
     point.set({
@@ -107,12 +105,22 @@ export class Bounds extends Util {
     this.snapPoint(point, config);
     shift.x = point.x - (shift.x + rectangle.right);
     shift.y = point.y - (shift.y + rectangle.bottom);
-    rectangle.set({
-      x: rectangle.x + shift.x,
-      y: rectangle.y + shift.y,
-      width: rectangle.width,
-      height: rectangle.height
-    });
+    if (config.size) {
+      rectangle.set({
+        x: rectangle.x,
+        y: rectangle.y,
+        width: rectangle.width + shift.x,
+        height: rectangle.height + shift.y
+      });
+    }
+    else {
+      rectangle.set({
+        x: rectangle.x + shift.x,
+        y: rectangle.y + shift.y,
+        width: rectangle.width,
+        height: rectangle.height
+      });
+    }
 
     point.set({
       x: shift.x + rectangle.left,
@@ -121,17 +129,34 @@ export class Bounds extends Util {
     this.snapPoint(point, config);
     shift.x = point.x - (shift.x + rectangle.left);
     shift.y = point.y - (shift.y + rectangle.top);
-    rectangle.set({
-      x: rectangle.x + shift.x,
-      y: rectangle.y + shift.y,
-      width: rectangle.width,
-      height: rectangle.height
-    });
+    if (config.size) {
+      rectangle.set({
+        x: rectangle.x + shift.x,
+        y: rectangle.y + shift.y,
+        width: rectangle.width - shift.x,
+        height: rectangle.height - shift.y
+      });
+    }
+    else {
+      rectangle.set({
+        x: rectangle.x + shift.x,
+        y: rectangle.y + shift.y,
+        width: rectangle.width,
+        height: rectangle.height
+      });
+    }
     return rectangle;
   }
   snapItem(item, config={}) {
-    // @TODO: support item.rotation
-    // use this.snapRectangle(item.bounds, config);
+    let Geo = this.SL.Utils.get('Geo');
+    if (config.position !== false) {
+      let bounds = item.bounds;
+      let snapped = this.snapRectangle(bounds.clone(), config);
+      if (bounds.left != snapped.left || bounds.right != snapped.right || bounds.top != snapped.top || bounds.bottom != snapped.bottom) {
+        item.bounds.set(snapped);
+        return this.snapItem(item, $.extend({}, config, {position: false}));
+      }
+    }
     return item;
   }
 

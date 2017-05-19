@@ -283,13 +283,52 @@ export class Scale extends Tool {
   }
   onMouseDrag(event) {
     if (this.isActive() && this.Belt.State.Mouse.Hover.selectionEdge.direction) {
+      let delta = event.delta.clone();
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        let pointMin = Snap.PointMin();
+        let pointMax = Snap.PointMax();
+        let point = this.SL.UI.Mouse.State.point;
+        let shift = {
+          x: Math.min(0.0, (point.x - pointMin.x)) + Math.max(0.0, (point.x - pointMax.x)),
+          y: Math.min(0.0, (point.y - pointMin.y)) + Math.max(0.0, (point.y - pointMax.y))
+        };
+        if (!this.edgeLock) {
+          this.edgeLock = {};
+        }
+        if (shift.x) {
+          if (!this.edgeLock.x) {
+            this.edgeLock.x = true;
+            delta.x -= shift.x;
+          }
+          else {
+            delta.x = 0;
+          }
+        }
+        else if (this.edgeLock.x) {
+          this.edgeLock.x = false;
+        }
+        if (shift.y) {
+          if (!this.edgeLock.y) {
+            this.edgeLock.y = true;
+            delta.y -= shift.y;
+          }
+          else {
+            delta.y = 0;
+          }
+        }
+        else if (this.edgeLock.y) {
+          this.edgeLock.y = false;
+        }
+      }
       // perform the scale (also Snaps each item as it scales them)
-      this.Scale(this.Belt.Belt.Select.Items, event.delta, this.Belt.State.Mouse.Hover.selectionEdge.direction);
+      this.Scale(this.Belt.Belt.Select.Items, delta, this.Belt.State.Mouse.Hover.selectionEdge.direction);
       this.Belt.refreshUI();
     }
   }
   onMouseUp(event) {
     if (this.isActive()) {
+      this.edgeLock = undefined;
       // finalize the scale by snapping all items in non-interactive mode
       // @TODO: need to determine anchorEdge
       let anchorEdge = undefined;
