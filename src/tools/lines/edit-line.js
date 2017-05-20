@@ -6,7 +6,8 @@ export class EditLine extends Tool {
       Append: {
         line: null,
         from: null,
-        to: null
+        to: null,
+        toHead: null
       },
       target: undefined
     };
@@ -68,6 +69,7 @@ export class EditLine extends Tool {
     this.State.Append.line = null;
     this.State.Append.from = null;
     this.State.Append.to = null;
+    this.State.Append.toHead = null;
   }
   activate() {
     super.activate();
@@ -86,11 +88,16 @@ export class EditLine extends Tool {
 
   refreshUI() {
     if (this.State.targetSegment) {
-      if (!this.UI.target) {
-        this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
-        this.SL.Paper.applyStyle(this.UI.target, this.config.ui.target);
+      if (!this.State.Append.line) {
+        if (!this.UI.target) {
+          this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
+          this.SL.Paper.applyStyle(this.UI.target, this.config.ui.target);
+        }
+        this.UI.target.position.set(this.State.targetSegment.point);
       }
-      this.UI.target.position.set(this.State.targetSegment.point);
+      else if (this.UI.target) {
+        this.resetUI();
+      }
     }
   }
   resetUI() {
@@ -143,6 +150,19 @@ export class EditLine extends Tool {
           this.State.targetSegment.point.set(this.UI.target.position);
           this.Belt.refreshUI();
         }
+
+        // check for click
+        if (!this.SL.UI.Mouse.State.button.drag && this.State.target && this.State.target.item && this.State.target.item.segments && this.State.target.segment) {
+          let segments = this.State.target.item.segments;
+          let segmentIndex = segments.indexOf(this.State.target.segment);
+          if (segmentIndex == 0 || segmentIndex == (segments.length-1)) {
+            // and end point was clicked, start appending
+            this.State.Append.line = this.State.target.item;
+            this.State.Append.from = this.State.Append.line.segments[segmentIndex];
+            this.State.Append.toHead = !!(segmentIndex == 0);
+            this.refreshUI();
+          }
+        }
       }
     }
   }
@@ -155,12 +175,20 @@ export class EditLine extends Tool {
           point = Snap.Point(point, {interactive: true});
         }
         if (!this.State.Append.to) {
+          // spoof segment object to initialize the real one with
+          // the real segment is returned by the line's append function
           this.State.Append.to = { point: point };
           if (this.State.Append.line) {
-            this.State.Append.to = this.State.Append.line.add(this.State.Append.to.point);
+            if (this.State.Append.toHead) {
+              this.State.Append.to = this.State.Append.line.insert(0, this.State.Append.to.point);
+            }
+            else {
+              this.State.Append.to = this.State.Append.line.add(this.State.Append.to.point);
+            }
           }
         }
         else {
+          // update the append point
           this.State.Append.to.point.set(point);
         }
       }
