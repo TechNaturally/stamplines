@@ -353,10 +353,16 @@ export class Grid extends Util {
       item.rotate(-rotation);
     }
 
-    // @TODO: support for the data.type == 'Line' segments
-
-    let snapped = this.snapRectangle(item.bounds.clone(), config);
-    item.bounds.set(snapped);
+    if (item.segments) {
+      for (let segment of item.segments) {
+        let snapped = this.snapPoint(segment.point.clone(), config);
+        segment.point.set(snapped);
+      }
+    }
+    else if (item.bounds) {
+      let snapped = this.snapRectangle(item.bounds.clone(), config);
+      item.bounds.set(snapped);
+    }
 
     if (rotation) {
       item.rotate(rotation);
