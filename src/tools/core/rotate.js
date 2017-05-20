@@ -182,7 +182,7 @@ export class Rotate extends Tool {
   refreshUI() {
     let Select = this.Belt.Belt.Select;
     if (Select && Select.hasItems()) {
-      // @TODO: need to check minimum vs size of Select.Group.bounds
+      // @TODO: rework rotate UI (don't cover whole item)
       let radius = Math.max(Math.min(Select.Group.bounds.width, Select.Group.bounds.height) / 3.0, 25);
       let position = Select.Group.bounds.center;
       if (!this.UI.circle) {

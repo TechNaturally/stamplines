@@ -92,6 +92,7 @@ export class EditLine extends Tool {
         if (!this.UI.target) {
           this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
           this.SL.Paper.applyStyle(this.UI.target, this.config.ui.target);
+          // @TODO: let EditLine UI take control of Selected.UI - toggle UI item visibility by priority?
         }
         this.UI.target.position.set(this.State.targetSegment.point);
       }

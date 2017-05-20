@@ -130,27 +130,6 @@ export class Snap extends Util {
     }
   }
   
-  snapItem(item, config={}) {
-    // @TODO: ** this snapper is not actually registered **
-    let Snap = this;
-    if (config.linePoints == undefined) {
-      config.linePoints = {};
-    }
-    if (config.itemBounds == undefined) {
-      config.itemBounds = {};
-    }
-    if (item && item.data) {
-      if (config.linePoints && item.data.Type == 'Line' && item.segments) {
-        for (let segment of item.segments) {
-          segment.point.set(Snap.Point(segment.point, config.linePoints));
-        }
-      }
-      else if (config.itemBounds && item.bounds) {
-        item.bounds.set(Snap.Rectangle(item.bounds, config.itemBounds));
-      }
-    }
-    return item;
-  }
   snapRotation(angle, config={}) {
     if (!config.angleIncrement && config.slices) {
       config.angleIncrement = 360.0/config.slices;
@@ -166,14 +145,6 @@ export class Snap extends Util {
       if (!this.Snappers) {
         this.Snappers = {};
       }
-      // @TODO: not sure about Snap.snapItem
-/**      this.Snappers.item = Snap.addSnapper('item', {
-        priority: 0,
-        callback: (item, config) => {
-          return this.snapItem(item, config);
-        }
-      });
-      */
       this.Snappers.rotation = Snap.addSnapper('rotation', {
         priority: 0,
         callback: (angle, config) => {
