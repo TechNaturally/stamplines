@@ -16,8 +16,8 @@ export class CreateLine extends EditLine {
       this.start();
     }
     this.refreshUI();
-    if (this.Append.line && this.loaded.line && this.loaded.line.style) {
-      this.SL.Paper.applyStyle(this.Append.line, this.loaded.line.style);
+    if (this.State.Append.line && this.loaded.line && this.loaded.line.style) {
+      this.SL.Paper.applyStyle(this.State.Append.line, this.loaded.line.style);
     }
   }
   unloadLine() {
@@ -36,13 +36,13 @@ export class CreateLine extends EditLine {
   onMouseDown(event) {
     if (this.isActive()) {
       if (event.event.button === 0) {
-        if (!this.Append.from && this.loaded.line) {
+        if (!this.State.Append.from && this.loaded.line) {
           let point = event.point.clone();
           let Snap = this.SL.Utils.get('Snap');
           if (Snap) {
             point = Snap.Point(point);
           }
-          this.Append.from = { point: point };
+          this.State.Append.from = { point: point };
           // setting Append.from initiates the sequence:
           // - EditLine::onMouseMove sees Append.from and sets Append.to
           // - CreateLine::onMouseMove sees Append.to and !Append.line and creates new paper.Path.Line
@@ -56,9 +56,9 @@ export class CreateLine extends EditLine {
   onMouseMove(event) {
     super.onMouseMove(event);
     if (this.isActive()) {
-      if (!this.Append.line && this.Append.to && this.Append.from && this.loaded.palette) {
-        this.Append.line = this.loaded.palette.createLine(this.Append.from, this.Append.to, this.loaded.line);
-        this.Append.to = this.Append.line.segments[this.Append.line.segments.length-1];
+      if (!this.State.Append.line && this.State.Append.to && this.State.Append.from && this.loaded.palette) {
+        this.State.Append.line = this.loaded.palette.createLine(this.State.Append.from, this.State.Append.to, this.loaded.line);
+        this.State.Append.to = this.State.Append.line.segments[this.State.Append.line.segments.length-1];
       }
     }
   }

@@ -2,71 +2,182 @@ import Tool from '../../core/tool.js';
 export class EditLine extends Tool {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
-    this.line = null;
-    this.Append = {
-      line: null,
-      from: null,
-      to: null
+    this.State = {
+      Append: {
+        line: null,
+        from: null,
+        to: null
+      },
+      target: undefined
     };
+    this.UI = {};
+    this.initialized = true;
   }
-
-  get activationPriority() {
-    return (this.active ? 500 : -1);
+  configure(config) {
+    config = super.configure(config);
+    if (!config.ui) {
+      config.ui = {};
+    }
+    if (config.ui.color == undefined) {
+      config.ui.color = '#00AA66';
+    }
+    if (!config.ui.target) {
+      config.ui.target = {};
+    }
+    if (config.ui.target.radius == undefined) {
+      config.ui.target.radius = 10;
+    }
+    if (config.ui.target.color == undefined) {
+      config.ui.target.color = config.ui.color;
+    }
+    if (config.ui.target.fillColor == undefined) {
+      config.ui.target.fillColor = '#FFFFFF';
+    }
+    if (config.ui.target.strokeColor == undefined) {
+      config.ui.target.strokeColor = config.ui.target.color;
+    }
+    if (config.ui.target.strokeWidth == undefined) {
+      config.ui.target.strokeWidth = 2;
+    }
+    if (config.ui.target.opacity == undefined) {
+      config.ui.target.opacity = 0.9;
+    }
+    return config;
+  }
+  reset() {
+    if (!this.initialized) {
+      return;
+    }
+    super.reset();
+    this.resetState();
+    this.resetUI();
+  }
+  resetState() {
+    this.resetStateAppend();
+    this.State.target = undefined;
+    this.State.targetSegment = undefined;
+  }
+  resetStateAppend() {
+    if (this.State.Append.to && typeof this.State.Append.to.remove == 'function') {
+      this.State.Append.to.remove();
+    }
+    if (this.State.Append.line && this.State.Append.line.segments.length < 2) {
+      // 1 point == 1 segment, so there is no line if there are less than 2 points
+      this.SL.Paper.destroyPaperItem(this.State.Append.line);
+    }
+    this.State.Append.line = null;
+    this.State.Append.from = null;
+    this.State.Append.to = null;
   }
   activate() {
     super.activate();
+    this.refreshUI();
   }
   deactivate() {
-    this.resetAppend();
     super.deactivate();
+    this.reset();
+  }
+  get activationPriority() {
+    if (this.State.target) {
+      return 100;
+    }
+    return (this.active ? 500 : -1);
   }
 
-  resetAppend() {
-    if (this.Append.to && typeof this.Append.to.remove == 'function') {
-      this.Append.to.remove();
-    }
-    if (this.Append.line && this.Append.line.segments.length < 2) {
-      // 1 point == 1 segment, so there is no line if there are less than 2 points
-      this.SL.Paper.destroyPaperItem(this.Append.line);
-    }
-    this.Append.line = null;
-    this.Append.from = null;
-    this.Append.to = null;
-  }
-
-  onMouseMove(event) {
-    if (this.isActive()) {
-      if (this.Append.from) {
-        let point = event.point.clone();
-        let Snap = this.SL.Utils.get('Snap');
-        if (Snap) {
-          point = Snap.Point(point, {interactive: true});
-        }
-        if (!this.Append.to) {
-          this.Append.to = { point: point };
-          if (this.Append.line) {
-            this.Append.to = this.Append.line.add(this.Append.to.point);
-          }
-        }
-        else {
-          this.Append.to.point.set(point);
-        }
+  refreshUI() {
+    if (this.State.targetSegment) {
+      if (!this.UI.target) {
+        this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
+        this.SL.Paper.applyStyle(this.UI.target, this.config.ui.target);
       }
+      this.UI.target.position.set(this.State.targetSegment.point);
+    }
+  }
+  resetUI() {
+    if (this.UI.target) {
+      this.SL.Paper.destroyPaperItem(this.UI.target);
+      this.UI.target = undefined;
     }
   }
   onMouseDown(event) {
     if (this.isActive()) {
       if (event.event.button === 0) {
-        if (this.Append.line && this.Append.to) {
-          this.Append.from = this.Append.to;
-          this.Append.to = null;
+        if (this.State.Append.line && this.State.Append.to) {
+          this.State.Append.from = this.State.Append.to;
+          this.State.Append.to = null;
           let Snap = this.SL.Utils.get('Snap');
           if (Snap) {
-            this.Append.from.point.set(Snap.Point(this.Append.from.point));
+            this.State.Append.from.point.set(Snap.Point(this.State.Append.from.point));
           }
         }
       }
       else if (event.event.button == 2) {
+        this.finish();
+      }
+    }
+  }
+  onMouseDrag(event) {
+    if (this.isActive()) {
+      if (this.UI.target) {
+        let point = this.UI.target.position.add(event.delta);
+        let Snap = this.SL.Utils.get('Snap');
+        if (Snap) {
+          this.UI.target.position.set(Snap.Point(point, {interactive: true}));
+        }
+        if (this.State.targetSegment) {
+          this.State.targetSegment.point.set(this.UI.target.position);
+          this.Belt.refreshUI();
+        }
+      }
+    }
+  }
+  onMouseUp(event) {
+    if (this.isActive()) {
+      if (this.UI.target) {
+        let point = this.UI.target.position.clone();
+        let Snap = this.SL.Utils.get('Snap');
+        if (Snap) {
+          this.UI.target.position.set(Snap.Point(point, {interactive: false}));
+        }
+        if (this.State.targetSegment) {
+          this.State.targetSegment.point.set(this.UI.target.position);
+          this.Belt.refreshUI();
+        }
+      }
+    }
+  }
+  onMouseMove(event) {
+    if (this.isActive()) {
+      if (this.State.Append.from) {
+        let point = event.point.clone();
+        let Snap = this.SL.Utils.get('Snap');
+        if (Snap) {
+          point = Snap.Point(point, {interactive: true});
+        }
+        if (!this.State.Append.to) {
+          this.State.Append.to = { point: point };
+          if (this.State.Append.line) {
+            this.State.Append.to = this.State.Append.line.add(this.State.Append.to.point);
+          }
+        }
+        else {
+          this.State.Append.to.point.set(point);
+        }
+      }
+    }
+    if (this.Belt.State.Mouse.Hover.targetSelected && this.Belt.State.Mouse.Hover.targetItem 
+      && this.Belt.State.Mouse.Hover.targetItem.data && this.Belt.State.Mouse.Hover.targetItem.data.Type == 'Line'
+      && this.Belt.State.Mouse.Hover.target.type == 'segment') {
+      if (this.State.target != this.Belt.State.Mouse.Hover.target) {
+        this.State.target = this.Belt.State.Mouse.Hover.target;
+        this.State.targetSegment = (this.State.target && this.State.target.segment) ? this.State.target.segment : undefined;
+        this.Belt.checkActiveTool();
+      }
+    }
+    else if (this.State.target && (!this.UI.target || this.Belt.State.Mouse.Hover.targetItem != this.UI.target)) {
+      this.State.target = undefined;
+      this.State.targetSegment = undefined;
+      if (!this.State.Append.line) {
         this.finish();
       }
     }
