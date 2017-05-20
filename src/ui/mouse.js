@@ -43,10 +43,12 @@ export default class Mouse extends UIComponent {
 
         if (!this.State.button.drag) {
           this.State.button.drag = {
-            points: [ this.State.button.downAt ]
+            points: [ this.State.button.downAt ],
+            distance: 0
           };
         }
         this.State.button.drag.points.push(event.point);
+        this.State.button.drag.distance += new paper.Point(event.delta).length;
 
         if (this.config && (this.config.maxDragPoints || this.config.maxDragPoints===0)) {
           if (this.State.button.drag.points.length > this.config.maxDragPoints) {
