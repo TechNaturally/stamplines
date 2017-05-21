@@ -186,7 +186,7 @@ export class Rotate extends Tool {
       let radius = Math.max(Math.min(Select.Group.bounds.width, Select.Group.bounds.height) / 3.0, 25);
       let position = Select.Group.bounds.center;
       if (!this.UI.circle) {
-        this.UI.circle = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI']-1}, paper.Shape.Circle, position, radius);
+        this.UI.circle = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:this.SL.Paper.Layers['UI']-1}, paper.Shape.Circle, position, radius);
       }
       if (!this.State.Mouse.Dragging) {
         this.UI.circle.size.set({width: radius, height: radius});
@@ -231,7 +231,7 @@ export class Rotate extends Tool {
     }
     let handlePosition = this.Calc.pointOnCircle(this.currentAngle, this.UI.circle.bounds.center, this.UI.circle.strokeBounds.width/2.0);
     if (!this.UI.handle) {
-      this.UI.handle = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, handlePosition, this.config.ui.handle.size);
+      this.UI.handle = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:'UI_FG'}, paper.Shape.Circle, handlePosition, this.config.ui.handle.size);
     }
     this.UI.handle.position.set(handlePosition);
     this.UI.handle.strokeWidth = this.config.ui.handle.strokeWidth;
@@ -241,7 +241,7 @@ export class Rotate extends Tool {
 
     if (this.config.ui.current) {
       if (!this.UI.current) {
-        this.UI.current = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']-1}, paper.Path.Line, this.UI.circle.bounds.center, handlePosition);
+        this.UI.current = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:this.SL.Paper.Layers['UI_FG']-1}, paper.Path.Line, this.UI.circle.bounds.center, handlePosition);
       }
       this.UI.current.strokeWidth = this.config.ui.current.strokeWidth;
       this.UI.current.strokeColor = this.config.ui.current.strokeColor;
@@ -285,7 +285,7 @@ export class Rotate extends Tool {
       itemsPerSlice++;
     }
     if (!this.UI.slices) {
-      this.UI.slices = this.SL.Paper.generatePaperItem({Source: this, Class:'UI'}, paper.Group);
+      this.UI.slices = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool']}, paper.Group);
     }
     if (this.UI.slices.children.length != this.config.slices*itemsPerSlice) {
       this.UI.slices.removeChildren();
