@@ -95,7 +95,7 @@ export default class StampPalette extends Palette {
   placeStamp(item, position) {
     let symbol = this.getStampSymbol(item).clone();
     if (symbol) {
-      let stamp = this.SL.Paper.generatePaperItem({Source: this, Type: 'Stamp'}, paper.SymbolItem, symbol, position);
+      let stamp = this.SL.Paper.generatePaperItem({Source: this, Type: 'Stamp', Stamp: item}, paper.SymbolItem, symbol, position);
       return stamp;
     }
   }
