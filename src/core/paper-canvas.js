@@ -13,6 +13,7 @@ export default class PaperCanvas extends Component {
         console.log('PaperCanvas.onResize =>', event);
       }
     };
+    this.initItem();
     this.Layers = {
       'TEMPLATE': -1,
       'GROUPED': -1,
@@ -114,6 +115,87 @@ export default class PaperCanvas extends Component {
     return this.config;
   }
 
+  initItem() {
+    let self = this;
+    this.Item = {
+      addClass(item, itemClass) {
+        let classSet = false;
+        if (item && item.data && itemClass) {
+          if (!item.data.Class) {
+            item.data.Class = itemClass;
+            classSet = true;
+          }
+          else if (item.data.Class != itemClass) {
+            if (item.data.Class instanceof 'string') {
+              item.data.Class = [item.data.Class, itemClass];
+              classSet = true;
+            }
+            else if (item.data.Class.constructor === Array) {
+              if (item.data.Class.indexOf(itemClass) == -1) {
+                item.data.Class.push(itemClass);
+                classSet = true;
+              }
+            }
+          }
+          if (classSet) {
+            self.trackItemByClass(item, itemClass);
+          }
+        }
+        return classSet;
+      },
+      removeClass(item, itemClass) {
+        let classSet = false;
+        if (item && item.data && itemClass) {
+          if (item.data.Class == itemClass) {
+            item.data.Class = undefined;
+            classSet = true;
+          }
+          else if (item.data.Class.constructor === Array) {
+            let classIdx = item.data.Class.indexOf(itemClass);
+            if (classIdx != -1) {
+              item.data.Class.splice(classIdx, 1);
+              classSet = true;
+            }
+          }
+          if (classSet) {
+            self.untrackItemByClass(item, itemClass);
+          }
+        }
+        return classSet;
+      },
+      hasClass: function(item, itemClass) {
+        if (item && item.data && item.data.Class && itemClass) {
+          if (item.data.Class.constructor === Array) {
+            return (item.data.Class.indexOf(itemClass) != -1);
+          }
+          else {
+            return (item.data.Class == itemClass);
+          }
+        }
+      },
+      forEachClass: function(item, callback, data) {
+        if (item && item.data && item.data.Class && typeof callback == 'function') {
+          if (item.data.Class.constructor === Array) {
+            for (let itemClass of item.data.Class) {
+              if (callback(itemClass, data)) {
+                break;
+              }
+            }
+          }
+          else {
+            callback(item.data.Class, data);
+          }
+        }
+      },
+      forEachOfClass: function(itemClass, callback, data) {
+        if (itemClass && self.paperItems[itemClass] && typeof callback == 'function') {
+          for (let item of self.paperItems[itemClass]) {
+            callback(item, data);
+          }
+        }
+      }
+    };
+  }
   generatePaperItem() {
     if (arguments.length < 1 || arguments[0] === undefined) {
       throw 'Cannot generate PaperItem without attributes!';
@@ -131,8 +213,15 @@ export default class PaperCanvas extends Component {
     }
     if (attributes.Layer == undefined) {
       // try to read layer based on Class
-      if (this.Layers[attributes.Class.toUpperCase()] != undefined) {
-        attributes.Layer = this.Layers[attributes.Class.toUpperCase()];
+      let defaultLayer;
+      this.Item.forEachClass({data: attributes}, (itemClass) => {
+        if (this.Layers[itemClass.toUpperCase()] != undefined) {
+          defaultLayer = this.Layers[itemClass.toUpperCase()];
+          return true;
+        }
+      });
+      if (defaultLayer) {
+        attributes.Layer = defaultLayer;
       }
     }
     if (attributes.Layer && typeof attributes.Layer == 'string' && this.Layers[attributes.Layer.toUpperCase()] != undefined) {
@@ -172,23 +261,32 @@ export default class PaperCanvas extends Component {
       $.extend(item.data, attributes);
 
       // track the item
-      if (this.untrackable.indexOf(item.data.Class.toLowerCase()) == -1) {
+      if (this.canTrackItem(item)) {
         this.trackItem(item);
       }
       if (item.data.Source && typeof item.data.Source.trackPaperItem == 'function') {
         item.data.Source.trackPaperItem(item);
       }
     }
-    
     return item;
+  }
+  canTrackItem(item) {
+    let trackable = true;
+    this.Item.forEachClass(item, (itemClass, data) => {
+      if (data.untrackable.indexOf(itemClass.toLowerCase()) != -1) {
+        trackable = false;
+        return true;
+      }
+    }, {untrackable: this.untrackable});
+    return trackable;
   }
   trackItem(item) {
     if (item) {
       if (!item.data || !item.data.Class) {
         throw 'Cannot track PaperItem without Class attribute!';
       }
-      else if (this.untrackable.indexOf(item.data.Class.toLowerCase()) != -1) {
-        throw `Cannot track PaperItem of untrackable Class "${item.data.Class}"!`;
+      else if (!this.canTrackItem(item)) {
+        throw 'Cannot track PaperItem of untrackable Class!';
       }
       if (!item.data || item.data.Layer == undefined) {
         throw 'Cannot track PaperItem without Layer attribute!';
@@ -198,27 +296,36 @@ export default class PaperCanvas extends Component {
     }
     return item;
   }
-  trackItemByClass(item) {
+  trackItemByClass(item, itemClass) {
     if (item) {
       if (!item.data || !item.data.Class) {
         throw 'Cannot track PaperItem without Class attribute!';
       }
-      else if (this.untrackable.indexOf(item.data.Class.toLowerCase()) != -1) {
-        throw `Cannot track PaperItem of untrackable Class "${item.data.Class}"!`;
+      else if (!this.canTrackItem(item)) {
+        throw 'Cannot track PaperItem of untrackable Class!';
       }
-      if (!this.paperItems[item.data.Class]) {
-        this.paperItems[item.data.Class] = [];
+      if (itemClass) {
+        if (this.paperItems[itemClass].indexOf(item) == -1) {
+          this.paperItems[itemClass].push(item);
+        }
       }
-      if (this.paperItems[item.data.Class].indexOf(item) == -1) {
-        this.paperItems[item.data.Class].push(item);
+      else {
+        this.Item.forEachClass(item, (itemClass) => {
+          if (!this.paperItems[itemClass]) {
+            this.paperItems[itemClass] = [];
+          }
+          if (this.paperItems[itemClass].indexOf(item) == -1) {
+            this.paperItems[itemClass].push(item);
+          }
+        });
       }
     }
     return item;
   }
   trackItemByLayer(item) {
     if (item) {
-      if (item.data && item.data.Class && this.untrackable.indexOf(item.data.Class.toLowerCase()) != -1) {
-        throw `Cannot track PaperItem of untrackable Class "${item.data.Class}"!`;
+      if (!this.canTrackItem(item)) {
+        throw 'Cannot track PaperItem of untrackable Class!';
       }
       if (!item.data || item.data.Layer == undefined) {
         throw 'Cannot track PaperItem without Layer attribute!';
@@ -266,12 +373,22 @@ export default class PaperCanvas extends Component {
     }
     return item;
   }
-  untrackItemByClass(item) {
-    if (item && item.data && item.data.Class && this.paperItems[item.data.Class]) {
-      let itemIdx = this.paperItems[item.data.Class].indexOf(item);
+  untrackItemByClass(item, itemClass) {
+    if (itemClass) {
+      let itemIdx = this.paperItems[itemClass].indexOf(item);
       if (itemIdx != -1) {
-        this.paperItems[item.data.Class].splice(itemIdx, 1);
+        this.paperItems[itemClass].splice(itemIdx, 1);
       }
+    }
+    else {
+      this.Item.forEachClass(item, (itemClass) => {
+        if (this.paperItems[itemClass]) {
+          let itemIdx = this.paperItems[itemClass].indexOf(item);
+          if (itemIdx != -1) {
+            this.paperItems[itemClass].splice(itemIdx, 1);
+          }
+        }
+      });
     }
     return item;
   }

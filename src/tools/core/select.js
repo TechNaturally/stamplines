@@ -60,19 +60,14 @@ export class Select extends Tool {
     this.State.multi = false;
   }
   isSelectable(item) {
-    if (item && item.data && item.data.Class) {
-      if (item.data.Class.constructor === Array) {
-        for (let Class of item.data.Class) {
-          if (this.config.selectableClasses.indexOf(Class) != -1) {
-            return true;
-          }
-        }
-      }
-      else if (this.config.selectableClasses.indexOf(item.data.Class) != -1) {
+    let selectable = false;
+    this.SL.Paper.Item.forEachClass(item, (itemClass) => {
+      if (this.config.selectableClasses.indexOf(itemClass) != -1) {
+        selectable = true;
         return true;
       }
-    }
-    return false;
+    });
+    return selectable;
   }
   isSelected(item) {
     return !!(item && this.Items.indexOf(item) != -1);
