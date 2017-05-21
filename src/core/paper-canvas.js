@@ -28,6 +28,7 @@ export default class PaperCanvas extends Component {
     this.untrackable = ['template'];
     this.paperItems = {};
     this.paperLayers = {};
+    this.paperEvents = {};
     this.configure();
   }
   activate() {
@@ -114,7 +115,6 @@ export default class PaperCanvas extends Component {
 
     return this.config;
   }
-
   initItem() {
     let self = this;
     this.Item = {
@@ -193,9 +193,72 @@ export default class PaperCanvas extends Component {
             callback(item, data);
           }
         }
+      },
+      passesFilter: function(item, filter) {
+        if (!filter) {
+          return true;
+        }
+        if (item && item.data) {
+          let props = Object.keys(filter);
+          let result = true;
+          for (let prop of props) {
+            if (item.data[prop] != filter[prop]) {
+              result = false;
+            }
+          }
+          return result;
+        }
+        return false;
       }
     };
   }
+
+  on(type, filter, callback, id) {
+    if (type && typeof callback == 'function') {
+      if (!this.paperEvents[type]) {
+        this.paperEvents[type] = {};
+      }
+      if (!id) {
+        let ID = this.SL.Utils.gets('Identity');
+        if (ID) {
+          id = ID.getUnique(type, this.paperEvents[type]);
+        }
+      }
+      if (id && !this.paperEvents[type][id]) {
+        this.paperEvents[type][id] = {
+          id: id,
+          filter: filter,
+          callback: callback
+        };
+        return this.paperEvents[type][id];
+      }
+    }
+  }
+  off(type, id) {
+    if (type && id && this.paperEvents[type] && this.paperEvents[type][id]) {
+      let handler = this.paperEvents[type][id];
+      this.paperEvents[type][id] = undefined;
+      delete this.paperEvents[type][id];
+      if (Object.keys(this.paperEvents[type]).length == 0) {
+        this.paperEvents[type] = undefined;
+        delete this.paperEvents[type];
+      }
+      return handler;
+    }
+  }
+  emit(type, args, item) {
+    if (type && this.paperEvents[type]) {
+      let keys = Object.keys(this.paperEvents[type]);
+      for (let id of keys) {
+        let handler = this.paperEvents[type][id];
+        if (typeof handler.callback == 'function' && (!item || !handler.filter 
+          || (item && handler.filter && this.Item.passesFilter(item, handler.filter)))) {
+          handler.callback(args, item);
+        }
+      }
+    }
+  }
+
   generatePaperItem() {
     if (arguments.length < 1 || arguments[0] === undefined) {
       throw 'Cannot generate PaperItem without attributes!';
@@ -268,6 +331,7 @@ export default class PaperCanvas extends Component {
         item.data.Source.trackPaperItem(item);
       }
     }
+    this.emit('Generate', {}, item);
     return item;
   }
   canTrackItem(item) {
