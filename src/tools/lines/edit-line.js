@@ -9,7 +9,10 @@ export class EditLine extends Tool {
         to: null,
         toHead: null
       },
-      target: undefined
+      target: undefined,
+      targetSegment: undefined,
+      targetHead: undefined,
+      targetTail: undefined
     };
     this.UI = {};
     this.initialized = true;
@@ -52,11 +55,14 @@ export class EditLine extends Tool {
     super.reset();
     this.resetState();
     this.resetUI();
+    this.controlOtherTools(false);
   }
   resetState() {
     this.resetStateAppend();
     this.State.target = undefined;
     this.State.targetSegment = undefined;
+    this.State.targetHead = undefined;
+    this.State.targetTail = undefined;
   }
   resetStateAppend() {
     if (this.State.Append.to && typeof this.State.Append.to.remove == 'function') {
@@ -74,6 +80,7 @@ export class EditLine extends Tool {
   activate() {
     super.activate();
     this.refreshUI();
+    this.controlOtherTools();
   }
   deactivate() {
     super.deactivate();
@@ -86,13 +93,27 @@ export class EditLine extends Tool {
     return (this.active ? 500 : -1);
   }
 
+  controlOtherTools(control=true) {
+    if (control) {
+      this.SL.Paper.Item.forEachOfClass('Tool', (item) => {
+        if (item && item.data && item.data.Source != this) {
+          item.visible = false;
+        }
+      });
+    }
+    else {
+      this.SL.Paper.Item.forEachOfClass('Tool', (item) => {
+        item.visible = true;
+      });
+    }
+  }
+
   refreshUI() {
     if (this.State.targetSegment) {
       if (!this.State.Append.line) {
         if (!this.UI.target) {
           this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
           this.SL.Paper.applyStyle(this.UI.target, this.config.ui.target);
-          // @TODO: let EditLine UI take control of Selected.UI - toggle UI item visibility by priority?
         }
         this.UI.target.position.set(this.State.targetSegment.point);
       }
@@ -153,14 +174,12 @@ export class EditLine extends Tool {
         }
 
         // check for click
-        if (!this.SL.UI.Mouse.State.button.drag && this.State.target && this.State.target.item && this.State.target.item.segments && this.State.target.segment) {
-          let segments = this.State.target.item.segments;
-          let segmentIndex = segments.indexOf(this.State.target.segment);
-          if (segmentIndex == 0 || segmentIndex == (segments.length-1)) {
-            // and end point was clicked, start appending
+        if (!this.SL.UI.Mouse.State.button.drag) {
+          // check for click on end point
+          if (this.State.targetHead || this.State.targetTail) {
             this.State.Append.line = this.State.target.item;
-            this.State.Append.from = this.State.Append.line.segments[segmentIndex];
-            this.State.Append.toHead = !!(segmentIndex == 0);
+            this.State.Append.from = this.State.target.segment; //this.State.Append.line.segments[segmentIndex];
+            this.State.Append.toHead = !this.State.targetTail;
             this.refreshUI();
           }
         }
@@ -200,12 +219,26 @@ export class EditLine extends Tool {
       if (this.State.target != this.Belt.State.Mouse.Hover.target) {
         this.State.target = this.Belt.State.Mouse.Hover.target;
         this.State.targetSegment = (this.State.target && this.State.target.segment) ? this.State.target.segment : undefined;
+        this.State.targetHead = false;
+        this.State.targetTail = false;
+        if (this.State.target && this.State.target.item && this.State.target.item.segments && this.State.target.segment) {
+          let segments = this.State.target.item.segments;
+          let segmentIndex = segments.indexOf(this.State.target.segment);
+          if (segmentIndex == 0) {
+            this.State.targetHead = true;
+          }
+          if (segmentIndex == (segments.length-1)) {
+            this.State.targetTail = true;
+          }
+        }
         this.Belt.checkActiveTool();
       }
     }
     else if (this.State.target && (!this.UI.target || this.Belt.State.Mouse.Hover.targetItem != this.UI.target)) {
       this.State.target = undefined;
       this.State.targetSegment = undefined;
+      this.State.targetHead = undefined;
+      this.State.targetTail = undefined;
       if (!this.State.Append.line) {
         this.finish();
       }
