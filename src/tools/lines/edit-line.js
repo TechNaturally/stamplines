@@ -13,34 +13,35 @@ export class EditLine extends LineTool {
   }
   configure(config) {
     config = super.configure(config);
-    if (!config.ui) {
-      config.ui = {};
-    }
-    if (config.ui.color == undefined) {
-      config.ui.color = '#00AA66';
-    }
-    if (!config.ui.target) {
-      config.ui.target = {};
-    }
-    if (config.ui.target.radius == undefined) {
-      config.ui.target.radius = 10;
-    }
-    if (config.ui.target.color == undefined) {
-      config.ui.target.color = config.ui.color;
-    }
-    if (config.ui.target.fillColor == undefined) {
-      config.ui.target.fillColor = '#FFFFFF';
-    }
-    if (config.ui.target.strokeColor == undefined) {
-      config.ui.target.strokeColor = config.ui.target.color;
-    }
-    if (config.ui.target.strokeWidth == undefined) {
-      config.ui.target.strokeWidth = 2;
-    }
-    if (config.ui.target.opacity == undefined) {
-      config.ui.target.opacity = 0.9;
-    }
+    this.configureUI(config.ui);
     return config;
+  }
+  configureUI(config={}) {
+    this.config.ui = config;
+    if (config.color == undefined) {
+      config.color = '#00AA66';
+    }
+    if (!config.target) {
+      config.target = {};
+    }
+    if (config.target.radius == undefined) {
+      config.target.radius = 10;
+    }
+    if (config.target.color == undefined) {
+      config.target.color = config.color;
+    }
+    if (config.target.fillColor == undefined) {
+      config.target.fillColor = '#FFFFFF';
+    }
+    if (config.target.strokeColor == undefined) {
+      config.target.strokeColor = config.target.color;
+    }
+    if (config.target.strokeWidth == undefined) {
+      config.target.strokeWidth = 2;
+    }
+    if (config.target.opacity == undefined) {
+      config.target.opacity = 0.9;
+    }
   }
   reset() {
     if (!this.initialized) {

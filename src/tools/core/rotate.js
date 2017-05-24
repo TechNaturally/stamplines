@@ -35,116 +35,117 @@ export class Rotate extends Tool {
   }
   configure(config) {
     config = super.configure(config);
-    if (!config.ui) {
-      config.ui = {};
-    }
-    if (config.ui.color == undefined) {
-      config.ui.color = '#FF9933';
-    }
-    if (config.ui.color2 == undefined) {
-      config.ui.color2 = '#990000';
-    }
-    if (!config.ui.circle) {
-      config.ui.circle = {};
-    }
-    if (config.ui.circle.strokeWidth == undefined) {
-      config.ui.circle.strokeWidth = 1;
-    }
-    if (config.ui.circle.strokeColor == undefined) {
-      config.ui.circle.strokeColor = config.ui.color;
-    }
-    if (config.ui.circle.opacity == undefined) {
-      config.ui.circle.opacity = 0.6;
-    }
-    if (!config.ui.circleActive) {
-      config.ui.circleActive = {};
-    }
-    if (config.ui.circleActive.strokeWidth == undefined) {
-      config.ui.circleActive.strokeWidth = 2;
-    }
-    if (config.ui.circleActive.strokeColor == undefined) {
-      config.ui.circleActive.strokeColor = config.ui.circle.strokeColor;
-    }
-    if (config.ui.circleActive.opacity == undefined) {
-      config.ui.circleActive.opacity = config.ui.circle.opacity;
-    }
-    if (!config.ui.handle) {
-      config.ui.handle = {};
-    }
-    if (config.ui.handle.size == undefined) {
-      config.ui.handle.size = 8;
-    }
-    if (config.ui.handle.strokeWidth == undefined) {
-      config.ui.handle.strokeWidth = 1;
-    }
-    if (config.ui.handle.strokeColor == undefined) {
-      config.ui.handle.strokeColor = config.ui.color2;
-    }
-    if (config.ui.handle.fillColor == undefined) {
-      config.ui.handle.fillColor = config.ui.handle.strokeColor;
-    }
-    if (config.ui.handle.opacity == undefined) {
-      config.ui.handle.opacity = 1.0;
-    }
-    if (!config.ui.current) {
-      config.ui.current = {};
-    }
-    if (config.ui.current.strokeWidth == undefined) {
-      config.ui.current.strokeWidth = 1;
-    }
-    if (config.ui.current.strokeColor == undefined) {
-      config.ui.current.strokeColor = config.ui.handle.strokeColor;
-    }
-    if (config.ui.current.opacity == undefined) {
-      config.ui.current.opacity = config.ui.handle.opacity;
-    }
-    if (!config.ui.slices) {
-      config.ui.slices = {};
-    }
-    if (config.ui.slices.opacity == undefined) {
-      config.ui.slices.opacity = 0.5;
-    }
-    if (config.ui.slices.hideCircle == undefined) {
-      config.ui.slices.hideCircle = true;
-    }
-    if (config.ui.slices.circles == undefined || config.ui.slices.circles === true) {
-      config.ui.slices.circles = {};
-    }
-    if (config.ui.slices.circles) {
-      if (config.ui.slices.circles.distance == undefined) {
-        config.ui.slices.circles.distance = 1.0;
-      }
-      if (config.ui.slices.circles.size == undefined) {
-        config.ui.slices.circles.size = 6;
-      }
-      if (config.ui.slices.circles.strokeWidth == undefined) {
-        config.ui.slices.circles.strokeWidth = 1;
-      }
-      if (config.ui.slices.circles.strokeColor == undefined) {
-        config.ui.slices.circles.strokeColor = config.ui.circle.strokeColor;
-      }
-      if (config.ui.slices.circles.opacity == undefined) {
-        config.ui.slices.circles.opacity = config.ui.slices.opacity;
-      }
-    }
-    if (config.ui.slices.lines == undefined || config.ui.slices.lines === true) {
-      config.ui.slices.lines = {};
-    }
-    if (config.ui.slices.lines) {
-      if (config.ui.slices.lines.distance == undefined) {
-        config.ui.slices.lines.distance = 1.0;
-      }
-      if (config.ui.slices.lines.strokeWidth == undefined) {
-        config.ui.slices.lines.strokeWidth = 1;
-      }
-      if (config.ui.slices.lines.strokeColor == undefined) {
-        config.ui.slices.lines.strokeColor = config.ui.circle.strokeColor;
-      }
-      if (config.ui.slices.lines.opacity == undefined) {
-        config.ui.slices.lines.opacity = config.ui.slices.opacity;
-      }
-    }
+    this.configureUI(config.ui);
     return config;
+  }
+  configureUI(config={}) {
+    this.config.ui = config;
+    if (config.color == undefined) {
+      config.color = '#FF9933';
+    }
+    if (config.color2 == undefined) {
+      config.color2 = '#990000';
+    }
+    if (!config.circle) {
+      config.circle = {};
+    }
+    if (config.circle.strokeWidth == undefined) {
+      config.circle.strokeWidth = 1;
+    }
+    if (config.circle.strokeColor == undefined) {
+      config.circle.strokeColor = config.color;
+    }
+    if (config.circle.opacity == undefined) {
+      config.circle.opacity = 0.6;
+    }
+    if (!config.circleActive) {
+      config.circleActive = {};
+    }
+    if (config.circleActive.strokeWidth == undefined) {
+      config.circleActive.strokeWidth = 2;
+    }
+    if (config.circleActive.strokeColor == undefined) {
+      config.circleActive.strokeColor = config.circle.strokeColor;
+    }
+    if (config.circleActive.opacity == undefined) {
+      config.circleActive.opacity = config.circle.opacity;
+    }
+    if (!config.handle) {
+      config.handle = {};
+    }
+    if (config.handle.size == undefined) {
+      config.handle.size = 8;
+    }
+    if (config.handle.strokeWidth == undefined) {
+      config.handle.strokeWidth = 1;
+    }
+    if (config.handle.strokeColor == undefined) {
+      config.handle.strokeColor = config.color2;
+    }
+    if (config.handle.fillColor == undefined) {
+      config.handle.fillColor = config.handle.strokeColor;
+    }
+    if (config.handle.opacity == undefined) {
+      config.handle.opacity = 1.0;
+    }
+    if (!config.current) {
+      config.current = {};
+    }
+    if (config.current.strokeWidth == undefined) {
+      config.current.strokeWidth = 1;
+    }
+    if (config.current.strokeColor == undefined) {
+      config.current.strokeColor = config.handle.strokeColor;
+    }
+    if (config.current.opacity == undefined) {
+      config.current.opacity = config.handle.opacity;
+    }
+    if (!config.slices) {
+      config.slices = {};
+    }
+    if (config.slices.opacity == undefined) {
+      config.slices.opacity = 0.5;
+    }
+    if (config.slices.hideCircle == undefined) {
+      config.slices.hideCircle = true;
+    }
+    if (config.slices.circles == undefined || config.slices.circles === true) {
+      config.slices.circles = {};
+    }
+    if (config.slices.circles) {
+      if (config.slices.circles.distance == undefined) {
+        config.slices.circles.distance = 1.0;
+      }
+      if (config.slices.circles.size == undefined) {
+        config.slices.circles.size = 6;
+      }
+      if (config.slices.circles.strokeWidth == undefined) {
+        config.slices.circles.strokeWidth = 1;
+      }
+      if (config.slices.circles.strokeColor == undefined) {
+        config.slices.circles.strokeColor = config.circle.strokeColor;
+      }
+      if (config.slices.circles.opacity == undefined) {
+        config.slices.circles.opacity = config.slices.opacity;
+      }
+    }
+    if (config.slices.lines == undefined || config.slices.lines === true) {
+      config.slices.lines = {};
+    }
+    if (config.slices.lines) {
+      if (config.slices.lines.distance == undefined) {
+        config.slices.lines.distance = 1.0;
+      }
+      if (config.slices.lines.strokeWidth == undefined) {
+        config.slices.lines.strokeWidth = 1;
+      }
+      if (config.slices.lines.strokeColor == undefined) {
+        config.slices.lines.strokeColor = config.circle.strokeColor;
+      }
+      if (config.slices.lines.opacity == undefined) {
+        config.slices.lines.opacity = config.slices.opacity;
+      }
+    }
   }
   reset() {
     if (!this.initialized) {
