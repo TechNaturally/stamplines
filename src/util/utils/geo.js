@@ -43,6 +43,12 @@ export class Geo extends Util {
       },
       edgePoint: function(edge, rectangle, opposite=false) {
         let result = rectangle.center.clone();
+        if (typeof edge == 'string') {
+          edge = this.vector(edge);
+        }
+        if (!edge || edge.x == undefined || edge.y == undefined) {
+          throw 'Invalid edge given';
+        }
         if (edge.x < 0) {
           result.x = (opposite ? rectangle.right : rectangle.left);
         }
@@ -58,6 +64,11 @@ export class Geo extends Util {
         return result;
       }
     };
+    let directions = Object.keys(this.Direction.VectorMap);
+    for (let direction of directions) {
+      this.Direction.VectorMap[direction].length = 1.0;
+      this.Direction.VectorMap[direction].length = Math.round(this.Direction.VectorMap[direction].length);
+    }
   }
   resetDirection() {
     if (!this.initialized || !this.Direction) {
