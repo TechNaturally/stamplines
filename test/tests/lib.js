@@ -12,7 +12,7 @@ import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/pa
 
 import {default as ToolBelt} from '../../src/tools/toolbelt.js';
 import {Select, Move, Scale, Rotate} from '../../src/tools/core/_index.js';
-import {CreateLine, EditLine} from '../../src/tools/lines/_index.js';
+import {LineTool, CreateLine, EditLine} from '../../src/tools/lines/_index.js';
 import {CreateStamp} from '../../src/tools/stamps/_index.js';
 
 import {default as UI} from '../../src/ui/ui.js';
@@ -50,6 +50,7 @@ export default {
       Rotate: Rotate
     },
     Lines: {
+      LineTool: LineTool,
       CreateLine: CreateLine,
       EditLine: EditLine
     },

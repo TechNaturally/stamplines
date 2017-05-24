@@ -1,19 +1,13 @@
-import Tool from '../../core/tool.js';
-export class EditLine extends Tool {
+import {LineTool} from './line-tool.js';
+export class EditLine extends LineTool {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
-    this.State = {
-      Append: {
-        line: null,
-        from: null,
-        to: null,
-        toHead: null
-      },
+    $.extend(this.State, {
       target: undefined,
       targetSegment: undefined,
       targetHead: undefined,
       targetTail: undefined
-    };
+    });
     this.UI = {};
     this.initialized = true;
   }
@@ -53,38 +47,19 @@ export class EditLine extends Tool {
       return;
     }
     super.reset();
-    this.resetState();
     this.resetUI();
     this.controlOtherTools(false);
   }
   resetState() {
-    this.resetStateAppend();
+    super.resetState();
     this.State.target = undefined;
     this.State.targetSegment = undefined;
     this.State.targetHead = undefined;
     this.State.targetTail = undefined;
   }
-  resetStateAppend() {
-    if (this.State.Append.to && typeof this.State.Append.to.remove == 'function') {
-      this.State.Append.to.remove();
-    }
-    if (this.State.Append.line && this.State.Append.line.segments.length < 2) {
-      // 1 point == 1 segment, so there is no line if there are less than 2 points
-      this.SL.Paper.destroyPaperItem(this.State.Append.line);
-    }
-    this.State.Append.line = null;
-    this.State.Append.from = null;
-    this.State.Append.to = null;
-    this.State.Append.toHead = null;
-  }
   activate() {
     super.activate();
-    this.refreshUI();
     this.controlOtherTools();
-  }
-  deactivate() {
-    super.deactivate();
-    this.reset();
   }
   get activationPriority() {
     if (this.State.target) {
@@ -100,15 +75,18 @@ export class EditLine extends Tool {
           item.visible = false;
         }
       });
+      this.endTargetted(this.State.targetHead || this.State.targetTail);
     }
     else {
       this.SL.Paper.Item.forEachOfClass('Tool', (item) => {
         item.visible = true;
       });
+      this.endTargetted(false);
     }
   }
 
   refreshUI() {
+    super.refreshUI();
     if (this.State.targetSegment) {
       if (!this.State.Append.line) {
         if (!this.UI.target) {
@@ -128,23 +106,7 @@ export class EditLine extends Tool {
       this.UI.target = undefined;
     }
   }
-  onMouseDown(event) {
-    if (this.isActive()) {
-      if (event.event.button === 0) {
-        if (this.State.Append.line && this.State.Append.to) {
-          this.State.Append.from = this.State.Append.to;
-          this.State.Append.to = null;
-          let Snap = this.SL.Utils.get('Snap');
-          if (Snap) {
-            this.State.Append.from.point.set(Snap.Point(this.State.Append.from.point));
-          }
-        }
-      }
-      else if (event.event.button == 2) {
-        this.finish();
-      }
-    }
-  }
+  
   onMouseDrag(event) {
     if (this.isActive()) {
       if (this.UI.target) {
@@ -187,32 +149,7 @@ export class EditLine extends Tool {
     }
   }
   onMouseMove(event) {
-    if (this.isActive()) {
-      if (this.State.Append.from) {
-        let point = event.point.clone();
-        let Snap = this.SL.Utils.get('Snap');
-        if (Snap) {
-          point = Snap.Point(point, {interactive: true});
-        }
-        if (!this.State.Append.to) {
-          // spoof segment object to initialize the real one with
-          // the real segment is returned by the line's append function
-          this.State.Append.to = { point: point };
-          if (this.State.Append.line) {
-            if (this.State.Append.toHead) {
-              this.State.Append.to = this.State.Append.line.insert(0, this.State.Append.to.point);
-            }
-            else {
-              this.State.Append.to = this.State.Append.line.add(this.State.Append.to.point);
-            }
-          }
-        }
-        else {
-          // update the append point
-          this.State.Append.to.point.set(point);
-        }
-      }
-    }
+    super.onMouseMove(event);
     if (this.Belt.State.Mouse.Hover.targetSelected && this.Belt.State.Mouse.Hover.targetItem 
       && this.Belt.State.Mouse.Hover.targetItem.data && this.Belt.State.Mouse.Hover.targetItem.data.Type == 'Line'
       && this.Belt.State.Mouse.Hover.target.type == 'segment') {

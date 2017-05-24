@@ -1,12 +1,19 @@
-import {EditLine} from './edit-line.js';
-export class CreateLine extends EditLine {
+import {LineTool} from './line-tool.js';
+export class CreateLine extends LineTool {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
     this.loaded = {};
   }
+  activate() {
+    super.activate();
+    this.endTargetted(true);
+  }
   deactivate() {
     super.deactivate();
     this.unloadLine();
+  }
+  get activationPriority() {
+    return (this.active ? 500 : -1);
   }
 
   loadLine(line, palette, activate=true) {
@@ -25,12 +32,6 @@ export class CreateLine extends EditLine {
     delete this.loaded.line;
     this.loaded.palette = undefined;
     delete this.loaded.palette;
-  }
-
-  refreshUI() {
-    if (this.isActive()) {
-      this.SL.UI.Mouse.Cursor.activateCursor('crosshairs');
-    }
   }
 
   onMouseDown(event) {
