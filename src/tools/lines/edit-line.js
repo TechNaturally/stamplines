@@ -114,7 +114,7 @@ export class EditLine extends LineTool {
         let point = this.UI.target.position.add(event.delta);
         let Snap = this.SL.Utils.get('Snap');
         if (Snap) {
-          this.UI.target.position.set(Snap.Point(point, {interactive: true}));
+          this.UI.target.position.set(Snap.Point(point, {context: 'line-point', interactive: true}));
         }
         if (this.State.targetSegment) {
           this.State.targetSegment.point.set(this.UI.target.position);
@@ -129,7 +129,7 @@ export class EditLine extends LineTool {
         let point = this.UI.target.position.clone();
         let Snap = this.SL.Utils.get('Snap');
         if (Snap) {
-          this.UI.target.position.set(Snap.Point(point, {interactive: false}));
+          this.UI.target.position.set(Snap.Point(point, {context: 'line-point', interactive: false}));
         }
         if (this.State.targetSegment) {
           this.State.targetSegment.point.set(this.UI.target.position);

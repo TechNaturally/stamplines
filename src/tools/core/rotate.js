@@ -348,7 +348,7 @@ export class Rotate extends Tool {
     if (snap && this.config.snap && this.config.slices) {
       let Snap = this.SL.Utils.get('Snap');
       if (Snap) {
-        angle = Snap.Rotation(angle, { slices: this.config.slices });
+        angle = Snap.Rotation(angle, { context: 'rotate', slices: this.config.slices });
       }
     }
     angle = this.Calc.degNormalize(angle);
@@ -388,6 +388,7 @@ export class Rotate extends Tool {
       this.State.Mouse.Dragging = false;
       this.resetUI();
       this.Belt.Belt.Select.SnapSelected({
+        context: 'rotate',
         position: true,
         size: false
       });

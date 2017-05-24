@@ -38,22 +38,22 @@ export class Snap extends Util {
     return (this.Around(value2, value1, threshold) == value2);
   }
   Item(item, config={}) {
-    return this.runSnappers('item', item, config);
+    return this.runSnappers('item', item, $.extend(config, {original: item.clone({insert:false})}));
   }
   Point(point, config={}) {
-    return this.runSnappers('point', new paper.Point(point), config);
+    return this.runSnappers('point', new paper.Point(point), $.extend(config, {original: point}));
   }
   PointMin(point, config={}) {
-    return this.runSnappers('pointMin', new paper.Point(point), config);
+    return this.runSnappers('pointMin', new paper.Point(point), $.extend(config, {original: point}));
   }
   PointMax(point, config={}) {
-    return this.runSnappers('pointMax', new paper.Point(point), config);
+    return this.runSnappers('pointMax', new paper.Point(point), $.extend(config, {original: point}));
   }
   Rectangle(rectangle, config={}) {
-    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), config);
+    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), $.extend(config, {original: rectangle}));
   }
   Rotation(angle, config={}) {
-    return this.runSnappers('rotation', angle, config);
+    return this.runSnappers('rotation', angle, $.extend(config, {original: angle}));
   }
 
   addSnapper(type, config) {

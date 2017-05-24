@@ -28,7 +28,7 @@ export class CreateStamp extends Tool {
       let stamp = this.loaded.palette.placeStamp(this.loaded.stamp, point.clone());
       let Snap = this.SL.Utils.get('Snap');
       if (Snap) {
-        Snap.Item(stamp);
+        Snap.Item(stamp, {context: 'stamp'});
       }
     }
     this.finish();

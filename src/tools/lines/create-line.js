@@ -41,7 +41,7 @@ export class CreateLine extends LineTool {
           let point = event.point.clone();
           let Snap = this.SL.Utils.get('Snap');
           if (Snap) {
-            point = Snap.Point(point);
+            point = Snap.Point(point, {context: 'line-point'});
           }
           this.State.Append.from = { point: point };
           // setting Append.from initiates the sequence:

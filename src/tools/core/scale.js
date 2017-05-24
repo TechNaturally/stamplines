@@ -261,6 +261,7 @@ export class Scale extends Tool {
         });
 
         Snap.Item(item, {
+          context: 'scale',
           interactive: true,
           size: true,
           position: false,
@@ -333,6 +334,7 @@ export class Scale extends Tool {
       // @TODO: need to determine anchorEdge
       let anchorEdge = undefined;
       this.Belt.Belt.Select.SnapSelected({
+        context: 'scale',
         interactive: false,
         size: true,
         position: false,

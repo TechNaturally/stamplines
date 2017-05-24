@@ -67,7 +67,7 @@ export class LineTool extends Tool {
           this.State.Append.to = null;
           let Snap = this.SL.Utils.get('Snap');
           if (Snap) {
-            this.State.Append.from.point.set(Snap.Point(this.State.Append.from.point));
+            this.State.Append.from.point.set(Snap.Point(this.State.Append.from.point, {context: 'line-point'}));
           }
         }
       }
@@ -82,7 +82,7 @@ export class LineTool extends Tool {
         let point = event.point.clone();
         let Snap = this.SL.Utils.get('Snap');
         if (Snap) {
-          point = Snap.Point(point, {interactive: true});
+          point = Snap.Point(point, {context: 'line-point', interactive: true});
         }
         if (!this.State.Append.to) {
           // spoof segment object to initialize the real one with
