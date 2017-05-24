@@ -85,13 +85,12 @@ export class EditLine extends LineTool {
       this.endTargetted(false);
     }
   }
-
   refreshUI() {
     super.refreshUI();
     if (this.State.targetSegment) {
       if (!this.State.Append.line) {
         if (!this.UI.target) {
-          this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:'UI_FG'}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
+          this.UI.target = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+10}, paper.Shape.Circle, this.State.targetSegment.point, this.config.ui.target.radius);
           this.SL.Paper.applyStyle(this.UI.target, this.config.ui.target);
         }
         this.UI.target.position.set(this.State.targetSegment.point);
@@ -111,10 +110,10 @@ export class EditLine extends LineTool {
   onMouseDrag(event) {
     if (this.isActive()) {
       if (this.UI.target) {
-        let point = this.UI.target.position.add(event.delta);
+        let point = event.point.clone();
         let Snap = this.SL.Utils.get('Snap');
         if (Snap) {
-          this.UI.target.position.set(Snap.Point(point, {context: 'line-point', interactive: true}));
+          this.UI.target.position.set(Snap.Point(point, {context: 'line-point', interactive: true, segment: this.State.targetSegment}));
         }
         if (this.State.targetSegment) {
           this.State.targetSegment.point.set(this.UI.target.position);
@@ -126,22 +125,20 @@ export class EditLine extends LineTool {
   onMouseUp(event) {
     if (this.isActive()) {
       if (this.UI.target) {
-        let point = this.UI.target.position.clone();
+        let point = event.point.clone();
         let Snap = this.SL.Utils.get('Snap');
         if (Snap) {
-          this.UI.target.position.set(Snap.Point(point, {context: 'line-point', interactive: false}));
+          this.UI.target.position.set(Snap.Point(point, {context: 'line-point', interactive: false, segment: this.State.targetSegment}));
         }
         if (this.State.targetSegment) {
           this.State.targetSegment.point.set(this.UI.target.position);
           this.Belt.refreshUI();
         }
-
-        // check for click
         if (!this.SL.UI.Mouse.State.button.drag) {
-          // check for click on end point
+          // no drag means a click, check if it was on end point
           if (this.State.targetHead || this.State.targetTail) {
             this.State.Append.line = this.State.target.item;
-            this.State.Append.from = this.State.target.segment; //this.State.Append.line.segments[segmentIndex];
+            this.State.Append.from = this.State.target.segment;
             this.State.Append.toHead = !this.State.targetTail;
             this.refreshUI();
           }

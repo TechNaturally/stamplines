@@ -345,11 +345,9 @@ export class Rotate extends Tool {
   }
 
   setAngle(angle, snap=true) {
-    if (snap && this.config.snap && this.config.slices) {
-      let Snap = this.SL.Utils.get('Snap');
-      if (Snap) {
-        angle = Snap.Rotation(angle, { context: 'rotate', slices: this.config.slices });
-      }
+    let Snap = this.SL.Utils.get('Snap');
+    if (snap && this.config.snap && this.config.slices && Snap) {
+      angle = Snap.Rotation(angle, { context: 'rotate', slices: this.config.slices });
     }
     angle = this.Calc.degNormalize(angle);
     if (this.currentAngle != angle) {
@@ -381,6 +379,12 @@ export class Rotate extends Tool {
         angle -= 360.0;
       }
       this.setAngle(angle);
+      this.Belt.Belt.Select.SnapSelected({
+        context: 'rotate',
+        interactive: true,
+        position: true,
+        size: false
+      });
     }
   }
   onMouseUp(event) {

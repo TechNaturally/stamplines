@@ -25,6 +25,12 @@ export class Move extends Tool {
       }
       let delta = bounds.center.subtract(Select.UI.outline.strokeBounds.center);
       Select.Group.translate(delta);
+      Select.SnapSelected({
+        context: 'move',
+        interactive: true,
+        position: true,
+        size: false
+      });
       this.Belt.refreshUI();
     }
   }

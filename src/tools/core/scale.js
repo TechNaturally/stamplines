@@ -324,6 +324,15 @@ export class Scale extends Tool {
       }
       // perform the scale (also Snaps each item as it scales them)
       this.Scale(this.Belt.Belt.Select.Items, delta, this.Belt.State.Mouse.Hover.selectionEdge.direction);
+      // @TODO: need to determine anchorEdge
+      let anchorEdge = undefined;
+      this.Belt.Belt.Select.SnapSelected({
+        context: 'scale',
+        interactive: true,
+        size: true,
+        position: false,
+        anchor: anchorEdge
+      });
       this.Belt.refreshUI();
     }
   }

@@ -41,14 +41,14 @@ export class CreateLine extends LineTool {
           let point = event.point.clone();
           let Snap = this.SL.Utils.get('Snap');
           if (Snap) {
-            point = Snap.Point(point, {context: 'line-point'});
+            point.set(Snap.Point(point, {context: 'line-point'}));
           }
           this.State.Append.from = { point: point };
           // setting Append.from initiates the sequence:
-          // - EditLine::onMouseMove sees Append.from and sets Append.to
+          // - LineTool::onMouseMove sees Append.from and sets Append.to
           // - CreateLine::onMouseMove sees Append.to and !Append.line and creates new paper.Path.Line
-          // - EditLine::onMouseMove contintues to update Append.to
-          // - EditLine::onMouseDown handles adding more points and finishing (including cleanup of Append)
+          // - LineTool::onMouseMove contintues to update Append.to
+          // - LineTool::onMouseDown handles adding more points and finishing (including cleanup of Append)
         }
       }
     }
@@ -59,7 +59,14 @@ export class CreateLine extends LineTool {
     if (this.isActive()) {
       if (!this.State.Append.line && this.State.Append.to && this.State.Append.from && this.loaded.palette) {
         this.State.Append.line = this.loaded.palette.createLine(this.State.Append.from, this.State.Append.to, this.loaded.line);
+        this.State.Append.from = this.State.Append.line.segments[0];
         this.State.Append.to = this.State.Append.line.segments[this.State.Append.line.segments.length-1];
+        let Snap = this.SL.Utils.get('Snap');
+        if (Snap) {
+          // from and to were spoof segments before, now snap them with the real segments
+          this.State.Append.from.point.set(Snap.Point(this.State.Append.from.point, {context: 'line-point', interactive: false, segment: this.State.Append.from}));
+          this.State.Append.to.point.set(Snap.Point(this.State.Append.to.point, {context: 'line-point',  interactive: true, segment: this.State.Append.to}));
+        }
       }
     }
   }

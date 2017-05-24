@@ -14,6 +14,7 @@ import {default as ToolBelt} from '../../src/tools/toolbelt.js';
 import {Select, Move, Scale, Rotate} from '../../src/tools/core/_index.js';
 import {LineTool, CreateLine, EditLine} from '../../src/tools/lines/_index.js';
 import {CreateStamp} from '../../src/tools/stamps/_index.js';
+import {Connect} from '../../src/tools/connect/_index.js';
 
 import {default as UI} from '../../src/ui/ui.js';
 import {default as Dock} from '../../src/ui/dock.js';
@@ -56,6 +57,9 @@ export default {
     },
     Stamps: {
       CreateStamp: CreateStamp
+    },
+    Connect: {
+      Connect: Connect
     }
   },
   UI: {
