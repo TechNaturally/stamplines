@@ -3,13 +3,18 @@ export class Geo extends Util {
   constructor(SL, config) {
     super(SL, config);
     this.name = 'Geo';
-    this.initDirection();
     this.configure();
     this.initialized = true;
+  }
+  configure(config) {
+    super.configure(config);
+    this.initDirection();
+    this.initNormalize();
   }
   reset() {
     super.reset();
     this.resetDirection();
+    this.resetNormalize();
   }
   initDirection() {
     this.resetDirection();
@@ -65,6 +70,37 @@ export class Geo extends Util {
       }
     }
     this.Direction = undefined;
+  }
+
+  initNormalize() {
+    this.resetNormalize();
+    let self = this;
+    this.Normalize = {
+      pointToRectangle(point, rectangle) {
+        point = new paper.Point(point);
+        // normalize the point to between -1.0 and 1.0 on x & y axis
+        // don't do anything with points that are already >= -1.0 and <= 1.0
+        if (rectangle.width && (point.x < -1.0 || point.x > 1.0)) {
+          point.x /= (rectangle.width/2.0);
+        }
+        if (rectangle.height && (point.y < -1.0 || point.y > 1.0)) {
+          point.y /= (rectangle.height/2.0);
+        }
+        return point;
+      },
+      pointFromRectangle(point, rectangle) {
+        point = new paper.Point(point);
+        var bounds = new paper.Point(rectangle.width/2.0, rectangle.height/2.0);
+        point = rectangle.center.add(point.multiply(bounds));
+        return point;
+      }
+    };
+  }
+  resetNormalize() {
+    if (!this.initialized || !this.Normalize) {
+      return;
+    }
+    this.Normalize = undefined;
   }
 };
 export default Geo;
