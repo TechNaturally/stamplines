@@ -13,14 +13,14 @@ describe('Tools.Core.Move', () => {
     });
   });
   describe('+activationPriority', () => {
-    describe('- when Belt.State.Mouse.Hover.selection', () => {
-      let wasHoverSelection;
+    describe('- when Belt.State.Mouse.Hover.targetSelected', () => {
+      let wasHoverTargetSelected;
       before(() => {
-        wasHoverSelection = Move.Belt.State.Mouse.Hover.selection;
-        Move.Belt.State.Mouse.Hover.selection = true;
+        wasHoverTargetSelected = Move.Belt.State.Mouse.Hover.targetSelected;
+        Move.Belt.State.Mouse.Hover.targetSelected = true;
       });
       after(() => {
-        Move.Belt.State.Mouse.Hover.selection = wasHoverSelection;
+        Move.Belt.State.Mouse.Hover.targetSelected = wasHoverTargetSelected;
       });
       it('should equal 10', () => {
         expect(Move.activationPriority).to.equal(10);

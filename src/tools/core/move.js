@@ -4,7 +4,7 @@ export class Move extends Tool {
     super(SL, config, Belt);
   }
   get activationPriority() {
-    if (this.Belt.State.Mouse.Hover.selection) {
+    if (this.Belt.State.Mouse.Hover.targetSelected) {
       return 10;
     }
     return -1;
