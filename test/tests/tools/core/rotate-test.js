@@ -247,6 +247,11 @@ describe('Tools.Core.Rotate', () => {
       Rotate.configure();
       expect(Rotate.config.ui.slices).to.exist;
     });
+    it('should force config.ui.slices.distance to be set', () => {
+      Rotate.config.ui.slices.distance = undefined;
+      Rotate.configure();
+      expect(Rotate.config.ui.slices.distance).to.not.be.empty;
+    });
     it('should force config.ui.slices.opacity to be set', () => {
       Rotate.config.ui.slices.opacity = undefined;
       Rotate.configure();
@@ -261,11 +266,6 @@ describe('Tools.Core.Rotate', () => {
       Rotate.config.ui.slices.circles = undefined;
       Rotate.configure();
       expect(Rotate.config.ui.slices.circles).to.exist;
-    });
-    it('should force config.ui.slices.circles.distance to be set', () => {
-      Rotate.config.ui.slices.circles.distance = undefined;
-      Rotate.configure();
-      expect(Rotate.config.ui.slices.circles.distance).to.not.be.empty;
     });
     it('should force config.ui.slices.circles.size to be set', () => {
       Rotate.config.ui.slices.circles.size = undefined;
@@ -291,11 +291,6 @@ describe('Tools.Core.Rotate', () => {
       Rotate.config.ui.slices.lines = undefined;
       Rotate.configure();
       expect(Rotate.config.ui.slices.lines).to.exist;
-    });
-    it('should force config.ui.slices.lines.distance to be set', () => {
-      Rotate.config.ui.slices.lines.distance = undefined;
-      Rotate.configure();
-      expect(Rotate.config.ui.slices.lines.distance).to.not.be.empty;
     });
     it('should force config.ui.slices.lines.strokeWidth to be set', () => {
       Rotate.config.ui.slices.lines.strokeWidth = undefined;

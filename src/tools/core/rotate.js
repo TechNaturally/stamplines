@@ -49,6 +49,9 @@ export class Rotate extends Tool {
     if (!config.circle) {
       config.circle = {};
     }
+    if (config.circle.radius == undefined) {
+      config.circle.radius = 20;
+    }
     if (config.circle.strokeWidth == undefined) {
       config.circle.strokeWidth = 1;
     }
@@ -91,6 +94,10 @@ export class Rotate extends Tool {
     if (!config.current) {
       config.current = {};
     }
+    if (!config.current.distance) {
+      config.current.distance = 2.0;
+      config.current.distanceNorm = true;
+    }
     if (config.current.strokeWidth == undefined) {
       config.current.strokeWidth = 1;
     }
@@ -106,6 +113,10 @@ export class Rotate extends Tool {
     if (config.slices.opacity == undefined) {
       config.slices.opacity = 0.5;
     }
+    if (config.slices.distance == undefined) {
+      config.slices.distance = config.current.distance;
+      config.slices.distanceNorm = config.current.distanceNorm;
+    }
     if (config.slices.hideCircle == undefined) {
       config.slices.hideCircle = true;
     }
@@ -113,9 +124,6 @@ export class Rotate extends Tool {
       config.slices.circles = {};
     }
     if (config.slices.circles) {
-      if (config.slices.circles.distance == undefined) {
-        config.slices.circles.distance = 1.0;
-      }
       if (config.slices.circles.size == undefined) {
         config.slices.circles.size = 6;
       }
@@ -133,9 +141,6 @@ export class Rotate extends Tool {
       config.slices.lines = {};
     }
     if (config.slices.lines) {
-      if (config.slices.lines.distance == undefined) {
-        config.slices.lines.distance = 1.0;
-      }
       if (config.slices.lines.strokeWidth == undefined) {
         config.slices.lines.strokeWidth = 1;
       }
@@ -180,11 +185,31 @@ export class Rotate extends Tool {
       return (360.0 / this.config.slices);
     }
   }
+  get circleCenter() {
+    return (this.UI.circle ? this.UI.circle.bounds.center : this.Belt.Belt.Select.Group.bounds.center);
+  }
+  get circleRadius() {
+    return (this.UI.circle ? this.UI.circle.strokeBounds.width/2.0 : this.config.ui.circle.radius);
+  }
+  get uiRadiusMax() {
+    return Math.max(this.circleRadius, this.uiRadiusCurrent, this.uiRadiusSlices);
+  }
+  get uiRadiusCurrent() {
+    if (this.config.ui.current && this.config.ui.current.distance) {
+      return this.config.ui.current.distance * (this.config.ui.current.distanceNorm ? this.circleRadius : 1.0);
+    }
+    return this.circleRadius;
+  }
+  get uiRadiusSlices() {
+    if (this.config.ui.slices && this.config.ui.slices.distance) {
+      return this.config.ui.slices.distance * (this.config.ui.slices.distanceNorm ? this.circleRadius : 1.0);
+    }
+    return this.circleRadius;
+  }
   refreshUI() {
     let Select = this.Belt.Belt.Select;
     if (Select && Select.hasItems()) {
-      // @TODO: rework rotate UI (don't cover whole item)
-      let radius = Math.max(Math.min(Select.Group.bounds.width, Select.Group.bounds.height) / 3.0, 25);
+      let radius = this.config.ui.circle.radius;
       let position = Select.Group.bounds.center;
       if (!this.UI.circle) {
         this.UI.circle = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:this.SL.Paper.Layers['UI']-1}, paper.Shape.Circle, position, radius);
@@ -230,7 +255,7 @@ export class Rotate extends Tool {
     if (!this.UI.circle) {
       return;
     }
-    let handlePosition = this.Calc.pointOnCircle(this.currentAngle, this.UI.circle.bounds.center, this.UI.circle.strokeBounds.width/2.0);
+    let handlePosition = this.Calc.pointOnCircle(this.currentAngle, this.circleCenter, this.uiRadiusCurrent);
     if (!this.UI.handle) {
       this.UI.handle = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:'UI_FG'}, paper.Shape.Circle, handlePosition, this.config.ui.handle.size);
     }
@@ -242,14 +267,14 @@ export class Rotate extends Tool {
 
     if (this.config.ui.current) {
       if (!this.UI.current) {
-        this.UI.current = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:this.SL.Paper.Layers['UI_FG']-1}, paper.Path.Line, this.UI.circle.bounds.center, handlePosition);
+        this.UI.current = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:this.SL.Paper.Layers['UI_FG']-1}, paper.Path.Line, this.circleCenter, handlePosition);
       }
       this.UI.current.strokeWidth = this.config.ui.current.strokeWidth;
       this.UI.current.strokeColor = this.config.ui.current.strokeColor;
       this.UI.current.opacity = this.config.ui.current.opacity;
     }
     if (this.UI.current && this.UI.current.segments && this.UI.current.segments.length) {
-      this.UI.current.segments[0].point.set(this.UI.circle.bounds.center);
+      this.UI.current.segments[0].point.set(this.circleCenter);
       if (this.UI.current.segments.length > 1) {
         this.UI.current.segments[1].point.set(handlePosition);
       }
@@ -290,18 +315,18 @@ export class Rotate extends Tool {
     }
     if (this.UI.slices.children.length != this.config.slices*itemsPerSlice) {
       this.UI.slices.removeChildren();
-      let sliceRadius = this.UI.circle.strokeBounds.width/2.0;
+      let sliceRadius = this.uiRadiusSlices;
       for (let i=0; i < this.config.slices; i++) {
         if (this.config.ui.slices.lines) {
-          let slicePoint = this.Calc.pointOnCircle(this.Calc.degNormalize(this.degPerSlice*i),  this.UI.circle.bounds.center, sliceRadius*this.config.ui.slices.lines.distance);
-          let sliceLine = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer: 'GROUPED', Type: 'Slice.Line'}, paper.Path.Line, this.UI.circle.bounds.center, slicePoint);
+          let slicePoint = this.Calc.pointOnCircle(this.Calc.degNormalize(this.degPerSlice*i),  this.circleCenter, sliceRadius);
+          let sliceLine = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer: 'GROUPED', Type: 'Slice.Line'}, paper.Path.Line, this.circleCenter, slicePoint);
           sliceLine.strokeWidth = this.config.ui.slices.lines.strokeWidth;
           sliceLine.strokeColor = this.config.ui.slices.lines.strokeColor;
           sliceLine.opacity = this.config.ui.slices.lines.opacity;
           this.UI.slices.addChild(sliceLine);
         }
         if (this.config.ui.slices.circles) {
-          let slicePoint = this.Calc.pointOnCircle(this.Calc.degNormalize(this.degPerSlice*i),  this.UI.circle.bounds.center, sliceRadius*this.config.ui.slices.circles.distance);
+          let slicePoint = this.Calc.pointOnCircle(this.Calc.degNormalize(this.degPerSlice*i),  this.circleCenter, sliceRadius);
           let sliceCircle = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer: 'GROUPED', Type: 'Slice.Circle'}, paper.Shape.Circle, slicePoint, this.config.ui.slices.circles.size);
           sliceCircle.strokeWidth = this.config.ui.slices.circles.strokeWidth;
           sliceCircle.strokeColor = this.config.ui.slices.circles.strokeColor;
@@ -365,6 +390,12 @@ export class Rotate extends Tool {
     this.State.Mouse.Hover.handle = (this.SL.UI.Mouse.State.active && this.SL.UI.Mouse.State.point && this.UI.handle && this.UI.handle.contains(this.SL.UI.Mouse.State.point));
     this.State.Mouse.Hover.slice = ((this.SL.UI.Mouse.State.active && this.SL.UI.Mouse.State.point) ? this.getUISliceAt(this.SL.UI.Mouse.State.point) : -1);
     this.State.Mouse.Hover.ui = (this.State.Mouse.Hover.circle || this.State.Mouse.Hover.handle || this.State.Mouse.Hover.slice != -1);
+    if (this.isActive() && !this.State.Mouse.Hover.ui) {
+      let Geo = this.SL.Utils.get('Geo');
+      if (Geo && Geo.Circle.contains(this.SL.UI.Mouse.State.point, this.circleCenter, this.uiRadiusMax)) {
+        this.State.Mouse.Hover.ui = true;
+      }
+    }
   }
   onMouseDrag(event) {
     if (this.isActive()) {
