@@ -8,13 +8,32 @@ export class Geo extends Util {
   }
   configure(config) {
     super.configure(config);
+    this.initCircle();
     this.initDirection();
     this.initNormalize();
   }
   reset() {
     super.reset();
+    this.resetCircle();
     this.resetDirection();
     this.resetNormalize();
+  }
+  initCircle() {
+    this.resetCircle();
+    this.Circle = {
+      contains: function(point, center, radius) {
+        return (
+          Math.sqrt(
+            Math.pow(point.x - center.x, 2) + Math.pow(point.y - center.y, 2)
+          ) <= radius);
+      }
+    };
+  }
+  resetCircle() {
+    if (!this.initialized || !this.Circle) {
+      return;
+    }
+    this.Circle = undefined;
   }
   initDirection() {
     this.resetDirection();
@@ -82,7 +101,6 @@ export class Geo extends Util {
     }
     this.Direction = undefined;
   }
-
   initNormalize() {
     this.resetNormalize();
     let self = this;
