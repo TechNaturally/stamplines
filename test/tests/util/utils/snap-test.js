@@ -306,13 +306,6 @@ describe('Utils.Snap', () => {
       let checkRect = Snap.Rectangle(testRect);
       expect(checkRect).to.not.equal(testRect);
     });
-    describe('- when called with config.scheme==\'move\'', () => {
-      it('should reposition the rectangle to fit in bounds');
-    });
-    describe('- when called with config.scheme==\'scale\'', () => {
-      // @TODO: need to consider scaling from different sides/corners
-      it('should resize the rectangle to fit in bounds');
-    });
   });
   describe('#Rotation', () => {
     let tests, testSlices, testIncrement;
