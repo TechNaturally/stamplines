@@ -75,8 +75,10 @@ export default class UI extends Component {
 
   unwrapDOM() {
     if (this.DOM.wrapper) {
-      if (this.DOM.canvas && this.DOM.canva) {
-
+      if (this.DOM.canvas) {
+        this.DOM.wrapper.before(this.DOM.canvas);
+        this.DOM.wrapper.remove();
+        delete this.DOM.wrapper;
       }
     }
   }
