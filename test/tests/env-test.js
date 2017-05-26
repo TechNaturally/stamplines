@@ -26,7 +26,10 @@ describe('Test Environment', () => {
       expect(Test.SL.constructor.name).to.equal('StampLines');
     });
     it('should use the default configuration', () => {
-      expect(Test.SL.config).to.eql(Test.Lib.Core.StampLines.DEFAULT.config);
+      // inject core tools into the expected enable list
+      let defaultConfig = $.extend({}, Test.Lib.Core.StampLines.DEFAULT.config);
+      defaultConfig.Tools.enable.push.apply(defaultConfig.Tools.enable, Test.Lib.Core.StampLines.DEFAULT.coreTools);
+      expect(Test.SL.config).to.eql(defaultConfig);
     });
   });
 

@@ -59,6 +59,11 @@ export class Connect extends Tool {
           this.initStampConnections(stamp);
         }, 'Connect.Generate.Stamp');
       }
+      if (!this.eventHandlers.DestroyItem) {
+        this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {}, (args, item) => {
+          this.DisconnectItem(item);
+        }, 'Connect.Destroy.Item');
+      }
       if (!this.eventHandlers.LineEndTarget) {
         this.eventHandlers.LineEndTarget = this.SL.Paper.on('LineEndTarget', undefined, (args) => {
           if (args.toggle) {
@@ -92,9 +97,14 @@ export class Connect extends Tool {
       return;
     }
     if (this.eventHandlers.GenerateStamp) {
-      this.SL.Paper.off('GenerateStamp', this.eventHandlers.GenerateStamp.id);
+      this.SL.Paper.off('Generate', this.eventHandlers.GenerateStamp.id);
       delete this.eventHandlers.GenerateStamp;
       this.eventHandlers.GenerateStamp = undefined;
+    }
+    if (this.eventHandlers.DestroyItem) {
+      this.SL.Paper.off('Destroy', this.eventHandlers.DestroyItem.id);
+      delete this.eventHandlers.DestroyItem;
+      this.eventHandlers.DestroyItem = undefined;
     }
     if (this.eventHandlers.LineEndTarget) {
       this.SL.Paper.off('LineEndTarget', this.eventHandlers.LineEndTarget.id);
@@ -217,6 +227,31 @@ export class Connect extends Tool {
         connection.connected.splice(segmentIdx, 1);
       }
       segment.data.connection = undefined;
+    }
+  }
+  DisconnectItem(item) {
+    let disconnect = [];
+    if (item && item.segments) {
+      for (let segment of item.segments) {
+        if (segment && segment.data && segment.data.connection) {
+          this.DisconnectSegment(segment, segment.data.connection);
+        }
+      }
+    }
+    if (item && item.data) {
+      if (item.data.Connections) {
+        for (let connection of item.data.Connections) {
+          if (connection.connected) {
+            for (let connected of connection.connected) {
+              if (connected.data && connected.data.connection == connection) {
+                connected.data.connection = undefined;
+                delete connected.data.connection;
+              }
+            }
+            connection.connected.length = 0;
+          }
+        }
+      }
     }
   }
 

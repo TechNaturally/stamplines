@@ -131,14 +131,14 @@ export default class StampLines {
 }
 StampLines.Palette = Palette;
 StampLines.DEFAULT = {
-  coreTools: ['Select', 'Move', 'Rotate', 'Scale'],
+  coreTools: ['Select', 'Move', 'Rotate', 'Scale', 'Delete'],
   config: {
     Palettes: {
       Lines: {},
       Stamps: {}
     },
     Tools: {
-      enable: ['Select', 'Move', 'Rotate', 'Scale', 'CreateLine', 'EditLine', 'CreateStamp', 'Connect'],
+      enable: ['CreateLine', 'EditLine', 'CreateStamp', 'Connect'],
       Rotate: {
         slices: (360/45),
         snap: true

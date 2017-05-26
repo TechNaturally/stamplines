@@ -424,10 +424,11 @@ export default class PaperCanvas extends Component {
         item.remove();
       }
       this.untrackItem(item);
-
       if (item.data && item.data.Source && typeof item.data.Source.untrackPaperItem == 'function') {
         item.data.Source.untrackPaperItem(item);
       }
+      this.emit('Destroy', {}, item);
+      return item;
     }
   }
   untrackItem(item) {

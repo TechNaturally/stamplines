@@ -141,7 +141,10 @@ export default class ToolBelt extends Component {
       }
     }
   }
-
+  refresh() {
+    this.onMouseMove(this.SL.UI.Mouse.State.lastMove);
+    this.refreshUI();
+  }
   onKeyDown(event) {
     this.runTools('onKeyDown', event);
   }
