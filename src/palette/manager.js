@@ -1,12 +1,12 @@
 import {default as Component} from '../core/component.js';
 import {default as NamedObjectMap} from '../util/classes/named-object-map.js';
-import {default as Palette} from './palette.js';
+import * as PaletteTypes from './palettes/_index.js';
 export default class PaletteManager extends Component {
   constructor(SL, config={}) {
     super(SL, config);
     this.palettes = new NamedObjectMap(SL, {
       config: this.config,
-      types: Palette.Type,
+      types: PaletteTypes,
       '#onRemove': [
         (entry, type) => {
           this.removePaletteFromDock(entry.id);

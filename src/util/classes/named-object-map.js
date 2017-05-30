@@ -54,7 +54,7 @@ export default class NamedObjectMap extends Component {
     else if (type && typeof type == 'string') {
       let allowed = this.config.types;
       if (allowed) {
-        // exclusiveIDs option will not attempt to auto-increment existing ID's
+        // generate a new id or force a unique ID if exclusiveIDs is not enabled
         if (!id || !this.config.exclusiveIDs) {
           let ID = this.SL.Utils.gets('Identity');
           if (ID) {
