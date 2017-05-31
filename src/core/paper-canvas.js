@@ -68,6 +68,9 @@ export default class PaperCanvas extends Component {
   get view() {
     return this.project.view;
   }
+  get isBlocked() {
+    return !!(this.SL && this.SL.UI && this.SL.UI.PaperDOM && this.SL.UI.PaperDOM.isBlocked);
+  }
 
   configure(config) {
     config = super.configure(config);

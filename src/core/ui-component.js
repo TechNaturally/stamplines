@@ -34,6 +34,9 @@ export default class UIComponent extends Component {
   }
   delegateEvent(callback, event, delegateTo, emit=true) {
     if (this.assertActive()) {
+      if (this.SL.Paper.isBlocked) {
+        return;
+      }
       if (!delegateTo) {
         delegateTo = this.SL.Tools;
       }

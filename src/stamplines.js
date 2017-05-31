@@ -155,6 +155,7 @@ StampLines.DEFAULT = {
         useWrapper: true
       },
       Dock: {},
+      PaperDOM: {},
       Keyboard: {},
       Mouse: {
         maxDragPoints: 3,

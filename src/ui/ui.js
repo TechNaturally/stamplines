@@ -2,6 +2,7 @@ import {default as Component} from '../core/component.js';
 import {default as Dock} from './dock.js';
 import {default as Mouse} from './mouse.js';
 import {default as Keyboard} from './keyboard.js';
+import {default as PaperDOM} from './paper-dom.js';
 export default class UI extends Component {
   constructor(SL, config={}, control={}) {
     super(SL, config);
@@ -12,7 +13,9 @@ export default class UI extends Component {
   reset() {
     super.reset();
     this.destroyDock();
+    this.destroyPaperDOM();
     this.destroyMouse();
+    this.destroyKeyboard();
     this.unwrapDOM();
   }
   destroyDock() {
@@ -20,9 +23,19 @@ export default class UI extends Component {
       this.Dock.destroy();
     }
   }
+  destroyPaperDOM() {
+    if (this.PaperDOM) {
+      this.PaperDOM.destroy();
+    }
+  }
   destroyMouse() {
     if (this.Mouse) {
       this.Mouse.destroy();
+    }
+  }
+  destroyKeyboard() {
+    if (this.Keyboard) {
+      this.Keyboard.destroy();
     }
   }
 
@@ -35,6 +48,7 @@ export default class UI extends Component {
       this.DOM.wrapper.addClass('sl-active');
     }
     this.Dock.activate();
+    this.PaperDOM.activate();
     this.Mouse.activate();
     this.Keyboard.activate();
   }
@@ -43,6 +57,7 @@ export default class UI extends Component {
       this.DOM.wrapper.removeClass('sl-active');
     }
     this.Dock.deactivate();
+    this.PaperDOM.deactivate();
     this.Mouse.deactivate();
     this.Keyboard.deactivate();
   }
@@ -57,6 +72,10 @@ export default class UI extends Component {
     // initialize Dock
     this.config.Dock = this.config.Dock || {};
     this.Dock = new Dock(this.SL, this.config.Dock, this);
+
+    // initialize PaperDOM
+    this.config.PaperDOM = this.config.PaperDOM || {};
+    this.PaperDOM = new PaperDOM(this.SL, this.config.PaperDOM, this);
 
     // initialize Mouse
     this.config.Mouse = this.config.Mouse || {};
