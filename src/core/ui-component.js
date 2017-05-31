@@ -32,10 +32,17 @@ export default class UIComponent extends Component {
     }
     return this.SL.isActive();
   }
-  delegateEvent(callback, event, delegateTo) {
+  delegateEvent(callback, event, delegateTo, emit=true) {
     if (this.assertActive()) {
       if (!delegateTo) {
         delegateTo = this.SL.Tools;
+      }
+      if (emit && this.UI.PaperCanvas) {
+        let eventName = callback;
+        if (eventName.substr(0, 2) == 'on') {
+          eventName = eventName.substr(2);
+        }
+        this.UI.PaperCanvas.emit(eventName, event);
       }
       if (delegateTo) {
         if (typeof delegateTo[callback] == 'function') {
