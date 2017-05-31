@@ -38,6 +38,15 @@ export default class NamedObjectMap extends Component {
       }
     }
   }
+  hasType(type) {
+    return !!(type && typeof type == 'string' && this.config.types && this.config.types[type]);
+  }
+  hasNonStaticType(type) {
+    return !!(type && typeof type == 'string' && this.config.types && this.config.types[type] && typeof this.config.types[type] == 'function');
+  }
+  hasStaticType(type) {
+    return !!(type && typeof type == 'string' && this.config.types && this.config.types[type] && typeof this.config.types[type] != 'function');
+  }
   addEntry(type, id, config) {
     if (type.constructor === Array) {
       let added = [];
