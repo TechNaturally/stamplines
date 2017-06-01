@@ -110,4 +110,12 @@ export default class Palette extends Component {
       return this.DOM.items[item.id];
     }
   }
+
+  addInstanceMethod(item, methodName, method) {
+    if (item && item.data && methodName && typeof method == 'function') {
+      item.data[methodName] = (args) => {
+        return method.call(this, item, args);
+      };
+    }
+  }
 }
