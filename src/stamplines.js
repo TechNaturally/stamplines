@@ -3,6 +3,7 @@ import UI from './ui/ui.js';
 import Utils from './util/utils.js';
 import ToolBelt from './tools/toolbelt.js';
 import * as Palette from './palette/palette.js';
+import * as Panel from './panel/panel.js';
 export default class StampLines {
   constructor(canvas, config=StampLines.DEFAULT.config) {
     this.config = config;
@@ -24,8 +25,10 @@ export default class StampLines {
     this.initUI();
     this.initTools();
     this.initPalettes();
+    this.initPanels();
   }
   reset() {
+    this.resetPanels();
     this.resetPalettes();
     this.resetTools();
     this.resetUI();
@@ -76,6 +79,15 @@ export default class StampLines {
   resetPalettes() {
     if (this.Palettes) {
       this.Palettes.removePalette('*');
+    }
+  }
+  initPanels() {
+    let config = this.config.Panels || {};
+    this.Panels = new Panel.Manager(this, config, this.UI);
+  }
+  resetPanels() {
+    if (this.Panels) {
+      this.Panels.closeItemPanel('*');
     }
   }
 
@@ -137,6 +149,7 @@ StampLines.DEFAULT = {
       Lines: {},
       Stamps: {}
     },
+    Panels: {},
     Tools: {
       enable: ['CreateLine', 'EditLine', 'CreateStamp', 'Connect'],
       Rotate: {

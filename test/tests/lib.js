@@ -2,6 +2,7 @@ import {default as StampLines} from '../../src/stamplines.js';
 import {default as PaperCanvas} from '../../src/core/paper-canvas.js';
 import {default as CoreComponent} from '../../src/core/component.js';
 import {default as CorePalette} from '../../src/core/palette.js';
+import {default as CorePanel} from '../../src/core/panel.js';
 import {default as CoreTool} from '../../src/core/tool.js';
 import {default as UIComponent} from '../../src/core/ui-component.js';
 import {default as CoreUtil} from '../../src/core/util.js';
@@ -9,6 +10,10 @@ import {default as CoreUtil} from '../../src/core/util.js';
 import {default as Palette} from '../../src/palette/palette.js';
 import {default as PaletteManager} from '../../src/palette/manager.js';
 import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/palettes/_index.js';
+
+import {default as Panel} from '../../src/panel/panel.js';
+import {default as PanelManager} from '../../src/panel/manager.js';
+import {StampPanel, LinePanel} from '../../src/panel/panels/_index.js';
 
 import {default as ToolBelt} from '../../src/tools/toolbelt.js';
 import {Select, Move, Scale, Rotate, Delete} from '../../src/tools/core/_index.js';
@@ -33,6 +38,7 @@ export default {
     PaperCanvas: PaperCanvas,
     Component: CoreComponent,
     Palette: CorePalette,
+    Panel: CorePanel,
     Tool: CoreTool,
     UIComponent: UIComponent,
     Util: CoreUtil
@@ -42,6 +48,12 @@ export default {
     Manager: PaletteManager,
     StampPalette: StampPalette,
     LinePalette: LinePalette
+  },
+  Panel: {
+    Panel: Panel,
+    Manager: PanelManager,
+    StampPanel: StampPanel,
+    LinePanel: LinePanel
   },
   Tools: {
     ToolBelt: ToolBelt,

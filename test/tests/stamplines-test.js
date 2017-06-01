@@ -57,6 +57,9 @@ describe('StampLines', () => {
     it('should have Palettes property constructed by PaletteManager', () => {
       expect(SL.Palettes.constructor.name).to.equal('PaletteManager');
     });
+    it('should have Panels property constructed by PanelManager', () => {
+      expect(SL.Panels.constructor.name).to.equal('PanelManager');
+    });
     it('should have Utils property constructed by Utils', () => {
       expect(SL.Utils.constructor.name).to.equal('Utils');
     });

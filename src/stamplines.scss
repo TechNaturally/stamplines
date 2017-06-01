@@ -9,6 +9,21 @@
     padding: 0px;
     margin: 0px;
   }
+  button {
+    cursor: pointer;
+    background-color: #FFF;
+    border: 2px solid #000;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-weight: bold;
+  }
+  form {
+    .form-group {
+      label {
+        margin-right: 8px;
+      }
+    }
+  }
 }
 .sl-cursor {
   display: block;
@@ -84,7 +99,44 @@
   top: 0px;
   left: 0px;
   width: 0px;
-  height: 0px;
+  height: 100%;
   overflow: visible;
   background-color: rgba(0, 0, 0, 0.4);
+}
+.sl-panel {
+  position: absolute;
+  min-height: 32px;
+  width: 50%;
+  padding: 8px 16px;
+  background-color: #FFF;
+  border: 3px solid black;
+  border-radius: 6px;
+  overflow: auto;
+  > .panel-controls {
+    display: inline-block;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    button {
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+    }
+  }
+  .panel-title {
+    margin: 0px;
+    margin-bottom: 0.3em;
+  }
+}
+.sl-form {
+  .form-buttons {
+    margin-top: 6px;
+    float: right;
+
+    button {
+      &:not(:first-of-type) {
+        margin-left: 4px;
+      }
+    }
+  }
 }
