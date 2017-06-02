@@ -84,6 +84,7 @@ export class Select extends Tool {
       this.Group.appendBottom(item);
       this.refreshUI();
       this.Belt.onSelectionItemSelected({ item: item });
+      this.SL.Paper.emit('SelectionItemSelected', { item: item }, item);
     }
   }
   Unselect(item) {
@@ -97,6 +98,7 @@ export class Select extends Tool {
           item.data.parentOrig = undefined;
         }
         this.Belt.onSelectionItemUnselected({ item: item });
+        this.SL.Paper.emit('SelectionItemUnselected', { item: item }, item);
       }
     }
     else {
@@ -111,6 +113,7 @@ export class Select extends Tool {
         unselected.push(item);
       }
       this.Belt.onSelectionItemUnselected({ items: unselected });
+      this.SL.Paper.emit('SelectionItemUnselected', { items: unselected });
       this.Items.length = 0;
     }
   }
