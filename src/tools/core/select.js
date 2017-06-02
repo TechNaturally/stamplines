@@ -39,6 +39,10 @@ export class Select extends Tool {
     if (config.selectableClasses.indexOf('Content') == -1) {
       config.selectableClasses.push('Content');
     }
+    if (config.selectableClasses.indexOf('ContentAddon') == -1) {
+      config.selectableClasses.push('ContentAddon');
+    }
+    // singleSelectedTypes are Types that should activate group selection even when it is the only item selected
     if (!config.singleSelectedTypes) {
       config.singleSelectedTypes = [];
     }

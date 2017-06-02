@@ -108,8 +108,12 @@ export default class ToolBelt extends Component {
       var oldTarget = this.State.Mouse.Hover.target;
       var target = this.SL.Paper.project.hitTest(this.SL.UI.Mouse.State.point);
       this.State.Mouse.Hover.target = target;
-      this.State.Mouse.Hover.targetItem = ((target && target.item) ? target.item : null);
-      this.State.Mouse.Hover.targetLocked = (target && target.item && target.item.data && target.item.data.locked);
+      let targetItem = ((target && target.item) ? target.item : null);
+      if (targetItem && targetItem.data && targetItem.data.ParentItem) {
+        targetItem = targetItem.data.ParentItem;
+      }
+      this.State.Mouse.Hover.targetItem = targetItem;
+      this.State.Mouse.Hover.targetLocked = (targetItem && targetItem.data && targetItem.data.locked);
       if ( ((!target && oldTarget) || (target && !oldTarget) 
         || (target && oldTarget && (target.item != oldTarget.item || target.segment != oldTarget.segment)))) {
         this.runTools('onMouseHoverTargetChange', {target: target, oldTarget: oldTarget});
