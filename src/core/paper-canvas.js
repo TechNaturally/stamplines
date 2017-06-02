@@ -121,6 +121,51 @@ export default class PaperCanvas extends Component {
   initItem() {
     let self = this;
     this.Item = {
+      addChild(item, child) {
+        if (item && child) {
+          if (item._children) {
+            item.addChild(child);
+          }
+          else if (item.data) {
+            if (!item.data.Children) {
+              item.data.Children = [];
+            }
+            if (item.data.Children.indexOf(child) == -1) {
+              item.data.Children.push(child);
+            }
+          }
+        }
+      },
+      removeChild(item, child) {
+        if (item && child) {
+          if (item.children) {
+            let childIdx = item.children.indexOf(child);
+            if (childIdx != -1) {
+              item.removeChildren(childIdx, childIdx+1);
+            }
+          }
+          else if (item.data && item.data.Children) {
+            let childIdx = item.data.Children.indexOf(child);
+            if (childIdx != -1) {
+              item.data.Children.splice(childIdx, 1);
+            }
+          }
+        }
+      },
+      getChildren(item) {
+        if (item) {
+          if (item.children) {
+            return item.children;
+          }
+          else if (item.data && item.data.Children) {
+            return item.data.Children;
+          }
+        }
+      },
+      hasChildren(item) {
+        let children = this.getChildren(item);
+        return (children && children.length);
+      },
       addClass(item, itemClass) {
         let classSet = false;
         if (item && item.data && itemClass) {
@@ -212,6 +257,17 @@ export default class PaperCanvas extends Component {
           return result;
         }
         return false;
+      },
+      setLayer: function(item, layer) {
+        if (item) {
+          if (!item.data) {
+            item.data = {};
+          }
+          if (item.data.Layer != layer) {
+            item.data.Layer = layer;
+            self.trackItemByLayer(item);
+          }
+        }
       }
     };
   }
