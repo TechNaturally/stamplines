@@ -71,13 +71,6 @@ export default class StampPanel extends Panel {
     formInput = $('<input type="text" name="item-label" id="'+form.attr('name')+'-item-label'+'" />');
     formGroup.append($('<label for="'+formInput.attr('id')+'">Label</label>'));
     formGroup.append(formInput);
-    /**
-    formInput.on('change', () => {
-      if (this.data && this.data.item && this.DOM.labelInput) {
-        this.setItemLabel(this.data.item, this.DOM.labelInput.val());
-      }
-    });
-    */
     form.append(formGroup);
     this.DOM.labelInput = formInput;
 

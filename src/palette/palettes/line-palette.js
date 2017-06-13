@@ -15,11 +15,16 @@ export default class LinePalette extends Palette {
   }
 
   createLine(from, to, lineDef) {
-    let line = this.SL.Paper.generatePaperItem({Source: this, Type: 'Line'}, paper.Path.Line, from.point, to.point);
+    let line = this.SL.Paper.generatePaperItem({Source: this, Type: 'Line', Line: lineDef}, paper.Path.Line, from.point, to.point);
+    this.SL.Paper.Item.addCustomMethod(line, 'refresh', this.refreshItem, this);
     if (lineDef && lineDef.style) {
       this.SL.Paper.applyStyle(line, lineDef.style);
     }
     return line;
+  }
+  refreshItem(item, args) {
+    console.log('[LinePalette]->refreshItem =>', item);
+    // @TODO: draw Line label
   }
 
   getImagePath(item) {
