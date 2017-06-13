@@ -268,6 +268,18 @@ export default class PaperCanvas extends Component {
             self.trackItemByLayer(item);
           }
         }
+      },
+      addCustomMethod(item, methodName, method, context) {
+        if (item && item.data && methodName && typeof method == 'function') {
+          item.data[methodName] = (args) => {
+            return method.call((context || item), item, args);
+          };
+        }
+      },
+      callCustomMethod(item, methodName, args) {
+        if (item && item.data && methodName && typeof item.data[methodName] == 'function') {
+          item.data[methodName](args);
+        }
       }
     };
   }
