@@ -64,14 +64,16 @@ export default class StampPanel extends Panel {
     form.attr('name', this.getPanelID()+'-form');
 
     // build form elements
-    let formGroup, formInput;
+    let formContent, formGroup, formInput;
+
+    formContent = $('<div class="form-content"></div>');
 
     // label input
     formGroup = $('<div class="form-group form-group-text input-item-label"></div>');
     formInput = $('<input type="text" name="item-label" id="'+form.attr('name')+'-item-label'+'" />');
     formGroup.append($('<label for="'+formInput.attr('id')+'">Label</label>'));
     formGroup.append(formInput);
-    form.append(formGroup);
+    formContent.append(formGroup);
     this.DOM.labelInput = formInput;
 
     let originalValue = '';
@@ -82,7 +84,7 @@ export default class StampPanel extends Panel {
     this.DOM.labelInput.val(originalValue);
 
     // label position
-    formGroup = $('<div class="form-group form-group-position input-item-label-position"></div>');
+    formGroup = $('<div class="form-group form-group-vertical form-group-position input-item-label-position"></div>');
     formInput = $('<div class="sl-position-input sl-position-5-way"></div>');
     formInput.append($('<input type="radio" name="item-label-position" class="sl-position position-center" value="center" id="'+form.attr('name')+'-item-label-position-center" />'));
     formInput.append($('<input type="radio" name="item-label-position" class="sl-position position-top" value="top" id="'+form.attr('name')+'-item-label-position-top" />'));
@@ -91,7 +93,7 @@ export default class StampPanel extends Panel {
     formInput.append($('<input type="radio" name="item-label-position" class="sl-position position-left" value="left" id="'+form.attr('name')+'-item-label-position-left" />'));
     formGroup.append('<label>Label Position</label>');
     formGroup.append(formInput);
-    form.append(formGroup);
+    formContent.append(formGroup);
     this.DOM.labelPositionGroup = formInput;
     originalValue = 'center';
     if (this.data && this.data.item && this.data.item.data && this.data.item.data.labelPosition) {
@@ -100,7 +102,10 @@ export default class StampPanel extends Panel {
     this.DOM.labelPositionGroup.data('original', originalValue);
     this.DOM.labelPositionGroup.children('input[name="item-label-position"]').val([originalValue]);
 
+    form.append(formContent);
+
     // buttons
+    formContent = $('<div class="form-footer"></div>');
     formGroup = $('<div class="form-group form-buttons"></div>');
     formInput = $('<button type="button" class="save"><i class="icon icon-check"></i> Save</button>');
     formInput.on('click', (event) => {
@@ -129,7 +134,8 @@ export default class StampPanel extends Panel {
       this.close();
     });
     formGroup.prepend(formInput);
-    form.append(formGroup);
+    formContent.append(formGroup);
+    form.append(formContent);
     this.resetDOMControlCloseButton();
 
     // add the form to the panel

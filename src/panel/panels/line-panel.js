@@ -128,7 +128,8 @@ export default class LinePanel extends Panel {
       this.close();
     });
     formGroup.prepend(formInput);
-    form.append(formGroup);
+    formContent.append(formGroup);
+    form.append(formContent);
     this.resetDOMControlCloseButton();
 
     // add the form to the panel

@@ -1,9 +1,10 @@
 @import '../libs/icomoon/style.scss';
+$border-color: #999;
 .stamplines {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
   position: relative;
-  border: 1px solid #999;
+  border: 1px solid $border-color;
   ul {
     list-style-type: none;
     padding: 0px;
@@ -16,13 +17,6 @@
     border-radius: 6px;
     padding: 4px 6px;
     font-weight: bold;
-  }
-  form {
-    .form-group {
-      label {
-        margin-right: 8px;
-      }
-    }
   }
 }
 .sl-cursor {
@@ -43,13 +37,13 @@
 }
 .sl-dock {
   width: 100%;
-  border-top: 1px solid #999;
+  border-top: 1px solid $border-color;
 
   .sl-palette {
     line-height: 0;
     padding: 6px;
     + .sl-palette {
-      border-top: 1px dotted #999;
+      border-top: 1px dotted $border-color;
     }
   }
 }
@@ -127,16 +121,140 @@
     margin: 0px;
     margin-bottom: 0.3em;
   }
+  .panel-header {
+    padding-left: 4px;
+    border-bottom: 1px solid $border-color;
+  }
+  .panel-content {
+    padding: 8px 10px 4px;
+    .sl-form {
+      .form-footer {
+        margin: 0px -8px;
+        padding-top: 12px;
+        border-top: 1px solid $border-color;
+      }
+    }
+  }
 }
 .sl-form {
-  .form-buttons {
-    margin-top: 6px;
-    text-align: center;
-
-    button {
-      &:not(:first-of-type) {
-        margin-left: 4px;
+  .form-group {
+    position: relative;
+    margin-bottom: 6px;
+    label {
+      margin-right: 8px;
+      vertical-align: top;
+    }
+    &.form-group-position {
+      margin-top: 12px;
+      &:not(.form-group-vertical) {
+        margin-bottom: 8px;
+        label {
+          position: relative;
+          top: 2px;
+        }
       }
+      &.form-group-vertical {
+        label {
+          display: block;
+          margin-right: 0px;
+        }
+        .sl-position-input {
+          margin-top: 8px;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+      }
+    }
+  }
+  .form-buttons {
+    button {
+      min-width: 78px;
+      margin: 0px 6px;
+    }
+  }
+  .form-content {
+    padding: 2px 0px 6px;
+    &:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  }
+  .form-footer {
+    text-align: center;
+    .form-buttons {
+      margin-bottom: 0px;
+    }
+  }
+}
+.sl-position-input {
+  position: relative;
+  display: inline-block;
+  .sl-position {
+    position: absolute;
+    margin: 0px;
+  }
+  .position-top,
+  .position-center,
+  .position-bottom {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .position-left,
+  .position-center,
+  .position-right {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .position-top {
+    top: 0px;
+  }
+  .position-bottom {
+    bottom: 0px;
+  }
+  .postion-left {
+    left: 0px;
+  }
+  .position-right {
+    right: 0px;
+  }
+  .position-center {
+    transform: translate(-50%, -50%);
+  }
+
+  &.sl-position-5-way {
+    width: 54px;
+    height: 54px;
+  }
+  &.sl-position-2-way-vertical {
+    height: 42px;
+    width: 46px;
+    .divider {
+      position: absolute;
+      display: block;
+      top: 20px;
+      left: 0px;
+      right: 0px;
+      height: 2px;
+      background-color: #999;
+    }
+  }
+}
+.sl-stamp-panel,
+.sl-line-panel {
+  .sl-form {
+    .form-group {
+      &.input-item-label {
+        float: left;
+        margin-top: 1.2em;
+      }
+      &.input-item-label-position {
+        float: right;
+        margin-top: 0px;
+      }
+    }
+    .form-content {
+      padding-bottom: 4px;
     }
   }
 }
