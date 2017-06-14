@@ -119,9 +119,31 @@ export class Geo extends Util {
       },
       pointFromRectangle(point, rectangle) {
         point = new paper.Point(point);
-        var bounds = new paper.Point(rectangle.width/2.0, rectangle.height/2.0);
+        let bounds = new paper.Point(rectangle.width/2.0, rectangle.height/2.0);
         point = rectangle.center.add(point.multiply(bounds));
         return point;
+      },
+      pointAtLineDistance(line, distance, includeVector=false) {
+        let reverse = distance < 0;
+        if (reverse) {
+          distance *= -1.0;
+        }
+        distance *= line.length;
+        for (let i=0; i < (line.segments.length-1); i++) {
+          let p1 = line.segments[(reverse ? line.segments.length-1-i : i)].point;
+          let p2 = line.segments[(reverse ? line.segments.length-2-i : i+1)].point;
+          let delta = p2.subtract(p1);
+          if (delta.length > distance) {
+            delta.length = distance;
+            let p3 = p1.add(delta);
+            return (includeVector ? { point: p3, vector: p3.subtract(p1) } : p3);
+          }
+          else {
+            distance -= delta.length;
+          }
+        }
+        let result = new paper.Point(line.segments[(reverse ? line.segments.length-1 : 0)].point);
+        return (includeVector ? { point: result, vector: result.subtract(result) } : result);
       }
     };
   }
