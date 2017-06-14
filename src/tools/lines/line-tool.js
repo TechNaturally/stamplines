@@ -45,6 +45,12 @@ export class LineTool extends Tool {
     super.deactivate();
     this.reset();
   }
+  isAppending() {
+    return (this.State.Append.line || this.State.Append.from || this.State.Append.to);
+  }
+  stopAppending() {
+    this.resetStateAppend();
+  }
 
   refreshUI() {
     if (this.isActive()) {

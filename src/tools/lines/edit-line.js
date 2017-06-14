@@ -107,6 +107,18 @@ export class EditLine extends LineTool {
     }
   }
   
+  onDoubleClick(event) {
+    if (this.isActive() && event.event && event.event.button === 0) {
+      if (this.State.targetSegment && this.State.targetSegment.path && this.State.targetSegment.path.segments && this.State.targetSegment.path.segments.length > 2) {
+        if (this.isAppending()) {
+          this.stopAppending();
+        }
+        this.State.targetSegment.remove();
+        this.resetUI();
+        this.Belt.refresh();
+      }
+    }
+  }
   onMouseDrag(event) {
     if (this.isActive()) {
       if (this.UI.target) {
@@ -174,7 +186,7 @@ export class EditLine extends LineTool {
       this.State.targetSegment = undefined;
       this.State.targetHead = undefined;
       this.State.targetTail = undefined;
-      if (!this.State.Append.line) {
+      if (!this.isAppending()) {
         this.finish();
       }
     }
