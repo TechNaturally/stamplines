@@ -126,7 +126,7 @@ describe('Core.PaperCanvas', () => {
     });
     it('should track an item by Class', () => {
       PaperCanvas.trackItem(testItem);
-      expect(PaperCanvas.paperItems[testItem.data.Class]).to.contain(testItem);
+      expect(PaperCanvas.paperItems[testItem.data.Class].indexOf(testItem)).to.not.equal(-1);
     });
     it('should track an item by Layer', () => {
       PaperCanvas.trackItem(testItem);
@@ -171,7 +171,7 @@ describe('Core.PaperCanvas', () => {
     });
     it('should track an item by Class', () => {
       PaperCanvas.trackItemByClass(testItem);
-      expect(PaperCanvas.paperItems[testItem.data.Class]).to.contain(testItem);
+      expect(PaperCanvas.paperItems[testItem.data.Class].indexOf(testItem)).to.not.equal(-1);
     });
     it('should initialize the item\'s Class list if it doesn\'t already exist', () => {
       PaperCanvas.paperItems[testItem.data.Class] = undefined;
@@ -304,7 +304,7 @@ describe('Core.PaperCanvas', () => {
     });
     it('should untrack an item by Class', () => {
       PaperCanvas.untrackItem(testItem);
-      expect(PaperCanvas.paperItems[testItem.data.Class]).to.not.contain(testItem);
+      expect(PaperCanvas.paperItems[testItem.data.Class].indexOf(testItem)).to.equal(-1);
     });
     it('should untrack an item by Layer', () => {
       PaperCanvas.untrackItem(testItem);
@@ -325,7 +325,7 @@ describe('Core.PaperCanvas', () => {
     });
     it('should untrack an item by Class', () => {
       PaperCanvas.untrackItemByClass(testItem);
-      expect(PaperCanvas.paperItems[testItem.data.Class]).to.not.contain(testItem);
+      expect(PaperCanvas.paperItems[testItem.data.Class].indexOf(testItem)).to.equal(-1);
     });
   });
   describe('#untrackItemByLayer', () => {

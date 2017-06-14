@@ -254,8 +254,9 @@ describe('Utils.Bounds', () => {
           x: (Bounds.padding.left - 1),
           y: (Bounds.padding.top - 1)
         });
-        let checkPoint = Bounds.snapPoint(testPoint);
-        expect(checkPoint).to.eql({x: Bounds.padding.left, y: Bounds.padding.top});
+        testPoint = Bounds.snapPoint(testPoint);
+        let checkPoint = new paper.Point({x: Bounds.padding.left, y: Bounds.padding.top});
+        expect(testPoint).to.eql(checkPoint);
       });
     });
     describe('given a point with {x, y} values greater than {view.size.width-Bounds.padding.right, view.size.height-Bounds.padding.bottom}', () => {
@@ -264,8 +265,9 @@ describe('Utils.Bounds', () => {
           x: (Test.SL.Paper.view.size.width-Bounds.padding.right + 1),
           y: (Test.SL.Paper.view.size.height-Bounds.padding.bottom + 1)
         });
-        let checkPoint = Bounds.snapPoint(testPoint);
-        expect(checkPoint).to.eql({x: Test.SL.Paper.view.size.width-Bounds.padding.right, y: Test.SL.Paper.view.size.height-Bounds.padding.bottom});
+        testPoint = Bounds.snapPoint(testPoint);
+        let checkPoint = new paper.Point({x: Test.SL.Paper.view.size.width-Bounds.padding.right, y: Test.SL.Paper.view.size.height-Bounds.padding.bottom});
+        expect(checkPoint).to.eql(checkPoint);
       });
     });
   });
@@ -274,8 +276,9 @@ describe('Utils.Bounds', () => {
       Bounds.setPadding(testPadding);
     });
     it('should return a point with {x, y} values equal to {Bounds.padding.left, Bounds.padding.top}', () => {
-      let point = Bounds.snapPointMin(new paper.Point);
-      expect(point).to.eql({x: Bounds.padding.left, y: Bounds.padding.top});
+      let testPoint = Bounds.snapPointMin(new paper.Point);
+      let checkPoint = new paper.Point({x: Bounds.padding.left, y: Bounds.padding.top});
+      expect(testPoint).to.eql(checkPoint);
     });
   });
   describe('#snapPointMax', () => {
@@ -283,8 +286,9 @@ describe('Utils.Bounds', () => {
       Bounds.setPadding(testPadding);
     });
     it('should return a point with {x, y} values equal to {view.size.width-padding.right, view.size.height-padding.bottom}', () => {
-      let point = Bounds.snapPointMax(new paper.Point);
-      expect(point).to.eql({x: (Test.SL.Paper.view.size.width-Bounds.padding.right), y: (Test.SL.Paper.view.size.height-Bounds.padding.bottom)});
+      let testPoint = Bounds.snapPointMax(new paper.Point);
+      let checkPoint = new paper.Point({x: (Test.SL.Paper.view.size.width-Bounds.padding.right), y: (Test.SL.Paper.view.size.height-Bounds.padding.bottom)});
+      expect(testPoint).to.eql(checkPoint);
     });
   });
   describe('#snapRectangle', () => {
