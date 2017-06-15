@@ -30,14 +30,17 @@ export default class ToolPalette extends Palette {
         tool.start();
       }
     });
-    let toolContent = $('<i class="icon"></i>');
-    if (item.icon) {
-      toolContent.addClass(item.icon);
+    let icons = item.icon ? item.icon.split(' ') : [''];
+    for (let icon of icons) {
+      let toolContent = $('<i class="icon"></i>');
+      if (icon) {
+        toolContent.addClass(icon);
+      }
+      toolContent.addClass('sl-palette-content sl-palette-icon');
+      toolContent.addClass('sl-tool-content sl-tool-icon');
+      toolContent.attr('draggable', false);
+      toolButton.append(toolContent);
     }
-    toolContent.addClass('sl-palette-content sl-palette-icon');
-    toolContent.addClass('sl-tool-content sl-tool-icon');
-    toolContent.attr('draggable', false);
-    toolButton.append(toolContent);
     toolButton.data('activeClass', 'sl-button-active sl-tool-active');
     tool.assignDOM('PaletteButton', toolButton);
     return toolButton;
