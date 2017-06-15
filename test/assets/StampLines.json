@@ -70,6 +70,14 @@
           }
         }
       ]
+    },
+    "Tools": {
+      "items": [
+        {
+          "id": "TextTool",
+          "icon": "icon-i-cursor icon-font"
+        }
+      ]
     }
   }
 }

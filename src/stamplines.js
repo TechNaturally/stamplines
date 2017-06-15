@@ -147,11 +147,16 @@ StampLines.DEFAULT = {
   config: {
     Palettes: {
       Lines: {},
-      Stamps: {}
+      Stamps: {},
+      Tools: {
+        items: [
+          { id: 'TextTool', icon: 'icon-i-cursor icon-font' }
+        ]
+      }
     },
     Panels: {},
     Tools: {
-      enable: ['CreateLine', 'EditLine', 'CreateStamp', 'Connect'],
+      enable: ['CreateLine', 'EditLine', 'CreateStamp', 'TextTool', 'Connect'],
       Rotate: {
         slices: (360/45),
         snap: true
