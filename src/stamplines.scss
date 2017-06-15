@@ -17,6 +17,9 @@ $border-color: #999;
     border-radius: 6px;
     padding: 4px 6px;
     font-weight: bold;
+    &:focus {
+      outline: 0;
+    }
   }
 }
 .sl-cursor {
@@ -40,10 +43,13 @@ $border-color: #999;
   border-top: 1px solid $border-color;
 
   .sl-palette {
+    display: inline-block;
+    vertical-align: top;
+    height: 84px;
     line-height: 0;
     padding: 6px;
     + .sl-palette {
-      border-top: 1px dotted $border-color;
+      border-left: 1px dotted $border-color;
     }
   }
 }
@@ -59,8 +65,10 @@ $border-color: #999;
   padding: 6px;
   border: 3px dashed transparent;
   border-radius: 6px;
+  &.sl-button-active,
   &:hover {
     border-color: #77F;
+    color: #77F;
   }
 }
 .sl-palette-content {
@@ -79,13 +87,18 @@ $border-color: #999;
 }
 .sl-palette-stamps {
   .sl-palette-img {
-    height: 50px;
-    line-height: 50px;
+    height: 36px;
+    line-height: 36px;
     img {
       display: inline;
       vertical-align: middle;
       max-height: 100%;
     }
+  }
+}
+.sl-palette-lines {
+  .sl-palette-items {
+    line-height: 84px;
   }
 }
 .sl-paper-dom {

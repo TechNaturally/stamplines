@@ -32,7 +32,7 @@ export default class LinePalette extends Palette {
   }
 
   getImagePath(item) {
-    var width = (this.config.preview && this.config.preview.width ) || 50;
+    var width = (this.config.preview && this.config.preview.width ) || 36;
     var height = (this.config.preview && this.config.preview.height ) || 25;
     var linePreviewCanvas = $(`<canvas width="${width}" height="${height}"></canvas>`);
     var linePreview = linePreviewCanvas[0].getContext('2d');
