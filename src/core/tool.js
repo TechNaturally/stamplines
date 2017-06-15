@@ -35,4 +35,19 @@ export default class Tool extends Component {
   finish(checkForActive=true) {
     this.Belt.deactivateTool(checkForActive, this);
   }
+  assignDOM(name, element) {
+    if (!this.DOM) {
+      this.DOM = {};
+    }
+    this.DOM[name] = element;
+  }
+  removeDOM(name) {
+    if (this.DOM && this.DOM[name]) {
+      if (typeof this.DOM[name].remove == 'function') {
+        this.DOM[name].remove();
+      }
+      this.DOM[name] = undefined;
+      delete this.DOM[name];
+    }
+  }
 }
