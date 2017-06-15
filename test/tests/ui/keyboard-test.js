@@ -42,27 +42,41 @@ describe('UI.Keyboard', () => {
     let event = {
       key: 'A'
     };
+    afterEach(() => {
+      Keyboard.Handles.onKeyUp(event);
+    });
     describe('#onKeyDown', () => {
-      afterEach(() => {
-        Keyboard.Handles.onKeyUp(event);
+      it(`should add "${event.key}" to State.activeKeys`, () => {
+        Keyboard.Handles.onKeyDown(event);
+        expect(Keyboard.State.activeKeys).to.contain(event.key);
       });
-      it(`should add "${event.key}" to State.activeButton`, () => {
-        Keyboard.Handles.onKeyDown(event);
-        expect(Keyboard.State.activeButton).to.contain(event.key);
-      });
-      it('should not add a key to State.activeButton if it already exists', () => {
+      it('should not add a key to State.activeKeys if it already exists', () => {
         Keyboard.Handles.onKeyDown(event);
         Keyboard.Handles.onKeyDown(event);
-        expect(Keyboard.State.activeButton).to.have.lengthOf(1);
+        expect(Keyboard.State.activeKeys).to.have.lengthOf(1);
       });
     });
     describe('#onKeyUp', () => {
       beforeEach(() => {
         Keyboard.Handles.onKeyDown(event);
       });
-      it(`should remove "${event.key}" from State.activeButton`, () => {
+      it(`should remove "${event.key}" from State.activeKeys`, () => {
         Keyboard.Handles.onKeyUp(event);
-        expect(Keyboard.State.activeButton.indexOf(event.key)).to.equal(-1);
+        expect(Keyboard.State.activeKeys.indexOf(event.key)).to.equal(-1);
+      });
+    });
+    describe('#keyActive', () => {
+      it('should return true for a key that is pressed', () => {
+        Keyboard.Handles.onKeyDown(event);
+        expect(Keyboard.keyActive(event.key)).to.be.true;
+      });
+      it('should return false for a key that is not pressed', () => {
+        expect(Keyboard.keyActive(event.key)).to.be.false;
+      });
+      it('should return false for a key that was pressed and released', () => {
+        Keyboard.Handles.onKeyDown(event);
+        Keyboard.Handles.onKeyUp(event);
+        expect(Keyboard.keyActive(event.key)).to.be.false;
       });
     });
   });
