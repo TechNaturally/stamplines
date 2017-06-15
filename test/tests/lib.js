@@ -9,7 +9,7 @@ import {default as CoreUtil} from '../../src/core/util.js';
 
 import {default as Palette} from '../../src/palette/palette.js';
 import {default as PaletteManager} from '../../src/palette/manager.js';
-import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/palettes/_index.js';
+import {Stamps as StampPalette, Lines as LinePalette, Tools as ToolPalette} from '../../src/palette/palettes/_index.js';
 
 import {default as Panel} from '../../src/panel/panel.js';
 import {default as PanelManager} from '../../src/panel/manager.js';
@@ -47,7 +47,8 @@ export default {
     Palette: Palette,
     Manager: PaletteManager,
     StampPalette: StampPalette,
-    LinePalette: LinePalette
+    LinePalette: LinePalette,
+    ToolPalette: ToolPalette
   },
   Panel: {
     Panel: Panel,
