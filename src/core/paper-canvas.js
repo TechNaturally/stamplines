@@ -9,8 +9,11 @@ export default class PaperCanvas extends Component {
     }
     super(SL, config);
     this.Handles = {
-      onResize: function(event) {
+      onResize: (event) => {
         console.log('PaperCanvas.onResize =>', event);
+      },
+      onFrame: (event) => {
+        this.emit('Frame', event);
       }
     };
     this.initItem();
