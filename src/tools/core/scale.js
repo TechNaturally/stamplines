@@ -188,6 +188,13 @@ export class Scale extends Tool {
       let rotationPoint = Geo.Direction.edgePoint(edge, this.Belt.Belt.Select.UI.outline.bounds, true);
 
       for (let item of items) {
+        // support for items to supply a custom Scaling method
+        if (this.SL.Paper.Item.hasCustomMethod(item, 'ScaleItem')) {
+          this.SL.Paper.Item.callCustomMethod(item, 'ScaleItem', {'delta': delta, 'edge': edge});
+          continue;
+        }
+
+        // normal scaling
         let scaleDelta = delta.clone();
         let scaleEdge = edge.clone();
         let rotation = item.rotation;

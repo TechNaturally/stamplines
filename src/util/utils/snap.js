@@ -38,6 +38,10 @@ export class Snap extends Util {
     return (this.Around(value2, value1, threshold) == value2);
   }
   Item(item, config={}) {
+    // support for items to supply a custom Snapping method
+    if (this.SL.Paper.Item.hasCustomMethod(item, 'SnapItem')) {
+      return this.SL.Paper.Item.callCustomMethod(item, 'SnapItem', config);
+    }
     return this.runSnappers('item', item, $.extend(config, {original: item.clone({insert:false})}));
   }
   Point(point, config={}) {
