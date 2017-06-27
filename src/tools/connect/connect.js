@@ -27,26 +27,43 @@ export class Connect extends Tool {
     if (!config.connection) {
       config.connection = {};
     }
-    if (config.connection.radius == undefined) {
-      config.connection.radius = 8;
+    if (!config.connection.default) {
+      config.connection.default = {};
     }
-    if (config.connection.color == undefined) {
-      config.connection.color = config.color;
+    if (!config.connection.default.type) {
+      config.connection.default.type = paper.Shape.Ellipse;
     }
-    if (config.connection.fillColor == undefined) {
-      config.connection.fillColor = '#FFFFFF';
+    if (config.connection.default.radius == undefined) {
+      config.connection.default.radius = 10;
     }
-    if (config.connection.strokeColor == undefined) {
-      config.connection.strokeColor = config.connection.color;
-    }
-    if (config.connection.strokeWidth == undefined) {
-      config.connection.strokeWidth = 2;
-    }
-    if (config.connection.opacity == undefined) {
-      config.connection.opacity = 0.9;
-    }
+
     if (config.connection.hitScale == undefined) {
       config.connection.hitScale = { x: 1.0, y: 1.0 };
+    }
+
+    if (!config.connection.style) {
+      config.connection.style = {};
+    }
+    if (config.connection.style.strokeColor == undefined) {
+      config.connection.style.strokeColor = config.color;
+    }
+    if (config.connection.style.strokeJoin == undefined) {
+      config.connection.style.strokeJoin = 'round';
+    }
+    if (config.connection.style.fillColor == undefined) {
+      config.connection.style.fillColor = '#FFFFFF';
+    }
+    if (config.connection.style.strokeColor == undefined) {
+      config.connection.style.strokeColor = config.connection.color;
+    }
+    if (config.connection.style.strokeWidth == undefined) {
+      config.connection.style.strokeWidth = 2;
+    }
+    if (config.connection.style.opacity == undefined) {
+      config.connection.style.opacity = 0.9;
+    }
+    if (config.connection.style.cornerRadius == undefined) {
+      config.connection.style.cornerRadius = 10;
     }
   }
   initEventHandlers() {
@@ -156,17 +173,34 @@ export class Connect extends Tool {
       Snap.dropSnapper('point', this.Snappers.point.id);
       this.Snappers.point = undefined;
     }
+    if (this.Snappers.item) {
+      Snap.dropSnapper('item', this.Snappers.item.id);
+      this.Snappers.item = undefined;
+    }
   }
   snapPoint(point, config) {
     if (config && config.context == 'line-point') {
-      let snappedTo;
+      let snappedTo, snappedOffset;
       for (let connectionUI of this.UI.Connections) {
         let checkConnection = connectionUI.clone({insert:false});
         if (config.interactive) {
-          checkConnection.scale(this.config.ui.connection.hitScale.x, this.config.ui.connection.hitScale.y);
+          let hitScale = this.config.ui.connection.hitScale;
+          if (checkConnection.data && checkConnection.data.hitScale) {
+            hitScale = checkConnection.data.hitScale;
+          }
+          checkConnection.scale(hitScale.x, hitScale.y);
         }
         if (checkConnection.hitTest(config.original)) {
-          point.set(connectionUI.position);
+          snappedOffset = new paper.Point();
+          if (connectionUI.data && connectionUI.data.connection) {
+            if (connectionUI.data.connection.lockX === false) {
+              snappedOffset.x = (config.original.x - connectionUI.bounds.left) / connectionUI.bounds.width * 2.0 - 1.0;
+            }
+            if (connectionUI.data.connection.lockY === false) {
+              snappedOffset.y = (config.original.y - connectionUI.bounds.top) / connectionUI.bounds.height * 2.0 - 1.0;
+            }
+          }
+          point.set(this.globalConnectionPoint(connectionUI.data.connection, connectionUI.data.connection.item, snappedOffset));
           snappedTo = connectionUI;
         }
         else if (config.segment && config.segment.data && connectionUI.data && config.segment.data.connection == connectionUI.data.connection) {
@@ -174,7 +208,7 @@ export class Connect extends Tool {
         }
       }
       if (!config.interactive && snappedTo && config.segment) {
-        this.ConnectSegment(config.segment, snappedTo.data.connection);
+        this.ConnectSegment(config.segment, snappedTo.data.connection, snappedOffset);
       }
     }
     return point;
@@ -183,7 +217,7 @@ export class Connect extends Tool {
     if (item.segments) {
       for (let segment of item.segments) {
         if (segment.point && segment.data && segment.data.connection && segment.data.connection.item) {
-          segment.point.set(this.globalConnectionPoint(segment.data.connection, segment.data.connection.item));
+          segment.point.set(this.globalConnectionPoint(segment.data.connection, segment.data.connection.item, segment.data.connectionOffset));
         }
       }
     }
@@ -191,20 +225,21 @@ export class Connect extends Tool {
       for (let connection of item.data.Connections) {
         for (let connected of connection.connected) {
           if (connected.point) {
-            connected.point.set(this.globalConnectionPoint(connection, item));
+            connected.point.set(this.globalConnectionPoint(connection, item, (connected.data && connected.data.connectionOffset)));
           }
         }
       }
     }
     return item;
   }
-  ConnectSegment(segment, connection) {
+  ConnectSegment(segment, connection, offset) {
     if (!segment || !connection) {
       return;
     }
     if (!segment.data) {
       segment.data = {};
     }
+    segment.data.connectionOffset = offset;
     if (segment.data.connection == connection) {
       return;
     }
@@ -266,7 +301,13 @@ export class Connect extends Tool {
         stamp.data.Connections.push({
           item: stamp,
           point: Geo.Normalize.pointToRectangle(new paper.Point(connection), stamp.bounds),
-          connected: []
+          connected: [],
+          style: connection.style,
+          width: connection.width,
+          height: connection.height,
+          angle: connection.angle,
+          lockX: connection.lockX,
+          lockY: connection.lockY
         });
       }
     }
@@ -274,16 +315,94 @@ export class Connect extends Tool {
   drawConnectionsForItem(item) {
     if (item && item.data && item.data.Connections && item.data.Connections.length) {
       for (let connection of item.data.Connections) {
+        // temporarily straighten item for calculations
+        let rotation = item.rotation;
+        let rotationPoint = item.bounds.center;
+        if (rotation) {
+          item.rotate(-rotation, rotationPoint);
+        }
+
+        // calculate the actual connection point
         let connectionPoint = this.globalConnectionPoint(connection, item);
-        let connectionUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, paper.Shape.Circle, connectionPoint, 10);
-        this.SL.Paper.applyStyle(connectionUI, this.config.ui.connection);
+        let connectShape = this.config.ui.connection.default.type;
+
+        // configure the connection point
+        let connectConfig = {
+          position: connectionPoint,
+          width: this.config.ui.connection.default.radius*2.0,
+          height: this.config.ui.connection.default.radius*2.0
+        };
+
+        // handle custom widths and heights
+        if (connection.width > 0 || connection.height > 0) {
+          connectShape = paper.Shape.Rectangle;
+          if (connection.width > 0) {
+            if (connection.width <= 1.0) {
+              connectConfig.width = item.bounds.width * connection.width;
+            }
+            else {
+              connectConfig.width = connection.width;
+            }
+          }
+          if (connection.height > 0) {
+            if (connection.height <= 1.0) {
+              connectConfig.height = item.bounds.height * connection.height;
+            }
+            else {
+              connectConfig.height = connection.height;
+            }
+          }
+        }
+
+        // configure the connection point style
+        let connectStyle = $.extend({}, this.config.ui.connection.style, connection.style);
+        if (connectStyle.cornerRadius) {
+          if (connectShape == paper.Shape.Rectangle) {
+            connectStyle.radius = connectStyle.cornerRadius;
+          }
+          connectStyle.cornerRadius = undefined;
+          delete connectStyle.cornerRadius;
+        }
+
+        // rotate item back
+        if (rotation) {
+          item.rotate(rotation, rotationPoint);
+        }
+
+        // create the connection point
+        let connectionUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, connectShape, connectConfig);
+        this.SL.Paper.applyStyle(connectionUI, connectStyle);
+
+        // the cornerRadius style would mess up width and height, so fix it here
+        if (connectShape == paper.Shape.Rectangle && connectStyle.radius) {
+          if (connectConfig.width) {
+            connectionUI.bounds.width = connectConfig.width;
+          }
+          if (connectConfig.height) {
+            connectionUI.bounds.height = connectConfig.height;
+          }
+          // make sure it stays at position
+          connectionUI.bounds.center = connectionPoint;
+        }
+
+        // rotate the connection point with the item
+        if (item.rotation) {
+          connectionUI.rotate(item.rotation, item.bounds.center);
+        }
+
+        // local rotation offset for the connection point
+        if (connection.angle) {
+          connectionUI.rotate(connection.angle);
+        }
+
+        // link it to the item and track it
         connectionUI.data.item = item;
         connectionUI.data.connection = connection;
         this.UI.Connections.push(connectionUI);
       }
     }
   }
-  globalConnectionPoint(connection, item) {
+  globalConnectionPoint(connection, item, offset) {
     let Geo = this.SL.Utils.get('Geo');
     if (item && connection && Geo) {
       let rotation = item.rotation;
@@ -292,6 +411,34 @@ export class Connect extends Tool {
         item.rotate(-rotation, rotationPoint);
       }
       let point = Geo.Normalize.pointFromRectangle(connection.point, item.bounds);
+      if (offset && (offset.x || offset.y)) {
+        let connectionRect = {
+          width: this.config.ui.connection.default.radius*2.0,
+          height: this.config.ui.connection.default.radius*2.0
+        };
+        if (connection.width > 0.0) {
+          if (connection.width <= 1.0) {
+            connectionRect.width = connection.width * item.bounds.width;
+          }
+          else {
+            connectionRect.width = connection.width;
+          }
+        }
+        if (connection.height > 0.0) {
+          if (connection.height <= 1.0) {
+            connectionRect.height = connection.height * item.bounds.height;
+          }
+          else {
+            connectionRect.height = connection.height;
+          }
+        }
+        if (offset.x) {
+          point.x += (connectionRect.width * offset.x * 0.5);
+        }
+        if (offset.y) {
+          point.y += (connectionRect.height * offset.y * 0.5);
+        }
+      }
       if (rotation) {
         item.rotate(rotation, rotationPoint);
         point = point.rotate(rotation, rotationPoint);

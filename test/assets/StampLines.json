@@ -10,22 +10,27 @@
           "name": "Circle",
           "connections": [
             { "x": -25, "y": 0 },
-            { "x": 25, "y": 0 }
+            { "x": 25, "y": 0 },
+            { "x": 0, "y": 1.0, "width": 30, "height": 30, "lockX": false, "lockY": false }
           ]
         },
         {
           "id": "rectangle",
           "image": "rectangle-rounded.svg",
           "connections": [
-            { "x": -1.0, "y": 0 },
-            { "x": 1.0, "y": 0 },
-            { "x": 0, "y": -1.0 },
-            { "x": 0, "y": 1.0 }
+            { "x": -1.0, "y": 0, "height": 0.9, "lockY": false },
+            { "x": 1.0, "y": 0, "height": 0.9, "lockY": false },
+            { "x": 0, "y": -1.0, "width": 0.9, "lockX": false, "style": { "strokeColor": "#AA6600" } },
+            { "x": 0, "y": 1.0 , "width": 0.9, "lockX": false }
           ]
         },
         {
           "id": "triangle",
-          "name": "Triangle"
+          "name": "Triangle",
+          "connections": [
+            { "x": -0.5, "y": 0, "height": 0.85, "width": 15, "angle": 30, "lockY": false },
+            { "x": 0.5, "y": 0, "height": 0.85, "width": 15, "angle": -30, "lockY": false }
+          ]
         }
       ]
     },
