@@ -9,8 +9,11 @@ export default class PaperCanvas extends Component {
     }
     super(SL, config);
     this.Handles = {
-      onResize: function(event) {
+      onResize: (event) => {
         console.log('PaperCanvas.onResize =>', event);
+      },
+      onFrame: (event) => {
+        this.emit('Frame', event);
       }
     };
     this.initItem();
@@ -276,8 +279,11 @@ export default class PaperCanvas extends Component {
           };
         }
       },
+      hasCustomMethod(item, methodName) {
+        return (item && item.data && methodName && typeof item.data[methodName] == 'function');
+      },
       callCustomMethod(item, methodName, args) {
-        if (item && item.data && methodName && typeof item.data[methodName] == 'function') {
+        if (this.hasCustomMethod(item, methodName)) {
           item.data[methodName](args);
         }
       }

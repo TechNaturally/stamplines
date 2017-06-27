@@ -31,7 +31,7 @@
     },
     "Lines": {
       "preview": {
-        "width": 46,
+        "width": 36,
         "height": 25
       },
       "lines": [
@@ -68,6 +68,14 @@
             "strokeWidth": 5,
             "dashArray": [5, 5]
           }
+        }
+      ]
+    },
+    "Tools": {
+      "items": [
+        {
+          "id": "TextTool",
+          "icon": "icon-i-cursor icon-font"
         }
       ]
     }

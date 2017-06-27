@@ -9,7 +9,7 @@ import {default as CoreUtil} from '../../src/core/util.js';
 
 import {default as Palette} from '../../src/palette/palette.js';
 import {default as PaletteManager} from '../../src/palette/manager.js';
-import {Stamps as StampPalette, Lines as LinePalette} from '../../src/palette/palettes/_index.js';
+import {Stamps as StampPalette, Lines as LinePalette, Tools as ToolPalette} from '../../src/palette/palettes/_index.js';
 
 import {default as Panel} from '../../src/panel/panel.js';
 import {default as PanelManager} from '../../src/panel/manager.js';
@@ -19,6 +19,7 @@ import {default as ToolBelt} from '../../src/tools/toolbelt.js';
 import {Select, Move, Scale, Rotate, Delete} from '../../src/tools/core/_index.js';
 import {LineTool, CreateLine, EditLine} from '../../src/tools/lines/_index.js';
 import {CreateStamp} from '../../src/tools/stamps/_index.js';
+import {TextTool} from '../../src/tools/text/_index.js';
 import {Connect} from '../../src/tools/connect/_index.js';
 
 import {default as UI} from '../../src/ui/ui.js';
@@ -47,7 +48,8 @@ export default {
     Palette: Palette,
     Manager: PaletteManager,
     StampPalette: StampPalette,
-    LinePalette: LinePalette
+    LinePalette: LinePalette,
+    ToolPalette: ToolPalette
   },
   Panel: {
     Panel: Panel,
@@ -71,6 +73,9 @@ export default {
     },
     Stamps: {
       CreateStamp: CreateStamp
+    },
+    Text: {
+      TextTool: TextTool
     },
     Connect: {
       Connect: Connect

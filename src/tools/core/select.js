@@ -77,6 +77,12 @@ export class Select extends Tool {
     return !!(item && this.Items.indexOf(item) != -1);
   }
   Select(item) {
+    if (item.constructor == Array) {
+      for (let select_item of item) {
+        this.Select(select_item);
+      }
+      return;
+    }
     if (this.isSelectable(item) && !this.isSelected(item)) {
       this.Items.push(item);
       item.selected = true;

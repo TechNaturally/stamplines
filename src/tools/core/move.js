@@ -24,7 +24,14 @@ export class Move extends Tool {
         bounds = Snap.Rectangle(bounds, {context: 'move', interactive: true, size: false});
       }
       let delta = bounds.center.subtract(Select.UI.outline.strokeBounds.center);
-      Select.Group.translate(delta);
+      for (let item of Select.Items) {
+        // support for items to supply a custom Move method
+        if (this.SL.Paper.Item.hasCustomMethod(item, 'MoveItem')) {
+          this.SL.Paper.Item.callCustomMethod(item, 'MoveItem', {'delta': delta, 'event': event});
+          continue;
+        }
+        item.translate(delta);
+      }
       Select.SnapSelected({
         context: 'move',
         interactive: true,

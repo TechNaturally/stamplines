@@ -1,40 +1,42 @@
 {
   "name": "StampLines Test Config #2",
-  "Stamps": {
-    "path": "assets/stamps",
-    "stamps": [
-      {
-        "id": "circle",
-        "name": "Circle",
-        "connections": [
-          { "x": -25, "y": 0 },
-          { "x": 25, "y": 0 }
-        ]
-      }
-    ]
-  },
-  "Lines": {
-    "preview": {
-      "width": 50,
-      "height": 25
+  "Palettes": {
+    "Stamps": {
+      "path": "assets/stamps",
+      "stamps": [
+        {
+          "id": "circle",
+          "name": "Circle",
+          "connections": [
+            { "x": -25, "y": 0 },
+            { "x": 25, "y": 0 }
+          ]
+        }
+      ]
     },
-    "lines": [
-      {
-        "id": "solid-black",
-        "name": "Solid Black",
-        "style": {
-          "strokeColor": "black",
-          "strokeWidth": 8
-        }
+    "Lines": {
+      "preview": {
+        "width": 36,
+        "height": 25
       },
-      {
-        "id": "solid-blue",
-        "name": "Solid Blue",
-        "style": {
-          "strokeColor": "blue",
-          "strokeWidth": 8
+      "lines": [
+        {
+          "id": "solid-black",
+          "name": "Solid Black",
+          "style": {
+            "strokeColor": "black",
+            "strokeWidth": 8
+          }
+        },
+        {
+          "id": "solid-blue",
+          "name": "Solid Blue",
+          "style": {
+            "strokeColor": "blue",
+            "strokeWidth": 8
+          }
         }
-      }
-    ]
+      ]
+    }
   }
 }

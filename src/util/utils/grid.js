@@ -156,7 +156,7 @@ export class Grid extends Util {
         }
       });
       this.Snappers.item = Snap.addSnapper('item', {
-        priority: 57,
+        priority: 75,
         callback: (item, config) => {
           return this.snapItem(item, config);
         }

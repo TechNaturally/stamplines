@@ -379,6 +379,11 @@ export class Rotate extends Tool {
       let delta = angle - this.currentAngle;
       this.State.rotation = angle;
       for (let item of this.Belt.Belt.Select.Items) {
+        // support for items to supply a custom Rotate method
+        if (this.SL.Paper.Item.hasCustomMethod(item, 'RotateItem')) {
+          this.SL.Paper.Item.callCustomMethod(item, 'RotateItem', {'delta': delta, 'anchor': this.UI.circle.position});
+          continue;
+        }
         item.rotate(delta, this.UI.circle.position);
       }
       this.Belt.refreshUI();
