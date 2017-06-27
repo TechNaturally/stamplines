@@ -118,6 +118,9 @@ export class Scale extends Tool {
     return item;
   }
   snapRectangle(rectangle, config={}) {
+    if (config && config.size === false) {
+      return rectangle;
+    }
     if (this.config.minSize) {
       if (this.config.minSize.width && rectangle.width < this.config.minSize.width) {
         rectangle.width = this.config.minSize.width;
@@ -175,7 +178,7 @@ export class Scale extends Tool {
     }
   }
 
-  Scale(items, delta, edge) {
+  Scale(items, delta, edge, point) {
     let Geo = this.SL.Utils.get('Geo');
     if (!Geo) {
       return;
@@ -190,7 +193,7 @@ export class Scale extends Tool {
       for (let item of items) {
         // support for items to supply a custom Scaling method
         if (this.SL.Paper.Item.hasCustomMethod(item, 'ScaleItem')) {
-          this.SL.Paper.Item.callCustomMethod(item, 'ScaleItem', {'delta': delta, 'edge': edge});
+          this.SL.Paper.Item.callCustomMethod(item, 'ScaleItem', {'delta': delta, 'edge': edge, 'point': point});
           continue;
         }
 
@@ -292,11 +295,11 @@ export class Scale extends Tool {
   onMouseDrag(event) {
     if (this.isActive() && this.Belt.State.Mouse.Hover.selectionEdge.direction) {
       let delta = event.delta.clone();
+      let point = this.SL.UI.Mouse.State.point;
       let Snap = this.SL.Utils.get('Snap');
       if (Snap) {
         let pointMin = Snap.PointMin();
         let pointMax = Snap.PointMax();
-        let point = this.SL.UI.Mouse.State.point;
         let shift = {
           x: Math.min(0.0, (point.x - pointMin.x)) + Math.max(0.0, (point.x - pointMax.x)),
           y: Math.min(0.0, (point.y - pointMin.y)) + Math.max(0.0, (point.y - pointMax.y))
@@ -329,8 +332,9 @@ export class Scale extends Tool {
           this.edgeLock.y = false;
         }
       }
+
       // perform the scale (also Snaps each item as it scales them)
-      this.Scale(this.Belt.Belt.Select.Items, delta, this.Belt.State.Mouse.Hover.selectionEdge.direction);
+      this.Scale(this.Belt.Belt.Select.Items, delta, this.Belt.State.Mouse.Hover.selectionEdge.direction, point);
       this.Belt.Belt.Select.SnapSelected({
         context: 'scale',
         interactive: true,

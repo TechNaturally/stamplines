@@ -27,7 +27,7 @@ export class Move extends Tool {
       for (let item of Select.Items) {
         // support for items to supply a custom Move method
         if (this.SL.Paper.Item.hasCustomMethod(item, 'MoveItem')) {
-          this.SL.Paper.Item.callCustomMethod(item, 'MoveItem', {'delta': delta});
+          this.SL.Paper.Item.callCustomMethod(item, 'MoveItem', {'delta': delta, 'event': event});
           continue;
         }
         item.translate(delta);

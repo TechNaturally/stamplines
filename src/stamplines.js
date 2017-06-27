@@ -189,7 +189,8 @@ StampLines.DEFAULT = {
             'expand-ew': {icon:'arrows-h'},
             'link': {icon:'link'},
             'unlink': {icon:'unlink'},
-            'crosshairs': {icon:'crosshairs'}
+            'crosshairs': {icon:'crosshairs'},
+            'text': {icon:'i-cursor'}
           }
         }
       }
