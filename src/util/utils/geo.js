@@ -123,7 +123,7 @@ export class Geo extends Util {
         point = rectangle.center.add(point.multiply(bounds));
         return point;
       },
-      pointAtLineDistance(line, distance, includeVector=false) {
+      pointOnLine(line, distance, includeVector=false) {
         let reverse = distance < 0;
         if (reverse) {
           distance *= -1.0;

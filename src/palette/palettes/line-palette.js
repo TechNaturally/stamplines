@@ -134,7 +134,7 @@ export default class LinePalette extends Palette {
         let position = ((item.data.labelPosition == 'bottom') ? -1.0 : 1.0);
         let distance = (item.data.labelDistance || 0.5);
         var space = (item.data.labelSpace || 15);
-        let normal = Geo.Normalize.pointAtLineDistance(item, distance, true);
+        let normal = Geo.Normalize.pointOnLine(item, distance, true);
         normal.vector = normal.vector.rotate(-90);
         normal.vector.length = space*position;
         let point = normal.point.add(normal.vector);
