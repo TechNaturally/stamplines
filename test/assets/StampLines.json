@@ -22,6 +22,9 @@
             { "x": 1.0, "y": 0, "height": 0.9, "lockY": false },
             { "x": 0, "y": -1.0, "width": 0.9, "lockX": false, "style": { "strokeColor": "#AA6600" } },
             { "x": 0, "y": 1.0 , "width": 0.9, "lockX": false }
+          ],
+          "labels": [
+            { "x": 0, "y": 0, "style": { "fontSize": 18, "fontStyle": "Bold" } }
           ]
         },
         {
@@ -46,7 +49,10 @@
           "style": {
             "strokeColor": "black",
             "strokeWidth": 5
-          }
+          },
+          "labels": [
+            { "position": 0.5, "length": 0.8, "style": { "fontSize": 14, "fontStyle": "Italic" } }
+          ]
         },
         {
           "id": "thin-green",
