@@ -101,8 +101,8 @@ export class Connector extends Tool {
     this.resetUITargets();
   }
   resetUITargets() {
-    for (let target of this.UI.Targets) {
-      this.SL.Paper.destroyPaperItem(target);
+    for (let targetUI of this.UI.Targets) {
+      this.SL.Paper.destroyPaperItem(targetUI);
     }
     this.UI.Targets.length = 0;
   }
@@ -185,7 +185,6 @@ export class Connector extends Tool {
   drawLineItemTarget(item, target) {
     console.log('DRAW TARGET ON LINE =>', item, target);
   }
-
   drawItemTarget(item, target) {
     // temporarily straighten item for calculations
     let rotation = item.rotation;
@@ -229,6 +228,7 @@ export class Connector extends Tool {
         item.rotate(-rotation, rotationPoint);
       }
       let point = Geo.Normalize.pointFromRectangle(target.point, item.bounds);
+      let pivotPoint = point.clone();
       if (offset && (offset.x || offset.y)) {
         let targetRect = {
           width: this.config.ui.target.default.radius*2.0,
@@ -257,9 +257,12 @@ export class Connector extends Tool {
           point.y += (targetRect.height * offset.y * 0.5);
         }
       }
+      if (target.angle) {
+        point.set(point.rotate(target.angle, pivotPoint));
+      }
       if (rotation) {
         item.rotate(rotation, rotationPoint);
-        point = point.rotate(rotation, rotationPoint);
+        point.set(point.rotate(rotation, rotationPoint));
       }
       return point;
     }
