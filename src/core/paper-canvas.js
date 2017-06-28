@@ -301,12 +301,14 @@ export default class PaperCanvas extends Component {
           id = ID.getUnique(type, this.paperEvents[type]);
         }
       }
-      if (id && !this.paperEvents[type][id]) {
-        this.paperEvents[type][id] = {
-          id: id,
-          filter: filter,
-          callback: callback
-        };
+      if (id) {
+        if (!this.paperEvents[type][id]) {
+          this.paperEvents[type][id] = {
+            id: id,
+            filter: filter,
+            callback: callback
+          };
+        }
         return this.paperEvents[type][id];
       }
     }
