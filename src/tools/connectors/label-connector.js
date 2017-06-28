@@ -20,7 +20,6 @@ export class LabelConnector extends Connector {
           this.DetachLabels(item);
         }, 'LabelConnector.Destroy.Item');
       }
-      if (!this.eventHandlers.)
     }
   }
   resetEventHandlers() {
@@ -105,6 +104,39 @@ export class LabelConnector extends Connector {
           lockY: labelSlot.lockY
         };
         line.data.Labels.push(labelConfig);
+      }
+    }
+  }
+
+  onSelectionItemSelected(event) {
+    this.refreshTargets();
+  }
+  onSelectionItemUnselected(event) {
+    this.refreshTargets(event.items?true:false);
+  }
+  refreshTargets(excludeFirst) {
+    if (this.shouldShowTargets(excludeFirst)) {
+      this.showTargets();
+    }
+    else {
+      this.hideTargets();
+    }
+  }
+  shouldShowTargets(excludeFirst) {
+    let Select = this.Belt.Belt.Select;
+    let checkItems = Select.Items.slice(excludeFirst?1:0);
+    if (checkItems.length == 1) {
+      let checkItem = checkItems[0];
+      if (checkItem && checkItem.data && checkItem.data.Type == 'Text') {
+        return true;
+      }
+    }
+    return false;
+  }
+  drawItemTargets(item) {
+    if (item && item.data && item.data.Labels) {
+      for (let labelSlot of item.data.Labels) {
+        this.drawItemTarget(item, labelSlot);
       }
     }
   }
