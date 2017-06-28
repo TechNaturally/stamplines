@@ -108,6 +108,7 @@ export class Connector extends Tool {
   }
 
   showTargets() {
+    this.resetUITargets();
     this.SL.Paper.Item.forEachOfClass('Content', (item, args) => {
       this.drawItemTargets(item);
     });
@@ -116,15 +117,7 @@ export class Connector extends Tool {
     this.resetUITargets();
   }
 
-
-  drawItemTarget(item, target) {
-    // temporarily straighten item for calculations
-    let rotation = item.rotation;
-    let rotationPoint = item.bounds.center;
-    if (rotation) {
-      item.rotate(-rotation, rotationPoint);
-    }
-
+  drawRectangleItemTarget(item, target) {
     // calculate the actual target point
     let targetPoint = this.globalTargetPoint(target, item);
     let targetShape = this.config.ui.target.default.type;
@@ -167,11 +160,6 @@ export class Connector extends Tool {
       delete targetStyle.cornerRadius;
     }
 
-    // rotate item back
-    if (rotation) {
-      item.rotate(rotation, rotationPoint);
-    }
-
     // create the target point
     let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, targetShape, targetConfig);
     this.SL.Paper.applyStyle(targetUI, targetStyle);
@@ -188,20 +176,49 @@ export class Connector extends Tool {
       targetUI.bounds.center = targetPoint;
     }
 
-    // rotate the target point with the item
-    if (item.rotation) {
-      targetUI.rotate(item.rotation, item.bounds.center);
-    }
-
     // local rotation offset for the target point
     if (target.angle) {
       targetUI.rotate(target.angle);
     }
+    return targetUI;
+  }
+  drawLineItemTarget(item, target) {
+    console.log('DRAW TARGET ON LINE =>', item, target);
+  }
 
-    // link it to the item and track it
-    targetUI.data.item = item;
-    targetUI.data.target = target;
-    this.UI.Targets.push(targetUI);
+  drawItemTarget(item, target) {
+    // temporarily straighten item for calculations
+    let rotation = item.rotation;
+    let rotationPoint = item.bounds.center;
+    if (rotation) {
+      item.rotate(-rotation, rotationPoint);
+    }
+
+    // draw the target depending on which type of item it is
+    let targetUI;
+    if (item.data && item.data.Type == 'Line') {
+      targetUI = this.drawLineItemTarget(item, target);
+    }
+    else {
+      targetUI = this.drawRectangleItemTarget(item, target);
+    }
+
+    // rotate item back
+    if (rotation) {
+      item.rotate(rotation, rotationPoint);
+    }
+
+    if (targetUI) {
+      // rotate the target point with the item
+      if (item.rotation) {
+        targetUI.rotate(item.rotation, item.bounds.center);
+      }
+
+      // link it to the item and track it
+      targetUI.data.item = item;
+      targetUI.data.target = target;
+      this.UI.Targets.push(targetUI);
+    }
   }
   globalTargetPoint(target, item, offset) {
     let Geo = this.SL.Utils.get('Geo');
