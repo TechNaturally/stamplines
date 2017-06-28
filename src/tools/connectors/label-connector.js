@@ -56,8 +56,11 @@ export class LabelConnector extends Connector {
       }
     }
   }
+  AttachLabel(label, target, offset) {
+    // link the label + target and set the labelOffset
+  }
   DetachLabels(item) {
-    // check item.data to decide if it's a label or has a label
+    // check item.data to decide if it IS a label or HAS a label
   }
 
   initStampLabels(stamp) {

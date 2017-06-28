@@ -183,6 +183,12 @@ export class Connector extends Tool {
     return targetUI;
   }
   drawLineItemTarget(item, target) {
+    let targetPoint = this.globalTargetPoint(target, item);
+    let targetShape = this.config.ui.target.default.type;
+
+    // calculate start position of the target, then trace each segment until the target.end is reached
+    // draw the target as a thick (config.ui.target.radius) Path.Line with a nice outline
+
     console.log('DRAW TARGET ON LINE =>', item, target);
   }
   drawItemTarget(item, target) {
@@ -226,6 +232,34 @@ export class Connector extends Tool {
       let rotationPoint = item.bounds.center;
       if (rotation) {
         item.rotate(-rotation, rotationPoint);
+      }
+      if (item.data && item.data.Type == 'Line') {
+        // @TODO: calculate globalTargetPoint for Line items
+
+        if (target.position) {
+
+        }
+        else if (target.start) {
+
+        }
+        else if (target.end) {
+
+        }
+
+        // - normalize target.position + (target.length) to target.start + target.end
+        /**
+        let startPosition = target.start;
+        let endPosition = target.end;
+        if ((startPosition == null || endPosition == null) && target.position) {
+          let halfWay = (target.length || 0)/2.0;
+          startPosition = target.position - halfWay;
+          endPosition = target.position + halfWay;
+        }
+        */
+
+        // point.x = Geo.Normalize.pointOnLine(item, target.start + offset.x)
+
+        // - need to get the normal @ position and move out perpendicular from line by: target.distance + offset.y
       }
       let point = Geo.Normalize.pointFromRectangle(target.point, item.bounds);
       let pivotPoint = point.clone();
