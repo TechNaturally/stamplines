@@ -12,5 +12,29 @@ describe('Tools.Connectors.LabelConnector', () => {
       expect(LabelConnector.constructor.name).to.equal('LabelConnector');
     });
   });
-  // @TODO: Tests - Tools.Connectors.LabelConnector
+  
+  describe('#initEventHandlers', () => {
+    beforeEach(() => {
+      LabelConnector.resetEventHandlers();
+    });
+  });
+  describe('#resetEventHandlers', () => {
+    beforeEach(() => {
+      LabelConnector.initEventHandlers();
+    });
+  });
+
+  describe('#registerSnappers', () => {
+    beforeEach(() => {
+      LabelConnector.unregisterSnappers();
+    });
+  });
+  describe('#unregisterSnappers', () => {
+    beforeEach(() => {
+      LabelConnector.registerSnappers();
+    });
+  });
+
+  describe('#resetUI', () => {
+  });
 });
