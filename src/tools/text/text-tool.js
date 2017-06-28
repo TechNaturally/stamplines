@@ -277,7 +277,7 @@ export class TextTool extends Tool {
   }
 
   addTemporaryStraighten(item, id) {
-    if (item && item.rotation) {
+    if (item && item.data && item.data.Type == 'Text' && item.rotation) {
       if (!item.data) {
         item.data = {};
       }
