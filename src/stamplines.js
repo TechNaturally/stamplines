@@ -115,13 +115,16 @@ export default class StampLines {
     return !!(StampLines.ACTIVE===this);
   }
 
+  configure(config) {
+    this.config = $.extend({}, StampLines.DEFAULT.config, config);
+    this.init();
+  }
   loadConfig(source) {
     if (source) {
       let RemoteLoader = this.Utils.gets('RemoteLoader', {path: source});
       return RemoteLoader.load()
         .then((config) => {
-          this.config = $.extend({}, StampLines.DEFAULT.config, config);
-          this.init();
+          this.configure(config);
           return config;
         });
     }
