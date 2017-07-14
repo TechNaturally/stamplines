@@ -57,10 +57,10 @@ export class LabelConnector extends Connector {
     }
   }
   AttachLabel(label, target, offset) {
-    // link the label + target and set the labelOffset
+    // @TODO: link the label + target and set the labelOffset
   }
   DetachLabels(item) {
-    // check item.data to decide if it IS a label or HAS a label
+    // @TODO: check item.data to decide if it IS a label or HAS a label
   }
 
   initStampLabels(stamp) {
@@ -104,7 +104,8 @@ export class LabelConnector extends Connector {
           angle: labelSlot.angle,
           distance: labelSlot.distance,
           lockX: labelSlot.lockX,
-          lockY: labelSlot.lockY
+          lockY: labelSlot.lockY,
+          targetStyle: labelSlot.targetStyle
         };
         line.data.Labels.push(labelConfig);
       }
@@ -139,6 +140,12 @@ export class LabelConnector extends Connector {
   drawItemTargets(item) {
     if (item && item.data && item.data.Labels) {
       for (let labelSlot of item.data.Labels) {
+        labelSlot = $.extend({}, labelSlot);
+        labelSlot.style = {};
+        if (labelSlot.targetStyle) {
+          labelSlot.style = labelSlot.targetStyle;
+          delete labelSlot.targetStyle;
+        }
         this.drawItemTarget(item, labelSlot);
       }
     }
