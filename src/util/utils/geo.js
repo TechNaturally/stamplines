@@ -123,7 +123,7 @@ export class Geo extends Util {
         point = rectangle.center.add(point.multiply(bounds));
         return point;
       },
-      pointOnLine(line, distance, includeVector=false) {
+      pointOnLine(line, distance, includeMeta=false) {
         let reverse = distance < 0;
         if (reverse) {
           distance *= -1.0;
@@ -136,14 +136,15 @@ export class Geo extends Util {
           if (delta.length > distance) {
             delta.length = distance;
             let p3 = p1.add(delta);
-            return (includeVector ? { point: p3, vector: p3.subtract(p1) } : p3);
+            return (includeMeta ? { point: p3, vector: p3.subtract(p1), segment: i } : p3);
           }
           else {
             distance -= delta.length;
           }
         }
-        let result = new paper.Point(line.segments[(reverse ? line.segments.length-1 : 0)].point);
-        return (includeVector ? { point: result, vector: result.subtract(result) } : result);
+        let segmentIndex = (reverse ? line.segments.length-1 : 0);
+        let result = new paper.Point(line.segments[segmentIndex].point);
+        return (includeMeta ? { point: result, vector: result.subtract(result), segment: segmentIndex } : result);
       }
     };
   }
