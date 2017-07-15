@@ -101,6 +101,8 @@ export class LabelConnector extends Connector {
           position: labelSlot.position,
           length: labelSlot.length,
           style: labelSlot.style,
+          width: labelSlot.width,
+          height: labelSlot.height,
           angle: labelSlot.angle,
           distance: labelSlot.distance,
           lockX: labelSlot.lockX,

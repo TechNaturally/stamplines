@@ -48,12 +48,15 @@
           "name": "Solid Black",
           "style": {
             "strokeColor": "black",
-            "strokeWidth": 5
+            "strokeWidth": 5,
+            "strokeJoin": "round"
           },
           "labels": [
-            { "position": 0.5, "style": { "fontSize": 18, "fontStyle": "Bold" }, "targetStyle": { "strokeColor": "#AA6600" } },
             { "position": 0.5, "length": 0.8, "distance": 10, "style": { "fontSize": 14, "fontStyle": "Italic" }, "targetStyle": { "strokeColor": "#0066AA" } },
-            { "start": 0.25, "length": 0.5, "distance": -10, "style": { "fontSize": 14, "fontStyle": "Italic" }, "targetStyle": { "strokeColor": "#6600AA" } }
+            { "start": 0.25, "length": 0.5, "distance": -10, "style": { "fontSize": 14, "fontStyle": "Italic" }, "targetStyle": { "strokeColor": "#6600AA" } },
+            { "position": 0.5, "style": { "fontSize": 18, "fontStyle": "Bold" }, "targetStyle": { "strokeColor": "#AA6600" } },
+            { "start": 0, "end": 0.05, "width": 15, "style": { "fontSize": 18, "fontStyle": "Bold" }, "targetStyle": { "strokeColor": "#00AA66" } },
+            { "start": 0.95, "end": 1.0, "width": 15, "style": { "fontSize": 18, "fontStyle": "Bold" }, "targetStyle": { "strokeColor": "#00AA66" } }
           ]
         },
         {

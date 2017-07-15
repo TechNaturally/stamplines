@@ -53,6 +53,9 @@ export class Connector extends Tool {
     if (config.target.style.strokeJoin == undefined) {
       config.target.style.strokeJoin = 'round';
     }
+    if (config.target.style.miterLimit == undefined) {
+      config.target.style.miterLimit = 5;
+    }
     if (config.target.style.fillColor == undefined) {
       config.target.style.fillColor = '#FFFFFF';
     }
@@ -208,7 +211,7 @@ export class Connector extends Tool {
     }
 
     // calculate distance from line
-    let distance = target.distance;
+    let distance = target.distance || 0;
     let flipSide = (distance < 0);
     let normalAngle = (flipSide ? -90.0 : 90.0);
     distance = Math.abs(distance);
@@ -227,12 +230,13 @@ export class Connector extends Tool {
       let startAt = Geo.Normalize.pointOnLine(item, start, true);
       let endAt = Geo.Normalize.pointOnLine(item, end, true);
       let targetUI;
-      let targetRadius = (target.width/2.0) || this.config.ui.target.default.radius;
+      let targetStyle = $.extend({}, this.config.ui.target.style, target.style);
+      let targetWidth = target.width || (this.config.ui.target.default.radius*2.0);
+      let targetRadius = targetWidth/2.0;
 
       // build two sets of points
-      let pointsA = []; // start -> end @ distance + targetRadius
-      let pointsB = []; // end -> start @ distance - targetRadius
-
+      let pointsA = []; // start -> end @ distance + targetRadius ("outside")
+      let pointsB = []; // end -> start @ distance - targetRadius ("inside")
       let point, vector;
 
       // add the start point
@@ -250,25 +254,19 @@ export class Connector extends Tool {
         // calculate the angle between segments
         let angle1 = point.subtract(item.segments[i-1].point).angle;
         let angle2 = item.segments[i+1].point.subtract(point).angle;
-        if (angle1 < 0) {
-          angle1 += 360.0;
-        }
-        if (angle2 < 0) {
-          angle2 += 360.0;
-        }
-        let angleDiff = (angle2-angle1) % 360.0;
-        if (angleDiff > 180.0) {
-          angleDiff -= 360.0;
-        }
-        else if (angleDiff < -180.0) {
-          angleDiff += 360.0;
-        }
+        let angleDiff = angle2 - angle1;
 
-        // move the point out by distance and perpendicular to half the angle
+        // calculate the width of the target at the corner
+        let mitreLength = targetWidth / Math.cos((angleDiff/2.0) * (Math.PI/180.0));
+
+        // create a vector for the angle
         vector = new paper.Point();
-        vector.angle = angle1 + (angleDiff/2.0) + normalAngle;
-        vector.length = distance + targetRadius;
+        vector.angle = angle1 + angleDiff/2.0 + normalAngle;
+
+        // add points
+        vector.length = distance - targetRadius + mitreLength;
         pointsA.push(point.add(vector));
+
         vector.length = distance - targetRadius;
         pointsB.unshift(point.add(vector));
       }
@@ -281,11 +279,12 @@ export class Connector extends Tool {
       vector.length = distance - targetRadius;
       pointsB.unshift(endAt.point.add(vector));
 
+      // create the target item using pointsA + pointsB
       targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, paper.Path, pointsA.concat(pointsB));
       targetUI.closed = true;
 
       if (targetUI) {
-        this.SL.Paper.applyStyle(targetUI, $.extend({}, this.config.ui.target.style, target.style));
+        this.SL.Paper.applyStyle(targetUI, targetStyle);
         targetUI.data.item = item;
         targetUI.data.target = target;
         this.UI.Targets.push(targetUI);
