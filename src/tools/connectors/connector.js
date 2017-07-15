@@ -209,11 +209,11 @@ export class Connector extends Tool {
 
     // calculate distance from line
     let distance = target.distance;
-    if (distance > 0) {
-      distance += item.strokeWidth / 2.0;
-    }
-    else if (distance < 0) {
-      distance -= item.strokeWidth / 2.0;
+    let flipSide = (distance < 0);
+    let normalAngle = (flipSide ? -90.0 : 90.0);
+    distance = Math.abs(distance);
+    if (distance) {
+      distance += (item.strokeWidth / 2.0);
     }
 
     if (start != null && end != null && start != end) {
@@ -226,98 +226,73 @@ export class Connector extends Tool {
       // determine the segments the target covers
       let startAt = Geo.Normalize.pointOnLine(item, start, true);
       let endAt = Geo.Normalize.pointOnLine(item, end, true);
-
-      // TODO: draw the target as a thick line with a styled outline
-      let targetShape = paper.Path.Line;
-      let targetStyle = {
-        strokeColor: '#00AA66',
-        strokeWidth: 1
-      };
       let targetUI;
+      let targetRadius = (target.width/2.0) || this.config.ui.target.default.radius;
 
-      // determine start and end points of the target
-      let p1 = this.globalTargetPoint({
-        position: start,
-        distance: target.distance
-      }, item);
-      let p2 = this.globalTargetPoint({
-        position: end,
-        distance: target.distance
-      }, item);
-      if (startAt.segment == endAt.segment) {
-        targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, targetShape, p1, p2);
-      }
-      else {
-        // trace each segment between start and end points
-        let p3;
-        for (let i=startAt.segment+1; i < item.segments.length && i <= endAt.segment+1; i++) {
-          if (i == endAt.segment+1 || i == item.segments.length-1) {
-            p3 = p2;
-          }
-          else {
-            p3 = item.segments[i].point.clone();
-            if (distance) {
-              // calculate the angle between segments
-              let angle1 = p3.subtract(item.segments[i-1].point).angle;
-              let angle2 = item.segments[i+1].point.subtract(p3).angle;
-              if (angle1 < 0) {
-                angle1 += 360.0;
-              }
-              if (angle2 < 0) {
-                angle2 += 360.0;
-              }
-              let angleDiff = (angle2-angle1) % 360.0;
-              if (angleDiff > 180.0) {
-                angleDiff -= 360.0;
-              }
-              else if (angleDiff < -180.0) {
-                angleDiff += 360.0;
-              }
+      // build two sets of points
+      let pointsA = []; // start -> end @ distance + targetRadius
+      let pointsB = []; // end -> start @ distance - targetRadius
 
-              // move the point out by distance and perpendicular to half the angle
-              let vector = new paper.Point();
-              vector.length = distance;
-              vector.angle = angle1 + angleDiff/2.0;
-              if (distance < 0) {
-                vector.angle -= 90.0;
-              }
-              else {
-                vector.angle += 90.0;
-              }
-              p3 = p3.add(vector);
-            }
-          }
-          // create or append to the target
-          if (!targetUI) {
-            // two points are needed to create the path item
-            targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, targetShape, p1, p3);
-          }
-          else {
-            targetUI.add(p3);
-          }
+      let point, vector;
+
+      // add the start point
+      vector = startAt.vector.clone();
+      vector.angle += normalAngle;
+      vector.length = distance + targetRadius;
+      pointsA.push(startAt.point.add(vector));
+      vector.length = distance - targetRadius;
+      pointsB.unshift(startAt.point.add(vector));
+
+      // add all points in between start and end segments
+      for (let i=startAt.segment+1; i < item.segments.length-1 && i <= endAt.segment; i++) {
+        point = item.segments[i].point.clone();
+
+        // calculate the angle between segments
+        let angle1 = point.subtract(item.segments[i-1].point).angle;
+        let angle2 = item.segments[i+1].point.subtract(point).angle;
+        if (angle1 < 0) {
+          angle1 += 360.0;
         }
+        if (angle2 < 0) {
+          angle2 += 360.0;
+        }
+        let angleDiff = (angle2-angle1) % 360.0;
+        if (angleDiff > 180.0) {
+          angleDiff -= 360.0;
+        }
+        else if (angleDiff < -180.0) {
+          angleDiff += 360.0;
+        }
+
+        // move the point out by distance and perpendicular to half the angle
+        vector = new paper.Point();
+        vector.angle = angle1 + (angleDiff/2.0) + normalAngle;
+        vector.length = distance + targetRadius;
+        pointsA.push(point.add(vector));
+        vector.length = distance - targetRadius;
+        pointsB.unshift(point.add(vector));
       }
+
+      // add the end point
+      vector = endAt.vector.clone();
+      vector.angle += normalAngle;
+      vector.length = distance + targetRadius;
+      pointsA.push(endAt.point.add(vector));
+      vector.length = distance - targetRadius;
+      pointsB.unshift(endAt.point.add(vector));
+
+      targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, paper.Path, pointsA.concat(pointsB));
+      targetUI.closed = true;
 
       if (targetUI) {
-        this.SL.Paper.applyStyle(targetUI, targetStyle);
+        this.SL.Paper.applyStyle(targetUI, $.extend({}, this.config.ui.target.style, target.style));
         targetUI.data.item = item;
         targetUI.data.target = target;
         this.UI.Targets.push(targetUI);
       }
-
-      // TODO: remove the target point markers
-      let targetUI1 = this.drawTargetShape({style: target.style}, p1);
-      // link it to the item and track it
-      targetUI1.data.item = item;
-      targetUI1.data.target = target;
-      this.UI.Targets.push(targetUI1);
-
-      targetUI1 = this.drawTargetShape({style: $.extend({}, target.style, {radius: 5})}, p2);
-      targetUI1.data.item = item;
-      targetUI1.data.target = target;
-      this.UI.Targets.push(targetUI1);
     }
     else  {
+      // a single connection point
       let position;
       if (target.position != null) {
         position = target.position;
