@@ -124,27 +124,38 @@ export class Geo extends Util {
         return point;
       },
       pointOnLine(line, distance, includeMeta=false) {
-        let reverse = distance < 0;
+        let reverse = (distance < 0);
+        let length = distance;
         if (reverse) {
-          distance *= -1.0;
+          length *= -1.0;
         }
-        distance *= line.length;
+        length *= line.length;
         for (let i=0; i < (line.segments.length-1); i++) {
           let p1 = line.segments[(reverse ? line.segments.length-1-i : i)].point;
           let p2 = line.segments[(reverse ? line.segments.length-2-i : i+1)].point;
           let delta = p2.subtract(p1);
-          if (delta.length > distance) {
-            delta.length = distance;
+          if (delta.length >= length) {
+            let vector = delta.clone();
+            vector.length = 1.0;
+            delta.length = length;
             let p3 = p1.add(delta);
-            return (includeMeta ? { point: p3, vector: p3.subtract(p1), segment: i } : p3);
+            return (includeMeta ? { point: p3, vector: vector, segment: i } : p3);
           }
           else {
-            distance -= delta.length;
+            length -= delta.length;
           }
         }
-        let segmentIndex = (reverse ? line.segments.length-1 : 0);
-        let result = new paper.Point(line.segments[segmentIndex].point);
-        return (includeMeta ? { point: result, vector: result.subtract(result), segment: segmentIndex } : result);
+        let segmentIndex = ((reverse || distance == 1.0) ? line.segments.length-1 : 0);
+        let result = line.segments[segmentIndex].point.clone();
+        let vector;
+        if (segmentIndex) {
+          vector = result.subtract(line.segments[segmentIndex-1].point);
+        }
+        else {
+          vector = line.segments[segmentIndex+1].point.subtract(result);
+        }
+        vector.length = 1.0;
+        return (includeMeta ? { point: result, vector: vector, segment: segmentIndex } : result);
       }
     };
   }
