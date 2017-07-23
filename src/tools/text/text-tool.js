@@ -445,14 +445,13 @@ export class TextTool extends Tool {
   }
   snapTextItem(item, args={}) {
     if (item && item.data && item.data.Type == 'Text') {
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        let point = Snap.Point(item.bounds.topLeft, {context: 'text-point', item: item, interactive: args.interactive});
+        let delta = point.subtract(item.bounds.topLeft);
+        item.translate(delta);
+      }
       if (!args.interactive) {
-        let Snap = this.SL.Utils.get('Snap');
-        if (Snap) {
-          let point = Snap.Point(item.bounds.topLeft, {context: 'text-point', interactive: args.interactive});
-          let delta = point.subtract(item.bounds.topLeft);
-          item.translate(delta);
-        }
-
         var snapSizes = this.config.interactive.allowSizes;
         let fontSize = parseFloat(item.fontSize);
         if (snapSizes.indexOf(fontSize) == -1) {

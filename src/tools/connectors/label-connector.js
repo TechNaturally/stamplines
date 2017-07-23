@@ -41,9 +41,35 @@ export class LabelConnector extends Connector {
 
   registerSnappers() {
     super.registerSnappers();
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      if (!this.Snappers) {
+        this.Snappers = {};
+      }
+      this.Snappers.item = Snap.addSnapper('item', {
+        priority: 250,
+        callback: (item, config) => {
+          return this.SnapItem(item, config);
+        }
+      });
+      this.Snappers.point = Snap.addSnapper('point', {
+        priority: 250,
+        callback: (point, config) => {
+          return this.SnapPoint(point, config);
+        }
+      });
+    }
   }
   unregisterSnappers() {
     super.unregisterSnappers();
+    let Snap = this.SL.Utils.get('Snap');
+    if (!Snap || !this.Snappers) {
+      return;
+    }
+    if (this.Snappers.item) {
+      Snap.dropSnapper('item', this.Snappers.item.id);
+      this.Snappers.item = undefined;
+    }
   }
 
   InitLabels(item) {
@@ -112,6 +138,64 @@ export class LabelConnector extends Connector {
         line.data.Labels.push(labelConfig);
       }
     }
+  }
+  SnapPoint(point, config) {
+    if (config && config.context == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text' && this.UI.Targets && this.UI.Targets.length) {
+      let item = config.item;
+      let mousePoint = this.SL.UI.Mouse.State.point;
+      if (mousePoint) {
+        for (let targetUI of this.UI.Targets) {
+          if (targetUI.contains(mousePoint) && targetUI.data.item && targetUI.data.item.data && targetUI.data.item.data.Type == 'Line') {
+            let line = targetUI.data.item;
+            let pointOnLine = line.getNearestLocation(mousePoint);
+            if (pointOnLine) {
+              let Geo = this.SL.Utils.get('Geo');
+              let position = pointOnLine.offset / line.length;
+              let pointAtSegment = pointOnLine.point.equals(pointOnLine.segment.point);
+
+              if (targetUI.data.target.distance) {
+                let vector = pointOnLine.normal.clone();
+
+                if (pointAtSegment) {
+                  let mitreLength = Geo.Line.mitreLengthAtCorner(pointOnLine.segment, targetUI.data.target.distance);
+                  vector = Geo.Line.normalAtCorner(pointOnLine.segment);
+                  vector.length = Math.abs(targetUI.data.target.distance) * ((mitreLength < 0)?-1.0:1.0);
+                }
+                else {
+                  vector.length = targetUI.data.target.distance * -1.0;
+                }
+
+                // calculate the result for the top-left corner position
+                let result =  pointOnLine.point.add(vector);
+
+                // the offset is based on which point of the item's bounds we want to snap to the connector
+                let offset = new paper.Point(0, 0);
+                let Snap = this.SL.Utils.get('Snap');
+                if (Snap.Equal(result.x, pointOnLine.point.x, 5.0)) {
+                  offset.x = item.bounds.width/2.0;
+                }
+                else if (result.x < pointOnLine.point.x) {
+                  offset.x = item.bounds.width;
+                }
+                if (Snap.Equal(result.y, pointOnLine.point.y, 5.0)) {
+                  offset.y = item.bounds.height/2.0;
+                }
+                else if (result.y < pointOnLine.point.y) {
+                  offset.y = item.bounds.height;
+                }
+                return result.subtract(offset);
+              }
+              return pointOnLine.point.clone();
+            }
+          }
+        }
+      }
+    }
+    return point;
+  }
+  SnapItem(item, config) {
+    // TODO: check if item has any connected labels and reposition them if so
+    return item;
   }
 
   onSelectionItemSelected(event) {
