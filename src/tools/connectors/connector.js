@@ -251,20 +251,14 @@ export class Connector extends Tool {
       for (let i=startAt.segment+1; i < item.segments.length-1 && i <= endAt.segment; i++) {
         point = item.segments[i].point.clone();
 
-        // calculate the angle between segments
-        let angle1 = point.subtract(item.segments[i-1].point).angle;
-        let angle2 = item.segments[i+1].point.subtract(point).angle;
-        let angleDiff = angle2 - angle1;
-
-        // calculate the width of the target at the corner
-        let mitreLength = targetWidth / Math.cos((angleDiff/2.0) * (Math.PI/180.0));
-
         // create a vector for the angle
-        vector = new paper.Point();
-        vector.angle = angle1 + angleDiff/2.0 + normalAngle;
+        vector = Geo.Line.normalAtCorner(item.segments[i]);
+        if (flipSide) {
+          vector.angle -= 180.0;
+        }
 
         // add points
-        vector.length = distance - targetRadius + mitreLength;
+        vector.length = distance - targetRadius + Geo.Line.mitreLengthAtCorner(item.segments[i], targetWidth);
         pointsA.push(point.add(vector));
 
         vector.length = distance - targetRadius;

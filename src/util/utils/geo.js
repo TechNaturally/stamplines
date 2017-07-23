@@ -10,12 +10,14 @@ export class Geo extends Util {
     super.configure(config);
     this.initCircle();
     this.initDirection();
+    this.initLine();
     this.initNormalize();
   }
   reset() {
     super.reset();
     this.resetCircle();
     this.resetDirection();
+    this.resetLine();
     this.resetNormalize();
   }
   initCircle() {
@@ -100,6 +102,51 @@ export class Geo extends Util {
       }
     }
     this.Direction = undefined;
+  }
+  initLine() {
+    this.resetLine();
+    let self = this;
+    this.Line = {
+      mitreLengthAtCorner(segment, width=1.0) {
+        if (segment && segment.previous && segment.next) {
+          // calculate the angle between segments
+          let angle1 = segment.point.subtract(segment.previous.point).angle;
+          let angle2 = segment.next.point.subtract(segment.point).angle;
+          let angleDiff = angle2 - angle1;
+
+          // calculate the width of the target at the corner
+          let mitreLength = width / Math.cos((angleDiff/2.0) * (Math.PI/180.0));
+
+          return mitreLength;
+        }
+        return width;
+      },
+      normalAtCorner(segment, length=1.0) {
+        let result = new paper.Point();
+        let point = segment.point;
+        let prev = segment.previous;
+        let next = segment.next;
+        if (!prev) {
+          result.angle = segment.point.angle;
+        }
+        else if (!next) {
+          result.angle = point.subtract(prev.point).angle;
+        }
+        else {
+          let angle1 = point.subtract(prev.point).angle;
+          let angle2 = next.point.subtract(point).angle;
+          result.angle = angle1 + (angle2 - angle1)/2.0 + 90.0;
+        }
+        result.length = length;
+        return result;
+      }
+    };
+  }
+  resetLine() {
+    if (!this.initialized || !this.Line) {
+      return;
+    }
+    this.Line = undefined;
   }
   initNormalize() {
     this.resetNormalize();
