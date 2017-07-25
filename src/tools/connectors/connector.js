@@ -120,7 +120,7 @@ export class Connector extends Tool {
     this.resetUITargets();
   }
 
-  drawTargetShape(target, targetPoint, sourceBounds) {
+  drawTargetShape(target, targetPoint, sourceBounds=null, item=null) {
     let targetShape = this.config.ui.target.default.type;
     let targetConfig = {
       position: targetPoint,
@@ -160,7 +160,8 @@ export class Connector extends Tool {
     }
 
     // create the target point
-    let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, targetShape, targetConfig);
+    let layer = ((item.data && item.data.Layer != null) ? item.data.Layer+1 : this.SL.Paper.Layers['UI_FG']+5);
+    let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:layer}, targetShape, targetConfig);
     this.SL.Paper.applyStyle(targetUI, targetStyle);
 
     // the cornerRadius style would mess up width and height, so fix it here
@@ -185,7 +186,7 @@ export class Connector extends Tool {
 
   drawRectangleItemTarget(item, target) {
     // calculate the actual target point
-    return this.drawTargetShape(target, this.globalTargetPoint(target, item), item.bounds);
+    return this.drawTargetShape(target, this.globalTargetPoint(target, item), item.bounds, item);
   }
   drawLineItemTarget(item, target) {
     if (!item || !item.segments || !item.segments.length) {
@@ -274,7 +275,8 @@ export class Connector extends Tool {
       pointsB.unshift(endAt.point.add(vector));
 
       // create the target item using pointsA + pointsB
-      targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:this.SL.Paper.Layers['UI_FG']+5}, paper.Path, pointsA.concat(pointsB));
+      let layer = ((item.data && item.data.Layer != null) ? item.data.Layer+1 : this.SL.Paper.Layers['UI_FG']+5);
+      targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:layer}, paper.Path, pointsA.concat(pointsB));
       targetUI.closed = true;
 
       if (targetUI) {
@@ -302,7 +304,7 @@ export class Connector extends Tool {
           position: start,
           distance: target.distance
         }, item);
-        let targetUI = this.drawTargetShape({style: target.style}, point);
+        let targetUI = this.drawTargetShape({style: target.style}, point, null, item);
         // link it to the item and track it
         targetUI.data.item = item;
         targetUI.data.target = target;
