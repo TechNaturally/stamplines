@@ -1,5 +1,5 @@
 import {Connector} from './connector.js';
-export class StampConnector extends Connector {
+export class LineConnector extends Connector {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
   }
@@ -13,12 +13,12 @@ export class StampConnector extends Connector {
       if (!this.eventHandlers.GenerateStamp) {
         this.eventHandlers.GenerateStamp = this.SL.Paper.on('Generate', {Type: 'Stamp'}, (args, stamp) => {
           this.initStampConnections(stamp);
-        }, 'StampConnector.Generate.Stamp');
+        }, 'LineConnector.Generate.Stamp');
       }
       if (!this.eventHandlers.DestroyItem) {
         this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {}, (args, item) => {
           this.DisconnectItem(item);
-        }, 'StampConnector.Destroy.Item');
+        }, 'LineConnector.Destroy.Item');
       }
       if (!this.eventHandlers.LineEndTarget) {
         this.eventHandlers.LineEndTarget = this.SL.Paper.on('LineEndTarget', undefined, (args) => {
@@ -28,7 +28,7 @@ export class StampConnector extends Connector {
           else {
             this.hideTargets();
           }
-        }, 'StampConnector.LineEndTarget');
+        }, 'LineConnector.LineEndTarget');
       }
       if (!this.eventHandlers.LineSegmentAdded) {
         this.eventHandlers.LineSegmentAdded = this.SL.Paper.on('LineSegmentAdded', undefined, (args) => {
@@ -40,7 +40,7 @@ export class StampConnector extends Connector {
               this.DisconnectSegment(args.from);
             }
           }
-        }, 'StampConnector.LineSegmentAdded');
+        }, 'LineConnector.LineSegmentAdded');
       }
     }
   }

@@ -20,7 +20,7 @@ import {Select, Move, Scale, Rotate, Delete} from '../../src/tools/core/_index.j
 import {LineTool, CreateLine, EditLine} from '../../src/tools/lines/_index.js';
 import {CreateStamp} from '../../src/tools/stamps/_index.js';
 import {TextTool} from '../../src/tools/text/_index.js';
-import {Connector, LabelConnector, StampConnector} from '../../src/tools/connectors/_index.js';
+import {Connector, LabelConnector, LineConnector} from '../../src/tools/connectors/_index.js';
 
 import {default as UI} from '../../src/ui/ui.js';
 import {default as Dock} from '../../src/ui/dock.js';
@@ -80,7 +80,7 @@ export default {
     Connectors: {
       Connector: Connector,
       LabelConnector: LabelConnector,
-      StampConnector: StampConnector
+      LineConnector: LineConnector
     }
   },
   UI: {
