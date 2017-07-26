@@ -299,9 +299,9 @@ export class Connector extends Tool {
         position = end;
       }
 
-      if (position) {
+      if (position != null) {
         let point = this.globalTargetPoint({
-          position: start,
+          position: position,
           distance: target.distance
         }, item);
         let targetUI = this.drawTargetShape({style: target.style}, point, null, item);
