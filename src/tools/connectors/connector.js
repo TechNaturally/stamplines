@@ -110,6 +110,17 @@ export class Connector extends Tool {
     this.UI.Targets.length = 0;
   }
 
+  refreshTargets(args) {
+    if (this.shouldShowTargets(args)) {
+      this.showTargets();
+    }
+    else {
+      this.hideTargets();
+    }
+  }
+  shouldShowTargets(args) {
+    throw new Error(`Abstract method: ${this.constructor.name}::shouldShowTargets is not implemented!`);
+  }
   showTargets() {
     this.resetUITargets();
     this.SL.Paper.Item.forEachOfClass('Content', (item, args) => {
@@ -119,71 +130,43 @@ export class Connector extends Tool {
   hideTargets() {
     this.resetUITargets();
   }
-
-  drawTargetShape(target, targetPoint, sourceBounds=null, item=null) {
-    let targetShape = this.config.ui.target.default.type;
-    let targetConfig = {
-      position: targetPoint,
-      width: this.config.ui.target.default.radius*2.0,
-      height: this.config.ui.target.default.radius*2.0
-    };
-
-    // handle custom widths and heights
-    if (target.width > 0 || target.height > 0) {
-      targetShape = paper.Shape.Rectangle;
-      if (target.width > 0) {
-        if (target.width <= 1.0 && sourceBounds) {
-          targetConfig.width = sourceBounds.width * target.width;
-        }
-        else {
-          targetConfig.width = target.width;
-        }
-      }
-      if (target.height > 0) {
-        if (target.height <= 1.0 && sourceBounds) {
-          targetConfig.height = sourceBounds.height * target.height;
-        }
-        else {
-          targetConfig.height = target.height;
-        }
-      }
-    }
-
-    // configure the target style
-    let targetStyle = $.extend({}, this.config.ui.target.style, target.style);
-    if (targetStyle.cornerRadius) {
-      if (targetShape == paper.Shape.Rectangle) {
-        targetStyle.radius = targetStyle.cornerRadius;
-      }
-      targetStyle.cornerRadius = undefined;
-      delete targetStyle.cornerRadius;
-    }
-
-    // create the target point
-    let layer = ((item.data && item.data.Layer != null) ? item.data.Layer+1 : this.SL.Paper.Layers['UI_FG']+5);
-    let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:layer}, targetShape, targetConfig);
-    this.SL.Paper.applyStyle(targetUI, targetStyle);
-
-    // the cornerRadius style would mess up width and height, so fix it here
-    if (targetShape == paper.Shape.Rectangle && targetStyle.radius) {
-      if (targetConfig.width) {
-        targetUI.bounds.width = targetConfig.width;
-      }
-      if (targetConfig.height) {
-        targetUI.bounds.height = targetConfig.height;
-      }
-      // make sure it stays at position
-      targetUI.bounds.center = targetPoint;
-    }
-
-    // local rotation offset for the target point
-    if (target.angle) {
-      targetUI.rotate(target.angle);
-    }
-
-    return targetUI;
+  drawItemTargets(item) {
+    throw new Error(`Abstract method: ${this.constructor.name}::drawItemTargets is not implemented!`);
   }
+  drawItemTarget(item, target) {
+    // temporarily straighten item for calculations
+    let rotation = item.rotation;
+    let rotationPoint = item.bounds.center;
+    if (rotation) {
+      item.rotate(-rotation, rotationPoint);
+    }
 
+    // draw the target depending on which type of item it is
+    let targetUI;
+    if (item.data && item.data.Type == 'Line') {
+      targetUI = this.drawLineItemTarget(item, target);
+    }
+    else {
+      targetUI = this.drawRectangleItemTarget(item, target);
+    }
+
+    // rotate item back
+    if (rotation) {
+      item.rotate(rotation, rotationPoint);
+    }
+
+    if (targetUI) {
+      // rotate the target point with the item
+      if (item.rotation) {
+        targetUI.rotate(item.rotation, item.bounds.center);
+      }
+
+      // link it to the item and track it
+      targetUI.data.item = item;
+      targetUI.data.target = target;
+      this.UI.Targets.push(targetUI);
+    }
+  }
   drawRectangleItemTarget(item, target) {
     // calculate the actual target point
     return this.drawTargetShape(target, this.globalTargetPoint(target, item), item.bounds, item);
@@ -312,40 +295,79 @@ export class Connector extends Tool {
       }
     }
   }
-  drawItemTarget(item, target) {
-    // temporarily straighten item for calculations
-    let rotation = item.rotation;
-    let rotationPoint = item.bounds.center;
-    if (rotation) {
-      item.rotate(-rotation, rotationPoint);
-    }
+  drawTargetShape(target, targetPoint, sourceBounds=null, item=null) {
+    let targetShape = this.config.ui.target.default.type;
+    let targetConfig = {
+      position: targetPoint,
+      width: this.config.ui.target.default.radius*2.0,
+      height: this.config.ui.target.default.radius*2.0
+    };
 
-    // draw the target depending on which type of item it is
-    let targetUI;
-    if (item.data && item.data.Type == 'Line') {
-      targetUI = this.drawLineItemTarget(item, target);
-    }
-    else {
-      targetUI = this.drawRectangleItemTarget(item, target);
-    }
-
-    // rotate item back
-    if (rotation) {
-      item.rotate(rotation, rotationPoint);
-    }
-
-    if (targetUI) {
-      // rotate the target point with the item
-      if (item.rotation) {
-        targetUI.rotate(item.rotation, item.bounds.center);
+    // handle custom widths and heights
+    if (target.width > 0 || target.height > 0) {
+      targetShape = paper.Shape.Rectangle;
+      if (target.width > 0) {
+        if (target.width <= 1.0 && sourceBounds) {
+          targetConfig.width = sourceBounds.width * target.width;
+        }
+        else {
+          targetConfig.width = target.width;
+        }
       }
-
-      // link it to the item and track it
-      targetUI.data.item = item;
-      targetUI.data.target = target;
-      this.UI.Targets.push(targetUI);
+      if (target.height > 0) {
+        if (target.height <= 1.0 && sourceBounds) {
+          targetConfig.height = sourceBounds.height * target.height;
+        }
+        else {
+          targetConfig.height = target.height;
+        }
+      }
     }
+
+    // configure the target style
+    let targetStyle = $.extend({}, this.config.ui.target.style, target.style);
+    if (targetStyle.cornerRadius) {
+      if (targetShape == paper.Shape.Rectangle) {
+        targetStyle.radius = targetStyle.cornerRadius;
+      }
+      targetStyle.cornerRadius = undefined;
+      delete targetStyle.cornerRadius;
+    }
+
+    // create the target point
+    let layer = ((item.data && item.data.Layer != null) ? item.data.Layer+1 : this.SL.Paper.Layers['UI_FG']+5);
+    let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:layer}, targetShape, targetConfig);
+    this.SL.Paper.applyStyle(targetUI, targetStyle);
+
+    // the cornerRadius style would mess up width and height, so fix it here
+    if (targetShape == paper.Shape.Rectangle && targetStyle.radius) {
+      if (targetConfig.width) {
+        targetUI.bounds.width = targetConfig.width;
+      }
+      if (targetConfig.height) {
+        targetUI.bounds.height = targetConfig.height;
+      }
+      // make sure it stays at position
+      targetUI.bounds.center = targetPoint;
+    }
+
+    // local rotation offset for the target point
+    if (target.angle) {
+      targetUI.rotate(target.angle);
+    }
+
+    return targetUI;
   }
+
+  SnapPoint(point, config) {
+    // TODO: check vs this.UI.Targets
+    return point;
+  }
+  SnapItem(item, config) {
+    // TODO: check vs this.UI.Targets
+    return item;
+  }
+
   globalTargetPoint(target, item, offset) {
     let Geo = this.SL.Utils.get('Geo');
     if (item && target && Geo) {
