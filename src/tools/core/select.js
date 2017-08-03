@@ -118,9 +118,9 @@ export class Select extends Tool {
         }
         unselected.push(item);
       }
+      this.Items.length = 0;
       this.Belt.onSelectionItemUnselected({ items: unselected });
       this.SL.Paper.emit('SelectionItemUnselected', { items: unselected });
-      this.Items.length = 0;
     }
   }
   SnapSelected(config={}) {
