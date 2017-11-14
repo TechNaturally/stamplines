@@ -117,6 +117,7 @@ export class LabelConnector extends Connector {
           distance: labelSlot.distance,
           lockX: labelSlot.lockX,
           lockY: labelSlot.lockY,
+          lockDistance: labelSlot.lockDistance,
           targetStyle: labelSlot.targetStyle
         };
         line.data.Labels.push(labelConfig);
@@ -152,11 +153,47 @@ export class LabelConnector extends Connector {
     return (config && config.context == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
   }
   SnapPoint(point, config) {
-    let mousePoint = this.SL.UI.Mouse.State.point;
-    if (mousePoint) {
-      config.original = mousePoint;
+    if (this.shouldSnapPoint(point, config)) {
+      let mousePoint = this.SL.UI.Mouse.State.point;
+      if (mousePoint) {
+        config.original = mousePoint;
+      }
+
+      let hitCheck = this.getTargetHit(config.original, config.interactive, config);
+      if (hitCheck && hitCheck.target) {
+        if (hitCheck.target.data && hitCheck.offset.point) {
+          let target = hitCheck.target.data.target;
+          let item = hitCheck.target.data.item;
+          let lineOffset = hitCheck.offset.point;
+          let linePoint = hitCheck.offset.closestPoint;
+          let snapPoint = this.connectionPoint(target, item, lineOffset);
+
+          let Snap = this.SL.Utils.get('Snap');
+
+          if (Snap && item && item.data && item.data.Type == 'Line' && snapPoint && linePoint) {
+            let offset = new paper.Point(0, 0);
+            if (Snap.Equal(snapPoint.x, linePoint.x, 1.0)) {
+              offset.x = config.item.bounds.width/2.0;
+            }
+            else if (snapPoint.x < linePoint.x) {
+              offset.x = config.item.bounds.width;
+            }
+            if (Snap.Equal(snapPoint.y, linePoint.y, 1.0)) {
+              offset.y = config.item.bounds.height/2.0;
+            }
+            else if (snapPoint.y < linePoint.y) {
+              offset.y = config.item.bounds.height;
+            }
+            snapPoint.set(snapPoint.subtract(offset));
+          }
+          point.set(snapPoint);
+        }
+      }
+      else if (hitCheck && hitCheck.oldTarget) {
+        //console.log(`[${this.constructor.name}]->SnapPoint DISCONNECT`, hitCheck.oldTarget);
+      }
     }
-    return super.SnapPoint(point, config);
+    return point;
   }
   
   shouldSnapItem(item, config) {
@@ -175,7 +212,7 @@ export class LabelConnector extends Connector {
   }
   SnapItemAsLabel(item, config) {
     if (item && item.data && item.data.Type == 'Text' && item.data.labeling) {
-      // TODO: snap to the labeling slot
+      // @TODO: snap to the labeling slot
     }
   }
   SnapItemLabels(item, config) {
@@ -192,7 +229,7 @@ export class LabelConnector extends Connector {
 
   AttachLabel(label, target, offset) {
     // @TODO: link the label + target and set the labelOffset
-    //console.log('ATTACH LABEL TO TARGET =>', label, target, offset);
+    console.log('ATTACH LABEL to TARGET =>', label, target, offset);
   }
   DetachLabels(item) {
     // @TODO: check item.data to decide if it IS a label or HAS a label
