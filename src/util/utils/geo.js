@@ -139,6 +139,40 @@ export class Geo extends Util {
         }
         result.length = length;
         return result;
+      },
+      defineSection(definition) {
+        let section = {
+          start: definition.start,
+          end: definition.end,
+          length: definition.length,
+          middle: definition.position
+        };
+        if (section.start == null && section.end == null && section.length == null && section.middle != null) {
+          section.start = section.end = section.middle;
+          section.length = 0;
+        }
+        if ((section.start == null || section.end == null) && section.length != null) {
+          if (section.end == null && section.start != null) {
+            section.end = section.start + section.length;
+          }
+          else if (section.start == null && section.end != null) {
+            section.start = section.end - section.length;
+          }
+          else if (section.middle) {
+            let halfLength = section.length/2.0;
+            section.start = section.middle - halfLength;
+            section.end = section.middle + halfLength;
+          }
+        }
+        if (section.start != null && section.end != null) {
+          if (section.length == null) {
+            section.length = section.end - section.start;
+          }
+          if (section.middle == null) {
+            section.middle = section.start + section.length/2.0;
+          }
+        }
+        return section;
       }
     };
   }
