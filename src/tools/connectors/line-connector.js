@@ -67,40 +67,7 @@ export class LineConnector extends Connector {
   }
 
   registerSnappers() {
-    super.registerSnappers();
-    let Snap = this.SL.Utils.get('Snap');
-    if (Snap) {
-      if (!this.Snappers) {
-        this.Snappers = {};
-      }
-      this.Snappers.point = Snap.addSnapper('point', {
-        priority: 250,
-        callback: (point, config) => {
-          return this.SnapPoint(point, config);
-        }
-      });
-      this.Snappers.item = Snap.addSnapper('item', {
-        priority: 250,
-        callback: (item, config) => {
-          return this.SnapItem(item, config);
-        }
-      });
-    }
-  }
-  unregisterSnappers() {
-    super.unregisterSnappers();
-    let Snap = this.SL.Utils.get('Snap');
-    if (!Snap || !this.Snappers) {
-      return;
-    }
-    if (this.Snappers.point) {
-      Snap.dropSnapper('point', this.Snappers.point.id);
-      this.Snappers.point = undefined;
-    }
-    if (this.Snappers.item) {
-      Snap.dropSnapper('item', this.Snappers.item.id);
-      this.Snappers.item = undefined;
-    }
+    super.registerSnappers(['point', 'item']);
   }
 
   InitConnections(item) {
@@ -140,6 +107,45 @@ export class LineConnector extends Connector {
     if (item && item.data && item.data.Connections) {
       for (let connection of item.data.Connections) {
         this.drawItemTarget(item, connection);
+      }
+    }
+  }
+
+  shouldSnapPoint(point, config) {
+    return (config && config.context == 'line-point');
+  }
+
+  shouldSnapItem(item, config) {
+    return (item && (item.segments || (item.data && item.data.Connections)));
+  }
+  SnapItem(item, config) {
+    if (this.shouldSnapItem(item, config)) {
+      if (item.segments) {
+        this.SnapItemSegments(item, config);
+      }
+      if (item.data && item.data.Connections) {
+        this.SnapItemConnections(item, config);
+      }
+    }
+    return item;
+  }
+  SnapItemSegments(item, config) {
+    if (item.segments) {
+      for (let segment of item.segments) {
+        if (segment.point && segment.data && segment.data.connection && segment.data.connection.item) {
+          segment.point.set(this.globalTargetPoint(segment.data.connection, segment.data.connection.item, segment.data.connectionOffset));
+        }
+      }
+    }
+  }
+  SnapItemConnections(item, config) {
+    if (item.data && item.data.Connections) {
+      for (let connection of item.data.Connections) {
+        for (let connected of connection.connected) {
+          if (connected.point) {
+            connected.point.set(this.globalTargetPoint(connection, item, (connected.data && connected.data.connectionOffset)));
+          }
+        }
       }
     }
   }

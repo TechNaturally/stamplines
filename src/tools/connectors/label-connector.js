@@ -47,39 +47,20 @@ export class LabelConnector extends Connector {
       delete this.eventHandlers.DestroyItem;
       this.eventHandlers.DestroyItem = undefined;
     }
+    if (this.eventHandlers.SelectionItemSelected) {
+      this.SL.Paper.off('SelectionItemSelected', this.eventHandlers.SelectionItemSelected.id);
+      delete this.eventHandlers.SelectionItemSelected;
+      this.eventHandlers.SelectionItemSelected = undefined;
+    }
+    if (this.eventHandlers.SelectionItemUnselected) {
+      this.SL.Paper.off('SelectionItemUnselected', this.eventHandlers.SelectionItemUnselected.id);
+      delete this.eventHandlers.SelectionItemUnselected;
+      this.eventHandlers.SelectionItemUnselected = undefined;
+    }
   }
 
   registerSnappers() {
-    super.registerSnappers();
-    let Snap = this.SL.Utils.get('Snap');
-    if (Snap) {
-      if (!this.Snappers) {
-        this.Snappers = {};
-      }
-      this.Snappers.item = Snap.addSnapper('item', {
-        priority: 250,
-        callback: (item, config) => {
-          return this.SnapItem(item, config);
-        }
-      });
-      this.Snappers.point = Snap.addSnapper('point', {
-        priority: 250,
-        callback: (point, config) => {
-          return this.SnapPoint(point, config);
-        }
-      });
-    }
-  }
-  unregisterSnappers() {
-    super.unregisterSnappers();
-    let Snap = this.SL.Utils.get('Snap');
-    if (!Snap || !this.Snappers) {
-      return;
-    }
-    if (this.Snappers.item) {
-      Snap.dropSnapper('item', this.Snappers.item.id);
-      this.Snappers.item = undefined;
-    }
+    super.registerSnappers(['point', 'item']);
   }
 
   InitLabels(item) {
@@ -144,7 +125,7 @@ export class LabelConnector extends Connector {
   }
 
   shouldShowTargets(args) {
-    let Select = this.SL.Tools.Belt.Select;
+    let Select = this.Belt.Belt.Select;
     if (Select && Select.Items && Select.Items.length == 1) {
       let checkItem = Select.Items[0];
       if (checkItem && checkItem.data && checkItem.data.Type == 'Text') {
@@ -163,6 +144,48 @@ export class LabelConnector extends Connector {
           delete labelSlot.targetStyle;
         }
         this.drawItemTarget(item, labelSlot);
+      }
+    }
+  }
+
+  shouldSnapPoint(point, config) {
+    return (config && config.context == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
+  }
+  SnapPoint(point, config) {
+    let mousePoint = this.SL.UI.Mouse.State.point;
+    if (mousePoint) {
+      config.original = mousePoint;
+    }
+    return super.SnapPoint(point, config);
+  }
+  
+  shouldSnapItem(item, config) {
+    return (item && item.data && ((item.data.Type == 'Text' && item.data.labeling) || item.data.Labels));
+  }
+  SnapItem(item, config) {
+    if (this.shouldSnapItem(item, config) && item.data) {
+      if (item.data.Type == 'Text' && item.data.labeling) {
+        this.SnapItemAsLabel(item, config);
+      }
+      if (item.data.Labels) {
+        this.SnapItemLabels(item, config);
+      }
+    }
+    return item;
+  }
+  SnapItemAsLabel(item, config) {
+    if (item && item.data && item.data.Type == 'Text' && item.data.labeling) {
+      // TODO: snap to the labeling slot
+    }
+  }
+  SnapItemLabels(item, config) {
+    if (item && item.data && item.data.Labels) {
+      for (let label of item.data.Labels) {
+        for (let connected of label.connected) {
+          if (connected.point) {
+            connected.point.set(this.globalTargetPoint(connection, item, (connected.data && connected.data.connectionOffset)));
+          }
+        }
       }
     }
   }

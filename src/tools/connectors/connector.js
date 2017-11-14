@@ -85,11 +85,30 @@ export class Connector extends Tool {
     }
   }
 
-  registerSnappers() {
+  registerSnappers(snaps) {
     let Snap = this.SL.Utils.get('Snap');
-    if (Snap) {
-      if (!this.Snappers) {
-        this.Snappers = {};
+    if (!snaps || !Snap) {
+      return;
+    }
+    if (!this.Snappers) {
+      this.Snappers = {};
+    }
+    if (snaps.length) {
+      if (snaps.includes('point')) {
+        this.Snappers.point = Snap.addSnapper('point', {
+          priority: 250,
+          callback: (point, config) => {
+            return this.SnapPoint(point, config);
+          }
+        });
+      }
+      if (snaps.includes('item')) {
+        this.Snappers.item = Snap.addSnapper('item', {
+          priority: 250,
+          callback: (item, config) => {
+            return this.SnapItem(item, config);
+          }
+        });
       }
     }
   }
@@ -98,6 +117,44 @@ export class Connector extends Tool {
     if (!Snap || !this.Snappers) {
       return;
     }
+    if (this.Snappers.point) {
+      Snap.dropSnapper('point', this.Snappers.point.id);
+      this.Snappers.point = undefined;
+    }
+    if (this.Snappers.item) {
+      Snap.dropSnapper('item', this.Snappers.item.id);
+      this.Snappers.item = undefined;
+    }
+  }
+  shouldSnapPoint(point, config) {
+    return false;
+  }
+  shouldSnapItem(item, config) {
+    return false;
+  }
+
+  SnapPoint(point, config) {
+    if (this.shouldSnapPoint(config.original, config)) {
+      let hitCheck = this.getTargetHit(config.original, config.interactive, config);
+      if (hitCheck && hitCheck.target) {
+        if (hitCheck.target.data && hitCheck.offset.point) {
+          let target = hitCheck.target.data.target;
+          let item = hitCheck.target.data.item;
+          let offset = hitCheck.offset.point;
+          let snapPoint = this.connectionPoint(target, item, offset);
+          if (snapPoint) {
+            point.set(snapPoint);
+          }
+        }
+      }
+      else if (hitCheck && hitCheck.oldTarget) {
+        //console.log(`[${this.constructor.name}]->SnapPoint DISCONNECT`, hitCheck.oldTarget);
+      }
+    }
+    return point;
+  }
+  SnapItem(item, config) {
+    return item;
   }
 
   resetUI() {
@@ -178,21 +235,9 @@ export class Connector extends Tool {
     let Geo = this.SL.Utils.get('Geo');
 
     // normalize start and end positions on line
-    let start = target.start;
-    let end = target.end;
-    if ((start == null || end == null) && target.length) {
-      if (end == null && start != null) {
-        end = start + target.length;
-      }
-      else if (start == null && end != null) {
-        start = end - target.length;
-      }
-      else if (target.position) {
-        let halfLength = target.length/2.0;
-        start = target.position - halfLength;
-        end = target.position + halfLength;
-      }
-    }
+    let section = Geo.Line.defineSection(target);
+    let start = section.start;
+    let end = section.end;
 
     // calculate distance from line
     let distance = target.distance || 0;
@@ -358,14 +403,140 @@ export class Connector extends Tool {
 
     return targetUI;
   }
-
-  SnapPoint(point, config) {
-    // TODO: check vs this.UI.Targets
-    return point;
+  canScaleTarget(target) {
+    return (target && target.constructor.name != 'Path');
   }
-  SnapItem(item, config) {
-    // TODO: check vs this.UI.Targets
-    return item;
+
+  getTargetHit(point, hitScaling, config) {
+    let result = {
+      target: null,
+      offset: null,
+      oldTarget: null
+    };
+    for (let targetUI of this.UI.Targets) {
+      if (this.isTargetHit(targetUI, point, hitScaling)) {
+        result.target = targetUI;
+        result.offset = this.getTargetOffset(targetUI, point);
+      }
+      else if (this.isTargetConnected(targetUI, config)) {
+        result.oldTarget = targetUI;
+      }
+    }
+    return result;
+  }
+
+  isTargetHit(target, point, hitScaling=true) {
+    let checkTarget = target.clone({insert:false});
+    if (hitScaling && this.canScaleTarget(target)) {
+      let hitScale = this.config.ui.target.hitScale;
+      if (checkTarget.data && checkTarget.data.hitScale) {
+        hitScale = checkTarget.data.hitScale;
+      }
+      checkTarget.scale(hitScale.x, hitScale.y);
+    }
+    return checkTarget.hitTest(point);
+  }
+  isTargetConnected(target, config) {
+    return false;
+  }
+
+  getTargetOffset(target, point) {
+    if (target.constructor.name == 'Path') {
+      return this.getTargetLineOffset(target, point);
+    }
+    else {
+      return this.getTargetShapeOffset(target, point);
+    }
+  }
+  getTargetLineOffset(target, point) {
+    let Geo = this.SL.Utils.get('Geo');
+    let offset = {
+      point: new paper.Point(),
+      segment: null,
+      segmentOffset: null,
+      atSegment: false,
+      closestPoint: null
+    };
+    if (target.data.item && target.data.item.data && target.data.item.data.Type == 'Line') {
+      let line = target.data.item;
+      let pointOnLine = line.getNearestLocation(point);
+      if (pointOnLine) {
+        let segmentIndex = pointOnLine.segment.index;
+        if (pointOnLine.time >= 0.5 && segmentIndex > 0) {
+          segmentIndex -= 1;
+        }
+        offset.segment = line.segments[segmentIndex];
+
+        let positionNormal = (pointOnLine.offset / line.length);
+        let pointDistance = point.subtract(pointOnLine.point);
+        let section = Geo.Line.defineSection(target.data.target);
+        offset.point.x = (positionNormal - section.middle) / (section.length/2.0);
+        offset.point.y = pointDistance.length;
+        offset.segmentOffset = pointOnLine.time;
+        offset.atSegment = pointOnLine.point.equals(pointOnLine.segment.point);
+        offset.closestPoint = pointOnLine.point;
+
+        let checkQuadrant = offset.segment.curve.line.vector.quadrant;
+        if (checkQuadrant == 4 && offset.segment.curve.line.vector.angle == -90) {
+          checkQuadrant = 3;
+        }
+
+        if (offset.segment.curve && offset.segment.curve.line && offset.segment.curve.line.vector && (
+          (checkQuadrant == 1 && (point.x > Math.round(pointOnLine.point.x) || point.y < Math.round(pointOnLine.point.y))) ||
+          (checkQuadrant == 2 && (point.x > Math.round(pointOnLine.point.x) || point.y > Math.round(pointOnLine.point.y))) ||
+          (checkQuadrant == 3 && (point.x < Math.round(pointOnLine.point.x) || point.y > Math.round(pointOnLine.point.y))) ||
+          (checkQuadrant == 4 && (point.x < Math.round(pointOnLine.point.x) || point.y < Math.round(pointOnLine.point.y)))
+          )) {
+          offset.point.y *= -1.0;
+        }
+        if (target.data.target.lockDistance === true || target.data.target.lockY === true) {
+          offset.point.y = target.data.target.distance || 0.0;
+        }
+      }
+    }
+    return offset;
+  }
+  getTargetShapeOffset(target, point) {
+    let offset = {
+      point: new paper.Point()
+    };
+    if (target.data && target.data.target) {
+      let checkPoint = point.clone();
+      let rotation, rotationPoint;
+      if (target.data.item && target.data.item.rotation) {
+        rotation = target.data.item.rotation;
+        rotationPoint = target.data.item.bounds.center;
+        target.rotate(-rotation, rotationPoint);
+        checkPoint.set(checkPoint.rotate(-rotation, rotationPoint));
+      }
+
+      if (target.data.target.lockX === false) {
+        offset.point.x = (checkPoint.x - target.position.x) / target.width * 2.0;
+      }
+      if (target.data.target.lockY === false) {
+        offset.point.y = (checkPoint.y - target.position.y) / target.height * 2.0;
+      }
+
+      if (rotation) {
+        target.rotate(rotation, rotationPoint);
+        checkPoint.set(checkPoint.rotate(rotation, rotationPoint));
+      }
+    }
+    return offset;
+  }
+
+  connectionPoint(target, item, offset) {
+    if (item.data && item.data.Type == 'Line') {
+      let Geo = this.SL.Utils.get('Geo');
+      let section = Geo.Line.defineSection(target);
+      return this.globalTargetPoint({
+        position: section.middle + (offset.x*section.length/2.0),
+        distance: offset.y
+      }, item);
+    }
+    else {
+      return this.globalTargetPoint(target, item, offset);
+    }
   }
 
   globalTargetPoint(target, item, offset) {
@@ -378,7 +549,7 @@ export class Connector extends Tool {
       }
       let point, pivotPoint;
       if (item.data && item.data.Type == 'Line') {
-        let position = target.position || 0.5;
+        let position = (target.position != null ? target.position : 0.5);
         let distance = target.distance || 0;
         if (offset) {
           if (offset.x) {
@@ -438,16 +609,5 @@ export class Connector extends Tool {
       }
       return point;
     }
-  }
-  isTargetHit(target, point, hitScaling=true) {
-    let checkTarget = target.clone({insert:false});
-    if (hitScaling) {
-      let hitScale = this.config.ui.target.hitScale;
-      if (checkTarget.data && checkTarget.data.hitScale) {
-        hitScale = checkTarget.data.hitScale;
-      }
-      checkTarget.scale(hitScale.x, hitScale.y);
-    }
-    return checkTarget.hitTest(point);
   }
 }
