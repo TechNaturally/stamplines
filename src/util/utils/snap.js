@@ -53,6 +53,9 @@ export class Snap extends Util {
   PointMax(point, config={}) {
     return this.runSnappers('pointMax', new paper.Point(point), $.extend(config, {original: point}));
   }
+  PointsEqual(point1, point2, threshold=1.0/10000000.0) {
+    return (this.Equal(point1.x, point2.x, threshold) && this.Equal(point1.y, point2.y, threshold));
+  }
   Rectangle(rectangle, config={}) {
     return this.runSnappers('rectangle', new paper.Rectangle(rectangle), $.extend(config, {original: rectangle}));
   }
