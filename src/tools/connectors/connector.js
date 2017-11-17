@@ -141,9 +141,13 @@ export class Connector extends Tool {
           let target = hitCheck.target.data.target;
           let item = hitCheck.target.data.item;
           let offset = hitCheck.offset.point;
-          let snapPoint = this.connectionPoint(target, item, offset);
+          let snapPoint = this.connectionPoint(target, item, { offset: offset });
           if (snapPoint) {
             point.set(snapPoint);
+          }
+
+          if (!point.equals(config.original) && !config.interactive) {
+            this.ConnectPoint(target, offset, config);
           }
         }
       }
@@ -155,6 +159,10 @@ export class Connector extends Tool {
   }
   SnapItem(item, config) {
     return item;
+  }
+
+  ConnectPoint(target, offset, config) {
+    console.log('MAKE CONNECTION!', target, offset, config);
   }
 
   resetUI() {
@@ -271,13 +279,15 @@ export class Connector extends Tool {
       // add the start point
       vector = startAt.vector.clone();
       vector.angle += normalAngle;
+
       vector.length = distance + targetRadius;
       pointsA.push(startAt.point.add(vector));
+
       vector.length = distance - targetRadius;
       pointsB.unshift(startAt.point.add(vector));
 
       // add all points in between start and end segments
-      for (let i=startAt.segment+1; i < item.segments.length-1 && i <= endAt.segment; i++) {
+      for (let i=startAt.segment.index+1; i < item.segments.length-1 && i <= endAt.segment.index; i++) {
         point = item.segments[i].point.clone();
 
         // create a vector for the angle
@@ -462,7 +472,7 @@ export class Connector extends Tool {
       let pointOnLine = line.getNearestLocation(point);
       if (pointOnLine) {
         let segmentIndex = pointOnLine.segment.index;
-        if (pointOnLine.time >= 0.5 && segmentIndex > 0) {
+        if (pointOnLine.time >= 0.5 && pointOnLine.time < 1.0 && segmentIndex > 0) {
           segmentIndex -= 1;
         }
         offset.segment = line.segments[segmentIndex];
@@ -481,7 +491,11 @@ export class Connector extends Tool {
           checkQuadrant = 3;
         }
 
-        if (offset.segment.curve && offset.segment.curve.line && offset.segment.curve.line.vector && (
+        if (offset.atSegment) {
+          offset.point.y = Math.abs(offset.point.y) * (target.data.target.distance < 0.0 ? -1.0 : 1.0);
+        }
+
+        if (!offset.atSegment && offset.segment.curve && offset.segment.curve.line && offset.segment.curve.line.vector && (
           (checkQuadrant == 1 && (point.x > Math.round(pointOnLine.point.x) || point.y < Math.round(pointOnLine.point.y))) ||
           (checkQuadrant == 2 && (point.x > Math.round(pointOnLine.point.x) || point.y > Math.round(pointOnLine.point.y))) ||
           (checkQuadrant == 3 && (point.x < Math.round(pointOnLine.point.x) || point.y > Math.round(pointOnLine.point.y))) ||
@@ -525,14 +539,19 @@ export class Connector extends Tool {
     return offset;
   }
 
-  connectionPoint(target, item, offset) {
+  connectionPoint(target, item, args) {
     if (item.data && item.data.Type == 'Line') {
       let Geo = this.SL.Utils.get('Geo');
       let section = Geo.Line.defineSection(target);
-      return this.globalTargetPoint({
+      let offset = args.offset || new paper.Point(0, 0);
+      let pointTarget = {
         position: section.middle + (offset.x*section.length/2.0),
         distance: offset.y
-      }, item);
+      };
+      if (args.atSegment) {
+        pointTarget.position = args.atSegment.location.offset / args.atSegment.path.length;
+      }
+      return this.globalTargetPoint(pointTarget, item);
     }
     else {
       return this.globalTargetPoint(target, item, offset);
@@ -541,7 +560,8 @@ export class Connector extends Tool {
 
   globalTargetPoint(target, item, offset) {
     let Geo = this.SL.Utils.get('Geo');
-    if (item && target && Geo) {
+    let Snap = this.SL.Utils.get('Snap');
+    if (item && target && Geo && Snap) {
       let rotation = item.rotation;
       let rotationPoint = item.bounds.center;
       if (rotation) {
@@ -561,10 +581,28 @@ export class Connector extends Tool {
         }
         let pointOnLine = Geo.Normalize.pointOnLine(item, position, true);
         point = pointOnLine.point;
+
         if (distance) {
           // move the point out perpendicularly by distance
           pointOnLine.vector.length = distance;
-          pointOnLine.vector.angle += 90;
+
+          // check if it is the corner point
+          if (Snap.PointsEqual(pointOnLine.point, pointOnLine.segment.point)) {
+            // use the corner normal
+            let cornerNormal = Geo.Line.normalAtCorner(pointOnLine.segment);
+            let cornerSeg2 = pointOnLine.segment.next.point.subtract(pointOnLine.segment.point);
+            pointOnLine.vector.angle = cornerNormal.angle;
+            //console.log(`globalTargetPoint on CORNER (${cornerSeg2.angle} @ [${pointOnLine.segment.point.x}, ${pointOnLine.segment.point.y}]) in QUAD #${pointOnLine.vector.quadrant} @ ${pointOnLine.vector.angle} -> ${pointOnLine.vector.length} with DISTANCE [${distance}]`);
+            if ((distance < 0.0 && (![1,2].includes(pointOnLine.vector.quadrant) || (pointOnLine.vector.quadrant == 1 && cornerSeg2.angle <= 0) || cornerSeg2.angle >= 0 || pointOnLine.vector.angle == 0))
+              || (distance > 0.0 && ((pointOnLine.vector.quadrant == 1 && cornerSeg2.angle >= 0.0) || (pointOnLine.vector.quadrant == 2 && cornerSeg2.angle >= 90.0)))) {
+              pointOnLine.vector.angle += 180.0;
+              //console.log(`* FLIPPED TO QUAD #${pointOnLine.vector.quadrant} @ ${pointOnLine.vector.angle} -> ${pointOnLine.vector.length}`);
+            }
+          }
+          else {
+            // point on line segment, move out 90 degrees
+            pointOnLine.vector.angle += 90;
+          }
           point = point.add(pointOnLine.vector);
         }
       }
