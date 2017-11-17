@@ -205,6 +205,7 @@ export class Geo extends Util {
         return point;
       },
       pointOnLine(line, distance, includeMeta=false) {
+        let Snap = self.SL.Utils.get('Snap');
         let reverse = (distance < 0);
         let length = distance;
         if (reverse) {
@@ -212,15 +213,18 @@ export class Geo extends Util {
         }
         length *= line.length;
         for (let i=0; i < (line.segments.length-1); i++) {
-          let p1 = line.segments[(reverse ? line.segments.length-1-i : i)].point;
-          let p2 = line.segments[(reverse ? line.segments.length-2-i : i+1)].point;
+          let s1 = line.segments[(reverse ? line.segments.length-1-i : i)];
+          let s2 = line.segments[(reverse ? line.segments.length-2-i : i+1)];
+          let p1 = s1.point;
+          let p2 = s2.point;
           let delta = p2.subtract(p1);
           if (delta.length >= length) {
             let vector = delta.clone();
+            let fullSeg = Snap.Equal(delta.length, length);
             vector.length = 1.0;
             delta.length = length;
             let p3 = p1.add(delta);
-            return (includeMeta ? { point: p3, vector: vector, segment: i } : p3);
+            return (includeMeta ? { point: p3, vector: vector, segment: (fullSeg ? s2 : s1) } : p3);
           }
           else {
             length -= delta.length;
@@ -236,7 +240,7 @@ export class Geo extends Util {
           vector = line.segments[segmentIndex+1].point.subtract(result);
         }
         vector.length = 1.0;
-        return (includeMeta ? { point: result, vector: vector, segment: segmentIndex } : result);
+        return (includeMeta ? { point: result, vector: vector, segment: line.segments[segmentIndex] } : result);
       }
     };
   }
