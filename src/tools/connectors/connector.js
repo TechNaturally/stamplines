@@ -162,7 +162,7 @@ export class Connector extends Tool {
   }
 
   ConnectPoint(target, offset, config) {
-    // TODO: implementing class should override this
+    // implementing class should override this
   }
 
   resetUI() {

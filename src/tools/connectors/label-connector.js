@@ -22,6 +22,9 @@ export class LabelConnector extends Connector {
       }
       if (!this.eventHandlers.SelectionItemSelected) {
         this.eventHandlers.SelectionItemSelected = this.SL.Paper.on('SelectionItemSelected', undefined, (args) => {
+          if (args && args.item) {
+            this.bringLabelsToFront(args.item);
+          }
           this.refreshTargets(args);
         }, 'LabelConnector.SelectionItemSelected');
       }
@@ -125,6 +128,18 @@ export class LabelConnector extends Connector {
     }
   }
 
+  bringLabelsToFront(item) {
+    if (item && item.data && item.data.Labels) {
+      for (let Label of item.data.Labels) {
+        for (let connection of Label.connected) {
+          if (connection && connection.label) {
+            connection.label.moveAbove(item);
+          }
+        }
+      }
+    }
+  }
+
   shouldShowTargets(args) {
     let Select = this.Belt.Belt.Select;
     if (Select && Select.Items && Select.Items.length == 1) {
@@ -149,8 +164,8 @@ export class LabelConnector extends Connector {
     }
   }
   getLabelTargetConnectionIndex(label, target) {
-    if (target && label && label.data && label.data.connected && label.data.connected.length) {
-      let index = label.data.connected.findIndex( (connection) => {
+    if (target && label && label.data && label.data.labeling && label.data.labeling.length) {
+      let index = label.data.labeling.findIndex( (connection) => {
         return (connection && connection.target == target);
       });
       return index;
@@ -240,17 +255,21 @@ export class LabelConnector extends Connector {
     return item;
   }
   SnapItemAsLabel(item, config) {
-    if (item && item.data && item.data.Type == 'Text' && item.data.labeling) {
-      // @TODO: snap to the labeling slot
+    if (item && item.data && item.data.Type == 'Text' && item.data.labeling && item.data.labeling.length) {
+      let connection = item.data.labeling[0];
+
+      console.log('[LabelConnector]->SnapItemAsLabel', item);
+      // @TODO: snap to the connection slot
     }
   }
   SnapItemLabels(item, config) {
     if (item && item.data && item.data.Labels) {
-      for (let label of item.data.Labels) {
-        for (let connected of label.connected) {
-          if (connected.point) {
-            connected.point.set(this.globalTargetPoint(connection, item, (connected.data && connected.data.connectionOffset)));
-          }
+      for (let Label of item.data.Labels) {
+        for (let connection of Label.connected) {
+          console.log('[LabelConnector]->SnapItemLabel', connection);
+          // @TODO: need to fix up Label connection.offset so this can calculate properly for Lines and for Shapes
+
+          //connection.label.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
         }
       }
     }
@@ -258,6 +277,7 @@ export class LabelConnector extends Connector {
 
   ConnectPoint(target, offset, config) {
     if (target && offset && config && config.item && config.item.data && config.item.data.Type == 'Text') {
+      console.log('[LabelConnector]->connectionPoint @ ', config);
       this.AttachLabel(config.item, target, offset);
     }
   }
@@ -289,13 +309,13 @@ export class LabelConnector extends Connector {
         if (!label.data) {
           label.data = {};
         }
-        if (!label.data.connected) {
-          label.data.connected = [];
+        if (!label.data.labeling) {
+          label.data.labeling = [];
         }
-        // make sure target is only in label's connected list once
+        // make sure target is only in label's labeling list once
         index = this.getLabelTargetConnectionIndex(label, target);
         if (index < 0) {
-          label.data.connected.push(connection);
+          label.data.labeling.push(connection);
         }
       }
     }

@@ -156,19 +156,18 @@ export class LineConnector extends Connector {
   SnapItemSegments(item, config) {
     if (item.segments) {
       for (let segment of item.segments) {
-        if (segment.point && segment.data && segment.data.connection && segment.data.connection.item) {
-          segment.point.set(this.globalTargetPoint(segment.data.connection, segment.data.connection.item, segment.data.connectionOffset));
+        if (segment.point && segment.data && segment.data.connected && segment.data.connected.length) {
+          let connection = segment.data.connected[0];
+          segment.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
         }
       }
     }
   }
   SnapItemConnections(item, config) {
     if (item.data && item.data.Connections) {
-      for (let connection of item.data.Connections) {
-        for (let connected of connection.connected) {
-          if (connected.point) {
-            connected.point.set(this.globalTargetPoint(connection, item, (connected.data && connected.data.connectionOffset)));
-          }
+      for (let Connection of item.data.Connections) {
+        for (let connection of Connection.connected) {
+          connection.segment.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
         }
       }
     }
