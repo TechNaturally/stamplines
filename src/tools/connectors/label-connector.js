@@ -148,6 +148,30 @@ export class LabelConnector extends Connector {
       }
     }
   }
+  getLabelTargetConnectionIndex(label, target) {
+    if (target && label && label.data && label.data.connected && label.data.connected.length) {
+      let index = label.data.connected.findIndex( (connection) => {
+        return (connection && connection.target == target);
+      });
+      return index;
+    }
+    return -1;
+  }
+  labelHasTarget(label, target) {
+    return (this.getLabelTargetConnectionIndex(label, target) >= 0);
+  }
+  getTargetLabelConnectionIndex(target, label) {
+    if (label && target && target.connected && target.connected.length) {
+      let index = target.connected.findIndex( (connection) => {
+        return (connection && connection.label == label);
+      });
+      return index;
+    }
+    return -1;
+  }
+  targetHasLabel(target, label) {
+    return (this.getTargetLabelConnectionIndex(target, label) >= 0);
+  }
 
   shouldSnapPoint(point, config) {
     return (config && ['create', 'move'].includes(config.context) && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
@@ -238,8 +262,44 @@ export class LabelConnector extends Connector {
     }
   }
   AttachLabel(label, target, offset) {
-    // @TODO: link the label + target and set the labelOffset
-    console.log('ATTACH LABEL to TARGET =>', label, target, offset);
+    let connection = undefined;
+    if (label && target && target.connected) {
+      // track the connection on the target
+      let index = this.getTargetLabelConnectionIndex(target, label);
+      if (index < 0) {
+        connection = {
+          target,
+          label,
+          offset
+        };
+        target.connected.push(connection);
+      }
+      else if (index < target.connected.length) {
+        connection = target.connected[index];
+        if (connection.offset) {
+          connection.offset.set(offset);
+        }
+        else {
+          connection.offset = offset;
+        }
+      }
+
+      if (connection) {
+        //  track the connection on the label
+        if (!label.data) {
+          label.data = {};
+        }
+        if (!label.data.connected) {
+          label.data.connected = [];
+        }
+        // make sure target is only in label's connected list once
+        index = this.getLabelTargetConnectionIndex(label, target);
+        if (index < 0) {
+          label.data.connected.push(connection);
+        }
+      }
+    }
+    return connection;
   }
   DetachLabels(item) {
     // @TODO: check item.data to decide if it IS a label or HAS a label

@@ -110,6 +110,30 @@ export class LineConnector extends Connector {
       }
     }
   }
+  getSegmentTargetConnectionIndex(segment, target) {
+    if (target && segment && segment.data && segment.data.connected && segment.data.connected.length) {
+      let index = segment.data.connected.findIndex( (connection) => {
+        return (connection && connection.target == target);
+      });
+      return index;
+    }
+    return -1;
+  }
+  segmentHasTarget(target, segment) {
+    return (this.getSegmentTargetConnectionIndex(segment, target) >= 0);
+  }
+  getTargetSegmentConnectionIndex(target, segment) {
+    if (segment && target && target.connected && target.connected.length) {
+      let index = target.connected.findIndex( (connection) => {
+        return (connection && connection.segment == segment);
+      });
+      return index;
+    }
+    return -1;
+  }
+  targetHasSegment(target, segment) {
+    return (this.getTargetSegmentConnectionIndex(target, segment) >= 0);
+  }
 
   shouldSnapPoint(point, config) {
     return (config && config.context == 'line-point');
@@ -156,7 +180,46 @@ export class LineConnector extends Connector {
     }
   }
   ConnectSegment(segment, target, offset) {
-    console.log('CONNECT SEGMENT to TARGET =>', segment, target, offset);
+    let connection = undefined;
+    if (segment && target && target.connected) {
+      // track the connection on the target
+      let index = this.getTargetSegmentConnectionIndex(target, segment);
+      if (index < 0) {
+        // new connection
+        connection = {
+          target,
+          segment,
+          offset
+        };
+        target.connected.push(connection);
+      }
+      else if (index < target.connected.length) {
+        // update existing connection
+        connection = target.connected[index];
+        if (connection.offset) {
+          connection.offset.set(offset);
+        }
+        else {
+          connection.offset = offset;
+        }
+      }
+
+      if (connection) {
+        //  track the connection on the segment
+        if (!segment.data) {
+          segment.data = {};
+        }
+        if (!segment.data.connected) {
+          segment.data.connected = [];
+        }
+        // make sure target is only in segment's connected list once
+        index = this.getSegmentTargetConnectionIndex(segment, target);
+        if (index < 0) {
+          segment.data.connected.push(connection);
+        }
+      }
+    }
+    return connection;
   }
   DisconnectSegment(segment, target) {
   }
