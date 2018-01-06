@@ -150,7 +150,13 @@ export class LineConnector extends Connector {
     }
   }
 
+  ConnectPoint(target, offset, config) {
+    if (target && offset && config && config.segment && config.segment.path && config.segment.path.data && config.segment.path.data.Type == 'Line') {
+      this.ConnectSegment(config.segment, target, offset);
+    }
+  }
   ConnectSegment(segment, target, offset) {
+    console.log('CONNECT SEGMENT to TARGET =>', segment, target, offset);
   }
   DisconnectSegment(segment, target) {
   }

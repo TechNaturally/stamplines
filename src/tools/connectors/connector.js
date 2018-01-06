@@ -162,7 +162,7 @@ export class Connector extends Tool {
   }
 
   ConnectPoint(target, offset, config) {
-    console.log('MAKE CONNECTION!', target, offset, config);
+    // TODO: implementing class should override this
   }
 
   resetUI() {
@@ -540,10 +540,10 @@ export class Connector extends Tool {
   }
 
   connectionPoint(target, item, args) {
+    let offset = args.offset || new paper.Point(0, 0);
     if (item.data && item.data.Type == 'Line') {
       let Geo = this.SL.Utils.get('Geo');
       let section = Geo.Line.defineSection(target);
-      let offset = args.offset || new paper.Point(0, 0);
       let pointTarget = {
         position: section.middle + (offset.x*section.length/2.0),
         distance: offset.y
@@ -587,7 +587,7 @@ export class Connector extends Tool {
           pointOnLine.vector.length = distance;
 
           // check if it is the corner point
-          if (Snap.PointsEqual(pointOnLine.point, pointOnLine.segment.point)) {
+          if (pointOnLine.segment.next && Snap.PointsEqual(pointOnLine.point, pointOnLine.segment.point)) {
             // use the corner normal
             let cornerNormal = Geo.Line.normalAtCorner(pointOnLine.segment);
             let cornerSeg2 = pointOnLine.segment.next.point.subtract(pointOnLine.segment.point);

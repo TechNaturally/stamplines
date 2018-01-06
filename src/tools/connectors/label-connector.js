@@ -150,7 +150,7 @@ export class LabelConnector extends Connector {
   }
 
   shouldSnapPoint(point, config) {
-    return (config && config.context == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
+    return (config && ['create', 'move'].includes(config.context) && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
   }
   SnapPoint(point, config) {
     if (this.shouldSnapPoint(point, config)) {
@@ -166,10 +166,11 @@ export class LabelConnector extends Connector {
           let item = hitCheck.target.data.item;
           let lineOffset = hitCheck.offset.point;
           let linePoint = hitCheck.offset.closestPoint;
-          let snapPoint = this.connectionPoint(target, item, lineOffset);
-
+          let snapPoint = this.connectionPoint(target, item, {
+            offset: lineOffset,
+            atSegment: (hitCheck.offset && hitCheck.offset.atSegment && hitCheck.offset.segment)
+          });
           let Snap = this.SL.Utils.get('Snap');
-
           if (Snap && item && item.data && item.data.Type == 'Line' && snapPoint && linePoint) {
             let offset = new paper.Point(0, 0);
             if (Snap.Equal(snapPoint.x, linePoint.x, 1.0)) {
@@ -187,6 +188,10 @@ export class LabelConnector extends Connector {
             snapPoint.set(snapPoint.subtract(offset));
           }
           point.set(snapPoint);
+
+          if (!point.equals(config.original) && !config.interactive) {
+            this.ConnectPoint(target, hitCheck.offset.point, config);
+          }
         }
       }
       else if (hitCheck && hitCheck.oldTarget) {
@@ -227,6 +232,11 @@ export class LabelConnector extends Connector {
     }
   }
 
+  ConnectPoint(target, offset, config) {
+    if (target && offset && config && config.item && config.item.data && config.item.data.Type == 'Text') {
+      this.AttachLabel(config.item, target, offset);
+    }
+  }
   AttachLabel(label, target, offset) {
     // @TODO: link the label + target and set the labelOffset
     console.log('ATTACH LABEL to TARGET =>', label, target, offset);

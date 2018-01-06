@@ -433,7 +433,7 @@ export class TextTool extends Tool {
     this.SL.Paper.applyStyle(textItem, this.config.font);
     this.SL.Paper.Item.addCustomMethod(textItem, 'SnapItem', this.snapTextItem, this);
     this.SL.Paper.Item.addCustomMethod(textItem, 'ScaleItem', this.scaleTextItem, this);
-    this.snapTextItem(textItem);
+    this.snapTextItem(textItem, { context: 'create' });
     this.setTarget(textItem);
     this.calculateCursor({index: 0});
     this.refreshUITarget();
@@ -447,7 +447,13 @@ export class TextTool extends Tool {
     if (item && item.data && item.data.Type == 'Text') {
       let Snap = this.SL.Utils.get('Snap');
       if (Snap) {
-        let point = Snap.Point(item.bounds.topLeft, {context: 'text-point', item: item, interactive: args.interactive});
+        let pointArgs = {
+          context: args.context,
+          type: 'text-point',
+          item: item,
+          interactive: args.interactive
+        };
+        let point = Snap.Point(item.bounds.topLeft, pointArgs);
         let delta = point.subtract(item.bounds.topLeft);
         item.translate(delta);
       }
