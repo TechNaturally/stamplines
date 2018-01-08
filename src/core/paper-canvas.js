@@ -253,7 +253,12 @@ export default class PaperCanvas extends Component {
           let props = Object.keys(filter);
           let result = true;
           for (let prop of props) {
-            if (item.data[prop] != filter[prop]) {
+            if (Array.isArray(filter[prop]) && !Array.isArray(item.data[prop])) {
+              if (filter[prop].indexOf(item.data[prop]) == -1) {
+                result = false;
+              }
+            }
+            else if (item.data[prop] != filter[prop]) {
               result = false;
             }
           }
