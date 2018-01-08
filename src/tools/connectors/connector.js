@@ -152,7 +152,10 @@ export class Connector extends Tool {
         }
       }
       else if (hitCheck && hitCheck.oldTarget) {
-        //console.log(`[${this.constructor.name}]->SnapPoint DISCONNECT`, hitCheck.oldTarget);
+        if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
+          let oldTarget = hitCheck.oldTarget.data.target;
+          this.DisconnectPoint(oldTarget, config);
+        }
       }
     }
     return point;
@@ -161,7 +164,14 @@ export class Connector extends Tool {
     return item;
   }
 
+  isTargetConnected(target, config) {
+    // implementing class should override this
+    return false;
+  }
   ConnectPoint(target, offset, config) {
+    // implementing class should override this
+  }
+  DisconnectPoint(target, config) {
     // implementing class should override this
   }
 
@@ -445,9 +455,6 @@ export class Connector extends Tool {
       checkTarget.scale(hitScale.x, hitScale.y);
     }
     return checkTarget.hitTest(point);
-  }
-  isTargetConnected(target, config) {
-    return false;
   }
 
   getTargetOffset(target, point) {

@@ -173,11 +173,25 @@ export class LineConnector extends Connector {
     }
   }
 
+  isTargetConnected(target, config) {
+    if (target && target.data && target.data.target && config && config.segment) {
+      if (this.targetHasSegment(target.data.target, config.segment)) {
+        return true;
+      }
+    }
+    return false;
+  }
   ConnectPoint(target, offset, config) {
     if (target && offset && config && config.segment && config.segment.path && config.segment.path.data && config.segment.path.data.Type == 'Line') {
       this.ConnectSegment(config.segment, target, offset);
     }
   }
+  DisconnectPoint(target, config) {
+    if (target && config && config.segment) {
+      this.DisconnectSegment(config.segment, target);
+    }
+  }
+
   ConnectSegment(segment, target, offset) {
     let connection = undefined;
     if (segment && target && target.connected) {
@@ -221,6 +235,18 @@ export class LineConnector extends Connector {
     return connection;
   }
   DisconnectSegment(segment, target) {
+    if (segment && target && target.connected && target.connected.length) {
+      let index = this.getTargetSegmentConnectionIndex(target, segment);
+      if (index >= 0) {
+        target.connected.splice(index, 1);
+      }
+    }
+    if (target && segment && segment.data && segment.data.connected && segment.data.connected.length) {
+      let index = this.getSegmentTargetConnectionIndex(segment, target);
+      if (index >= 0) {
+        segment.data.connected.splice(index, 1);
+      }
+    }
   }
   DisconnectItem(item) {
   }
