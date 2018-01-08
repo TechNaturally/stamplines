@@ -234,7 +234,10 @@ export class LabelConnector extends Connector {
         }
       }
       else if (hitCheck && hitCheck.oldTarget) {
-        //console.log(`[${this.constructor.name}]->SnapPoint DISCONNECT`, hitCheck.oldTarget);
+        if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
+          let oldTarget = hitCheck.oldTarget.data.target;
+          this.DisconnectPoint(oldTarget, config);
+        }
       }
     }
     return point;
@@ -275,10 +278,22 @@ export class LabelConnector extends Connector {
     }
   }
 
+  isTargetConnected(target, config) {
+    if (target && target.data && target.data.target && config && config.item) {
+      if (this.targetHasLabel(target.data.target, config.item)) {
+        return true;
+      }
+    }
+    return false;
+  }
   ConnectPoint(target, offset, config) {
     if (target && offset && config && config.item && config.item.data && config.item.data.Type == 'Text') {
-      console.log('[LabelConnector]->connectionPoint @ ', config);
       this.AttachLabel(config.item, target, offset);
+    }
+  }
+  DisconnectPoint(target, config) {
+    if (target && config && config.item) {
+      this.DetachLabel(config.item, target);
     }
   }
   AttachLabel(label, target, offset) {
@@ -320,6 +335,20 @@ export class LabelConnector extends Connector {
       }
     }
     return connection;
+  }
+  DetachLabel(label, target) {
+    if (label && target && target.connected && target.connected.length) {
+      let index = this.getTargetLabelConnectionIndex(target, label);
+      if (index >= 0) {
+        target.connected.splice(index, 1);
+      }
+    }
+    if (target && label && label.data && label.data.labeling && label.data.labeling.length) {
+      let index = this.getLabelTargetConnectionIndex(label, target);
+      if (index >= 0) {
+        label.data.labeling.splice(index, 1);
+      }
+    }
   }
   DetachLabels(item) {
     // @TODO: check item.data to decide if it IS a label or HAS a label
