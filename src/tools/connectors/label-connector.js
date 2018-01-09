@@ -131,11 +131,12 @@ export class LabelConnector extends Connector {
   }
 
   bringLabelsToFront(item) {
-    if (item && item.data && item.data.Labels) {
+    let Select = this.Belt.Belt.Select;
+    if (Select && Select.Group && item && item.data && item.data.Labels) {
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
           if (connection && connection.label) {
-            connection.label.moveAbove(item);
+            connection.label.moveAbove(Select.Group);
           }
         }
       }
