@@ -16,7 +16,7 @@ export class LineConnector extends Connector {
         }, 'LineConnector.Generate.Stamp');
       }
       if (!this.eventHandlers.DestroyItem) {
-        this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {}, (args, item) => {
+        this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {Type: ['Stamp', 'Line']}, (args, item) => {
           this.DisconnectItem(item);
         }, 'LineConnector.Destroy.Item');
       }
@@ -86,6 +86,7 @@ export class LineConnector extends Connector {
       stamp.data.Connections = [];
       for (let connection of stamp.data.Stamp.connections) {
         stamp.data.Connections.push({
+          id: stamp.data.Connections.length,
           item: stamp,
           point: Geo.Normalize.pointToRectangle(new paper.Point({x: (connection.x || 0), y: (connection.y || 0)}), stamp.bounds),
           connected: [],
@@ -113,7 +114,7 @@ export class LineConnector extends Connector {
   getSegmentTargetConnectionIndex(segment, target) {
     if (target && segment && segment.data && segment.data.connected && segment.data.connected.length) {
       let index = segment.data.connected.findIndex( (connection) => {
-        return (connection && connection.target == target);
+        return (connection && this.targetsEqual(connection.target, target));
       });
       return index;
     }
@@ -247,8 +248,38 @@ export class LineConnector extends Connector {
         segment.data.connected.splice(index, 1);
       }
     }
+    // @TODO: snap segment's point (it WAS snapped to the connection, but is now disconnected)
   }
   DisconnectItem(item) {
+    if (item && item.data) {
+      if (item.data.Connections) {
+        // item has Connections
+        // disconnect all connected Connections
+        for (let Connection of item.data.Connections) {
+          if (Connection.connected && Connection.connected.length) {
+            for (let connection of Connection.connected) {
+              if (connection && connection.segment && connection.target) {
+                this.DisconnectSegment(connection.segment, connection.target);
+              }
+            }
+          }
+        }
+      }
+      else if (item.data.Type == 'Line' && item.segments) {
+        // item is a Line that might have a connected segment
+        // disconnect all segments from connected targets
+        for (let segment of item.segments) {
+          if (segment && segment.data && segment.data.connected && segment.data.connected.length) {
+            // loop through each Connection the segment is connected to
+            for (let connection of segment.data.connected) {
+              if (connection && connection.segment && connection.target) {
+                this.DisconnectSegment(connection.segment, connection.target);
+              }
+            }
+          }
+        }
+      }
+    }
   }
   DisconnectItemSegments(item) {
   }

@@ -11,12 +11,12 @@ export class LabelConnector extends Connector {
     }
     if (this.SL.Paper) {
       if (!this.eventHandlers.GenerateItem) {
-        this.eventHandlers.GenerateItem = this.SL.Paper.on('Generate', {}, (args, item) => {
+        this.eventHandlers.GenerateItem = this.SL.Paper.on('Generate', {Type: ['Stamp', 'Line']}, (args, item) => {
           this.InitLabels(item);
         }, 'LabelConnector.Generate.Item');
       }
       if (!this.eventHandlers.DestroyItem) {
-        this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {}, (args, item) => {
+        this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {Type: ['Stamp', 'Line', 'Text']}, (args, item) => {
           this.DetachLabels(item);
         }, 'LabelConnector.Destroy.Item');
       }
@@ -85,6 +85,7 @@ export class LabelConnector extends Connector {
       stamp.data.Labels = [];
       for (let labelSlot of stamp.data.Stamp.labels) {
         stamp.data.Labels.push({
+          id: stamp.data.Labels.length,
           item: stamp,
           connected: [],
           style: labelSlot.style,
@@ -107,6 +108,7 @@ export class LabelConnector extends Connector {
       line.data.Labels = [];
       for (let labelSlot of line.data.Line.labels) {
         let labelConfig = {
+          id: line.data.Labels.length,
           item: line,
           connected: [],
           start: labelSlot.start,
@@ -166,7 +168,7 @@ export class LabelConnector extends Connector {
   getLabelTargetConnectionIndex(label, target) {
     if (target && label && label.data && label.data.labeling && label.data.labeling.length) {
       let index = label.data.labeling.findIndex( (connection) => {
-        return (connection && connection.target == target);
+        return (connection && this.targetsEqual(connection.target, target));
       });
       return index;
     }
@@ -349,8 +351,32 @@ export class LabelConnector extends Connector {
         label.data.labeling.splice(index, 1);
       }
     }
+    // @TODO: snap label's point (it WAS snapped to the connection, but is now disconnected)
   }
   DetachLabels(item) {
-    // @TODO: check item.data to decide if it IS a label or HAS a label
+    if (item && item.data) {
+      if (item.data.Labels) {
+        // item has Labels
+        // disconnect all connected Labels
+        for (let Label of item.data.Labels) {
+          if (Label.connected && Label.connected.length) {
+            for (let connection of Label.connected) {
+              if (connection && connection.label && connection.target) {
+                this.DetachLabel(connection.label, connection.target);
+              }
+            }
+          }
+        }
+      }
+      if (item.data.Type == 'Text' && item.data.labeling && item.data.labeling.length) {
+        // item is a Label
+        // disconnect the item from anything it's labeling
+        for (let connection of item.data.labeling) {
+          if (connection && connection.label && connection.target) {
+            this.DetachLabel(connection.label, connection.target);
+          }
+        }
+      }
+    }
   }
 }

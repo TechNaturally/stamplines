@@ -185,6 +185,18 @@ export class Connector extends Tool {
     this.UI.Targets.length = 0;
   }
 
+  targetsEqual(target1, target2) {
+    if (target1 == target2) {
+      return true;
+    }
+    else if (target1 && target2) {
+      if (target1.id == target2.id && target1.item == target2.item) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   refreshTargets(args) {
     if (this.shouldShowTargets(args)) {
       this.showTargets();
