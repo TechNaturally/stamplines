@@ -132,7 +132,7 @@ export class LabelConnector extends Connector {
 
   bringLabelsToFront(item) {
     let Select = this.Belt.Belt.Select;
-    if (Select && Select.Group && item && item.data && item.data.Labels) {
+    if (Select && Select.Group && this.itemHasLabels(item)) {
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
           if (connection && connection.label) {
@@ -148,13 +148,14 @@ export class LabelConnector extends Connector {
     if (Select && Select.Items && Select.Items.length == 1) {
       let checkItem = Select.Items[0];
       if (checkItem && checkItem.data && checkItem.data.Type == 'Text') {
+        // show the Label targets when a single Text item is selected
         return true;
       }
     }
     return false;
   }
   drawItemTargets(item) {
-    if (item && item.data && item.data.Labels) {
+    if (this.itemHasLabels(item)) {
       for (let labelSlot of item.data.Labels) {
         labelSlot = $.extend({}, labelSlot);
         labelSlot.style = {};
@@ -167,7 +168,7 @@ export class LabelConnector extends Connector {
     }
   }
   getLabelTargetConnectionIndex(label, target) {
-    if (target && label && label.data && label.data.labeling && label.data.labeling.length) {
+    if (target && this.itemIsLabel(label)) {
       let index = label.data.labeling.findIndex( (connection) => {
         return (connection && this.targetsEqual(connection.target, target));
       });
@@ -245,23 +246,30 @@ export class LabelConnector extends Connector {
     }
     return point;
   }
+
+  itemHasLabels(item) {
+    return (item && item.data && item.data.Labels) ? true : false;
+  }
+  itemIsLabel(item) {
+    return (item && item.data && item.data.Type == 'Text' && item.data.labeling) ? true : false;
+  }
   
   shouldSnapItem(item, config) {
-    return (item && item.data && ((item.data.Type == 'Text' && item.data.labeling) || item.data.Labels));
+    return (item && item.data && (this.itemIsLabel(item) || this.itemHasLabels(item)));
   }
   SnapItem(item, config) {
-    if (this.shouldSnapItem(item, config) && item.data) {
-      if (item.data.Type == 'Text' && item.data.labeling) {
+    if (this.shouldSnapItem(item, config)) {
+      if (this.itemIsLabel(item)) {
         this.SnapItemAsLabel(item, config);
       }
-      if (item.data.Labels) {
+      if (this.itemHasLabels(item)) {
         this.SnapItemLabels(item, config);
       }
     }
     return item;
   }
   SnapItemAsLabel(item, config) {
-    if (item && item.data && item.data.Type == 'Text' && item.data.labeling && item.data.labeling.length) {
+    if (this.itemIsLabel(item) && item.data.labeling.length) {
       let connection = item.data.labeling[0];
 
       console.log('[LabelConnector]->SnapItemAsLabel', item);
@@ -269,7 +277,7 @@ export class LabelConnector extends Connector {
     }
   }
   SnapItemLabels(item, config) {
-    if (item && item.data && item.data.Labels) {
+    if (this.itemHasLabels(item)) {
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
           console.log('[LabelConnector]->SnapItemLabel', connection);
@@ -346,7 +354,7 @@ export class LabelConnector extends Connector {
         target.connected.splice(index, 1);
       }
     }
-    if (target && label && label.data && label.data.labeling && label.data.labeling.length) {
+    if (target && this.itemIsLabel(label)) {
       let index = this.getLabelTargetConnectionIndex(label, target);
       if (index >= 0) {
         label.data.labeling.splice(index, 1);
@@ -356,8 +364,7 @@ export class LabelConnector extends Connector {
   }
   DetachLabels(item) {
     if (item && item.data) {
-      if (item.data.Labels) {
-        // item has Labels
+      if (this.itemHasLabels(item)) {
         // disconnect all connected Labels
         for (let Label of item.data.Labels) {
           if (Label.connected && Label.connected.length) {
@@ -369,8 +376,7 @@ export class LabelConnector extends Connector {
           }
         }
       }
-      if (item.data.Type == 'Text' && item.data.labeling && item.data.labeling.length) {
-        // item is a Label
+      if (this.itemIsLabel(item)) {
         // disconnect the item from anything it's labeling
         for (let connection of item.data.labeling) {
           if (connection && connection.label && connection.target) {

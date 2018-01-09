@@ -105,14 +105,14 @@ export class LineConnector extends Connector {
     return args.toggle;
   }
   drawItemTargets(item) {
-    if (item && item.data && item.data.Connections) {
+    if (this.itemHasConnections(item)) {
       for (let connection of item.data.Connections) {
         this.drawItemTarget(item, connection);
       }
     }
   }
   getSegmentTargetConnectionIndex(segment, target) {
-    if (target && segment && segment.data && segment.data.connected && segment.data.connected.length) {
+    if (target && this.segmentIsConnected(segment)) {
       let index = segment.data.connected.findIndex( (connection) => {
         return (connection && this.targetsEqual(connection.target, target));
       });
@@ -136,36 +136,49 @@ export class LineConnector extends Connector {
     return (this.getTargetSegmentConnectionIndex(target, segment) >= 0);
   }
 
+  itemHasConnections(item) {
+    return (item && item.data && item.data.Connections) ? true : false;
+  }
+  itemHasSegments(item) {
+    return (item && item.segments) ? true : false;
+  }
+  segmentIsConnected(segment) {
+    return (segment && segment.data && segment.data.connected) ? true : false;
+  }
+
   shouldSnapPoint(point, config) {
+    // @TODO: needs to snap new line points as well
     return (config && config.context == 'line-point');
   }
 
   shouldSnapItem(item, config) {
-    return (item && (item.segments || (item.data && item.data.Connections)));
+    return (item && (this.itemHasSegments(item) || this.itemHasConnections(item)));
   }
   SnapItem(item, config) {
     if (this.shouldSnapItem(item, config)) {
-      if (item.segments) {
+      if (this.itemHasSegments(item)) {
         this.SnapItemSegments(item, config);
       }
-      if (item.data && item.data.Connections) {
+      if (this.itemHasConnections(item)) {
         this.SnapItemConnections(item, config);
       }
     }
     return item;
   }
   SnapItemSegments(item, config) {
-    if (item.segments) {
+    if (this.itemHasSegments(item)) {
       for (let segment of item.segments) {
-        if (segment.point && segment.data && segment.data.connected && segment.data.connected.length) {
+        if (segment.point && this.segmentIsConnected(segment) && segment.data.connected.length) {
           let connection = segment.data.connected[0];
-          segment.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
+          if (connection) {
+            segment.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
+          }
         }
       }
     }
   }
   SnapItemConnections(item, config) {
-    if (item.data && item.data.Connections) {
+    if (this.itemHasConnections(item)) {
       for (let Connection of item.data.Connections) {
         for (let connection of Connection.connected) {
           connection.segment.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
@@ -242,7 +255,7 @@ export class LineConnector extends Connector {
         target.connected.splice(index, 1);
       }
     }
-    if (target && segment && segment.data && segment.data.connected && segment.data.connected.length) {
+    if (target && this.segmentIsConnected(segment)) {
       let index = this.getSegmentTargetConnectionIndex(segment, target);
       if (index >= 0) {
         segment.data.connected.splice(index, 1);
@@ -252,8 +265,7 @@ export class LineConnector extends Connector {
   }
   DisconnectItem(item) {
     if (item && item.data) {
-      if (item.data.Connections) {
-        // item has Connections
+      if (this.itemHasConnections(item)) {
         // disconnect all connected Connections
         for (let Connection of item.data.Connections) {
           if (Connection.connected && Connection.connected.length) {
@@ -265,11 +277,10 @@ export class LineConnector extends Connector {
           }
         }
       }
-      else if (item.data.Type == 'Line' && item.segments) {
-        // item is a Line that might have a connected segment
+      else if (this.itemHasSegments(item)) {
         // disconnect all segments from connected targets
         for (let segment of item.segments) {
-          if (segment && segment.data && segment.data.connected && segment.data.connected.length) {
+          if (this.segmentIsConnected(segment)) {
             // loop through each Connection the segment is connected to
             for (let connection of segment.data.connected) {
               if (connection && connection.segment && connection.target) {
