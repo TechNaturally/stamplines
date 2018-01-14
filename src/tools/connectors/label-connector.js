@@ -197,6 +197,7 @@ export class LabelConnector extends Connector {
   }
   SnapPoint(point, config) {
     if (this.shouldSnapPoint(point, config)) {
+      // @TODO: this would cause troubles when doing the label snaps
       let mousePoint = this.SL.UI.Mouse.State.point;
       if (mousePoint) {
         config.original = mousePoint;
@@ -232,7 +233,7 @@ export class LabelConnector extends Connector {
           }
           point.set(snapPoint);
 
-          if (!point.equals(config.original) && !config.interactive) {
+          if (!config.interactive) {
             this.ConnectPoint(target, hitCheck.offset.point, config);
           }
         }
@@ -278,12 +279,66 @@ export class LabelConnector extends Connector {
   }
   SnapItemLabels(item, config) {
     if (this.itemHasLabels(item)) {
+      let Snap = this.SL.Utils.get('Snap');
+      let Geo = this.SL.Utils.get('Geo');
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
-          console.log('[LabelConnector]->SnapItemLabel', connection);
-          // @TODO: need to fix up Label connection.offset so this can calculate properly for Lines and for Shapes
+          if (connection.label) {
+            let offset = new paper.Point(connection.offset);
 
-          //connection.label.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
+            if (Geo && item && item.data && item.data.Type == 'Line') {              
+              let section = Geo.Line.defineSection(connection.target);
+              let start = section.start;
+              let end = section.end;
+
+              offset.x = ((end - start) / 2.0) * (offset.x);
+
+              if (connection.target.distance) {
+                offset.y -= connection.target.distance;
+              }
+
+//              console.log(`SNAP THE CONNECTION @ OFFSET (${start} -> ${end}) [${connection.offset.x}, ${connection.offset.y}] VS [${offset.x}, ${offset.y}] =>`, section, connection);
+            }
+
+            let point = this.globalTargetPoint(connection.target, item, offset);
+
+//            console.log(`LABEL POINT @ [${point.x}, ${point.y}]`, connection);
+
+/**
+            if (Snap) {
+              let snapConfig = {
+                context: 'label',
+                type: 'text-point',
+                item: connection.label,
+                interactive: config.interactive,
+                move: true,
+                scale: false
+              };
+
+              point.set(Snap.Point(point, snapConfig));
+            }
+*/
+
+            connection.label.position.set(point);
+
+/**
+            if (Snap) {
+              let snapConfig = {
+                context: config.context,
+                interactive: config.interactive,
+                move: true,
+                scale: false
+              };
+
+              if (this.SL.Paper.Item.hasCustomMethod(connection.label, 'SnapItem')) {
+                this.SL.Paper.Item.callCustomMethod(connection.label, 'SnapItem', snapConfig);
+              }
+              else {
+                Snap.Item(connection.label, snapConfig);
+              }
+            }
+*/
+          }
         }
       }
     }
