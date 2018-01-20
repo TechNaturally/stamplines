@@ -453,8 +453,9 @@ export class TextTool extends Tool {
           item: item,
           interactive: args.interactive
         };
-        let point = Snap.Point(item.bounds.topLeft, pointArgs);
-        let delta = point.subtract(item.bounds.topLeft);
+        let refItem = args.original || item;
+        let point = Snap.Point(refItem.bounds.topLeft, pointArgs);
+        let delta = point.subtract(refItem.bounds.topLeft);
         item.translate(delta);
       }
       if (!args.interactive) {

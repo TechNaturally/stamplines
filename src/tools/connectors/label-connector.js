@@ -193,15 +193,25 @@ export class LabelConnector extends Connector {
   }
 
   shouldSnapPoint(point, config) {
-    return (config && ['create', 'move'].includes(config.context) && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
+    return (config && ['create', 'move', 'label'].includes(config.context) && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
   }
   SnapPoint(point, config) {
     if (this.shouldSnapPoint(point, config)) {
-      // @TODO: this would cause troubles when doing the label snaps
-      let mousePoint = this.SL.UI.Mouse.State.point;
-      if (mousePoint) {
-        config.original = mousePoint;
+      // make sure no other Point snappers interfere with the label's original point
+      if (config.context == 'label') {
+        // label context is already snapped and its parent is being manipulated
+        point.set(config.original);
       }
+      else {
+        // this is a text-point, which snaps the top-left corner.  make it interactive with the mouse point instead
+        // @TODO: if other cursors/triggers, should add config.source and use config.source.point
+        let mousePoint = this.SL.UI.Mouse.State.point;
+        if (mousePoint) {
+          config.original = mousePoint;
+        }
+      }
+      
+      //console.log(`[LabelConnector]->SnapPoint @  [${point.x}, ${point.y}] VS og [${config.original.x}, ${config.original.y}] VS mouse [${mousePoint.x}, ${mousePoint.y}]`);
 
       let hitCheck = this.getTargetHit(config.original, config.interactive, config);
       if (hitCheck && hitCheck.target) {
@@ -301,35 +311,15 @@ export class LabelConnector extends Connector {
             }
 
             let point = this.globalTargetPoint(connection.target, item, offset);
+            connection.label.bounds.topLeft.set(point);
 
-//            console.log(`LABEL POINT @ [${point.x}, ${point.y}]`, connection);
-
-/**
             if (Snap) {
               let snapConfig = {
                 context: 'label',
-                type: 'text-point',
-                item: connection.label,
                 interactive: config.interactive,
                 move: true,
                 scale: false
               };
-
-              point.set(Snap.Point(point, snapConfig));
-            }
-*/
-
-            connection.label.position.set(point);
-
-/**
-            if (Snap) {
-              let snapConfig = {
-                context: config.context,
-                interactive: config.interactive,
-                move: true,
-                scale: false
-              };
-
               if (this.SL.Paper.Item.hasCustomMethod(connection.label, 'SnapItem')) {
                 this.SL.Paper.Item.callCustomMethod(connection.label, 'SnapItem', snapConfig);
               }
@@ -337,7 +327,6 @@ export class LabelConnector extends Connector {
                 Snap.Item(connection.label, snapConfig);
               }
             }
-*/
           }
         }
       }
