@@ -451,7 +451,9 @@ export class TextTool extends Tool {
           context: args.context,
           type: 'text-point',
           item: item,
-          interactive: args.interactive
+          interactive: args.interactive,
+          target: args.target,
+          offset: args.offset
         };
         let refItem = args.original || item;
         let point = Snap.Point(refItem.bounds.topLeft, pointArgs);

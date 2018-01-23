@@ -210,45 +210,68 @@ export class LabelConnector extends Connector {
           config.original = mousePoint;
         }
       }
-      
-      //console.log(`[LabelConnector]->SnapPoint @  [${point.x}, ${point.y}] VS og [${config.original.x}, ${config.original.y}] VS mouse [${mousePoint.x}, ${mousePoint.y}]`);
 
-      let hitCheck = this.getTargetHit(config.original, config.interactive, config);
-      if (hitCheck && hitCheck.target) {
-        if (hitCheck.target.data && hitCheck.offset.point) {
-          let target = hitCheck.target.data.target;
-          let item = hitCheck.target.data.item;
-          let lineOffset = hitCheck.offset.point;
-          let linePoint = hitCheck.offset.closestPoint;
-          let snapPoint = this.connectionPoint(target, item, {
-            offset: lineOffset,
-            atSegment: (hitCheck.offset && hitCheck.offset.atSegment && hitCheck.offset.segment)
-          });
-          let Snap = this.SL.Utils.get('Snap');
-          if (Snap && item && item.data && item.data.Type == 'Line' && snapPoint && linePoint) {
-            let offset = new paper.Point(0, 0);
-            if (Snap.Equal(snapPoint.x, linePoint.x, 1.0)) {
-              offset.x = config.item.bounds.width/2.0;
-            }
-            else if (snapPoint.x < linePoint.x) {
-              offset.x = config.item.bounds.width;
-            }
-            if (Snap.Equal(snapPoint.y, linePoint.y, 1.0)) {
-              offset.y = config.item.bounds.height/2.0;
-            }
-            else if (snapPoint.y < linePoint.y) {
-              offset.y = config.item.bounds.height;
-            }
-            snapPoint.set(snapPoint.subtract(offset));
+      let Geo = this.SL.Utils.get('Geo');
+      let target, item, targetOffset, linePoint;
+      let atSegment = false;
+      let hitCheck = null;
+      if (config.context == 'label') {
+        item = config.target.item;
+        target = config.target;
+        targetOffset = config.offset;
+        if (Geo && item && item.data && item.data.Type == 'Line') {
+          let section = Geo.Line.defineSection(target);
+          let pointOffset = section.start + (targetOffset.x * 0.5 + 0.5) * (section.end - section.start);
+          let pol = Geo.Normalize.pointOnLine(item, pointOffset, true);
+          if (section.start != section.end) {
+            linePoint = pol.point;
           }
-          point.set(snapPoint);
-
-          if (!config.interactive) {
-            this.ConnectPoint(target, hitCheck.offset.point, config);
+          atSegment = (pol.point.equals(pol.segment.point) && pol.segment);
+        }
+      }
+      else {
+        // no lineOffset, check if we hit a target
+        hitCheck = this.getTargetHit(config.original, config.interactive, config);
+        if (hitCheck && hitCheck.target) {
+          if (hitCheck.target.data && hitCheck.offset.point) {
+            item = hitCheck.target.data.item;
+            target = hitCheck.target.data.target;
+            targetOffset = hitCheck.offset.point;
+            atSegment = (hitCheck.offset && hitCheck.offset.atSegment && hitCheck.offset.segment);
+            linePoint = hitCheck.offset.closestPoint;
           }
         }
       }
-      else if (hitCheck && hitCheck.oldTarget) {
+
+      if (target && item && targetOffset) {
+        let snapPoint = this.connectionPoint(target, item, {
+          offset: targetOffset,
+          atSegment: atSegment
+        });
+        let Snap = this.SL.Utils.get('Snap');
+        let offset = new paper.Point(0, 0);
+        if (Snap && item && item.data && item.data.Type == 'Line' && snapPoint && linePoint) {
+          if (Snap.Equal(snapPoint.x, linePoint.x, 1.0)) {
+            offset.x = config.item.bounds.width/2.0;
+          }
+          else if (snapPoint.x < linePoint.x) {
+            offset.x = config.item.bounds.width;
+          }
+          if (Snap.Equal(snapPoint.y, linePoint.y, 1.0)) {
+            offset.y = config.item.bounds.height/2.0;
+          }
+          else if (snapPoint.y < linePoint.y) {
+            offset.y = config.item.bounds.height;
+          }
+          snapPoint.set(snapPoint.subtract(offset));
+        }
+        point.set(snapPoint);
+
+        if (!config.interactive && hitCheck && hitCheck.offset && config.context != 'label') {
+          this.ConnectPoint(target, hitCheck.offset.point, config);
+        }
+      }
+      else if (config.context != 'label' && hitCheck && hitCheck.oldTarget) {
         if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
           let oldTarget = hitCheck.oldTarget.data.target;
           this.DisconnectPoint(oldTarget, config);
@@ -306,8 +329,6 @@ export class LabelConnector extends Connector {
               if (connection.target.distance) {
                 offset.y -= connection.target.distance;
               }
-
-//              console.log(`SNAP THE CONNECTION @ OFFSET (${start} -> ${end}) [${connection.offset.x}, ${connection.offset.y}] VS [${offset.x}, ${offset.y}] =>`, section, connection);
             }
 
             let point = this.globalTargetPoint(connection.target, item, offset);
@@ -318,7 +339,9 @@ export class LabelConnector extends Connector {
                 context: 'label',
                 interactive: config.interactive,
                 move: true,
-                scale: false
+                scale: false,
+                target: connection.target,
+                offset: connection.offset
               };
               if (this.SL.Paper.Item.hasCustomMethod(connection.label, 'SnapItem')) {
                 this.SL.Paper.Item.callCustomMethod(connection.label, 'SnapItem', snapConfig);
