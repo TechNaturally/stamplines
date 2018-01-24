@@ -90,7 +90,7 @@ export class LineConnector extends Connector {
           item: stamp,
           point: Geo.Normalize.pointToRectangle(new paper.Point({x: (connection.x || 0), y: (connection.y || 0)}), stamp.bounds),
           connected: [],
-          style: connection.style,
+          targetStyle: connection.targetStyle,
           width: connection.width,
           height: connection.height,
           angle: connection.angle,

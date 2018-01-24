@@ -88,7 +88,7 @@ export class LabelConnector extends Connector {
           id: stamp.data.Labels.length,
           item: stamp,
           connected: [],
-          style: labelSlot.style,
+          targetStyle: labelSlot.targetStyle,
           point: Geo.Normalize.pointToRectangle(new paper.Point({x: (labelSlot.x || 0), y: (labelSlot.y || 0)}), stamp.bounds),
           width: labelSlot.width,
           height: labelSlot.height,
@@ -111,6 +111,7 @@ export class LabelConnector extends Connector {
           id: line.data.Labels.length,
           item: line,
           connected: [],
+          targetStyle: labelSlot.targetStyle,
           start: labelSlot.start,
           end: labelSlot.end,
           position: labelSlot.position,
@@ -122,8 +123,7 @@ export class LabelConnector extends Connector {
           distance: labelSlot.distance,
           lockX: labelSlot.lockX,
           lockY: labelSlot.lockY,
-          lockDistance: labelSlot.lockDistance,
-          targetStyle: labelSlot.targetStyle
+          lockDistance: labelSlot.lockDistance
         };
         line.data.Labels.push(labelConfig);
       }
@@ -157,12 +157,6 @@ export class LabelConnector extends Connector {
   drawItemTargets(item) {
     if (this.itemHasLabels(item)) {
       for (let labelSlot of item.data.Labels) {
-        labelSlot = $.extend({}, labelSlot);
-        labelSlot.style = {};
-        if (labelSlot.targetStyle) {
-          labelSlot.style = labelSlot.targetStyle;
-          delete labelSlot.targetStyle;
-        }
         this.drawItemTarget(item, labelSlot);
       }
     }

@@ -12,6 +12,9 @@
             { "x": -25, "y": 0 },
             { "x": 25, "y": 0 },
             { "x": 0, "y": 1.0, "width": 30, "height": 30, "lockX": false, "lockY": false }
+          ],
+          "labels": [
+            { "x": 0, "y": 0, "lockX": false, "lockY": false, "style": { "fontSize": 18, "fontStyle": "Italic" } }
           ]
         },
         {
@@ -20,11 +23,11 @@
           "connections": [
             { "x": -1.0, "y": 0, "height": 0.9, "lockY": false },
             { "x": 1.0, "y": 0, "height": 0.9, "lockY": false },
-            { "x": 0, "y": -1.0, "width": 0.9, "lockX": false, "style": { "strokeColor": "#AA6600" } },
+            { "x": 0, "y": -1.0, "width": 0.9, "lockX": false, "targetStyle": { "strokeColor": "#AA6600" } },
             { "x": 0, "y": 1.0 , "width": 0.9, "lockX": false }
           ],
           "labels": [
-            { "x": 0, "y": 0, "style": { "fontSize": 18, "fontStyle": "Bold" } }
+            { "x": 0, "y": 0, "style": { "fontSize": 18, "fontStyle": "Bold" }, "targetStyle": { "strokeColor": "#00AA66" }  }
           ]
         },
         {

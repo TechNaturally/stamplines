@@ -145,7 +145,6 @@ export class Connector extends Tool {
           if (snapPoint) {
             point.set(snapPoint);
           }
-
           if (!point.equals(config.original) && !config.interactive) {
             this.ConnectPoint(target, offset, config);
           }
@@ -184,7 +183,6 @@ export class Connector extends Tool {
     }
     this.UI.Targets.length = 0;
   }
-
   targetsEqual(target1, target2) {
     if (target1 == target2) {
       return true;
@@ -196,7 +194,6 @@ export class Connector extends Tool {
     }
     return false;
   }
-
   refreshTargets(args) {
     if (this.shouldShowTargets(args)) {
       this.showTargets();
@@ -289,7 +286,7 @@ export class Connector extends Tool {
       let startAt = Geo.Normalize.pointOnLine(item, start, true);
       let endAt = Geo.Normalize.pointOnLine(item, end, true);
       let targetUI;
-      let targetStyle = $.extend({}, this.config.ui.target.style, target.style);
+      let targetStyle = $.extend({}, this.config.ui.target.style, target.targetStyle);
       let targetWidth = target.width || (this.config.ui.target.default.radius*2.0);
       let targetRadius = targetWidth/2.0;
 
@@ -364,7 +361,7 @@ export class Connector extends Tool {
           position: position,
           distance: target.distance
         }, item);
-        let targetUI = this.drawTargetShape({style: target.style}, point, null, item);
+        let targetUI = this.drawTargetShape({targetStyle: target.targetStyle}, point, null, item);
         // link it to the item and track it
         targetUI.data.item = item;
         targetUI.data.target = target;
@@ -402,7 +399,7 @@ export class Connector extends Tool {
     }
 
     // configure the target style
-    let targetStyle = $.extend({}, this.config.ui.target.style, target.style);
+    let targetStyle = $.extend({}, this.config.ui.target.style, target.targetStyle);
     if (targetStyle.cornerRadius) {
       if (targetShape == paper.Shape.Rectangle) {
         targetStyle.radius = targetStyle.cornerRadius;
