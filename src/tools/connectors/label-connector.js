@@ -94,7 +94,8 @@ export class LabelConnector extends Connector {
           height: labelSlot.height,
           angle: labelSlot.angle,
           lockX: labelSlot.lockX,
-          lockY: labelSlot.lockY
+          lockY: labelSlot.lockY,
+          labelStyle: labelSlot.labelStyle
         });
       }
     }
@@ -116,14 +117,14 @@ export class LabelConnector extends Connector {
           end: labelSlot.end,
           position: labelSlot.position,
           length: labelSlot.length,
-          style: labelSlot.style,
           width: labelSlot.width,
           height: labelSlot.height,
           angle: labelSlot.angle,
           distance: labelSlot.distance,
           lockX: labelSlot.lockX,
           lockY: labelSlot.lockY,
-          lockDistance: labelSlot.lockDistance
+          lockDistance: labelSlot.lockDistance,
+          labelStyle: labelSlot.labelStyle
         };
         line.data.Labels.push(labelConfig);
       }
@@ -261,7 +262,7 @@ export class LabelConnector extends Connector {
         }
         point.set(snapPoint);
 
-        if (!config.interactive && hitCheck && hitCheck.offset && config.context != 'label') {
+        if (hitCheck && hitCheck.offset && config.context != 'label') {
           this.ConnectPoint(target, hitCheck.offset.point, config);
         }
       }
@@ -299,9 +300,9 @@ export class LabelConnector extends Connector {
   SnapItemAsLabel(item, config) {
     if (this.itemIsLabel(item) && item.data.labeling.length) {
       let connection = item.data.labeling[0];
-
       console.log('[LabelConnector]->SnapItemAsLabel', item);
       // @TODO: snap to the connection slot
+      // - this has apparently never been called so far
     }
   }
   SnapItemLabels(item, config) {
@@ -405,6 +406,10 @@ export class LabelConnector extends Connector {
           label.data.labeling.push(connection);
         }
       }
+      this.SL.Paper.removeStyle(label, 'labelStyle', true);
+      if (target.labelStyle) {
+        this.SL.Paper.applyStyle(label, $.extend({}, target.labelStyle, {Class: 'labelStyle'}));
+      }
     }
     return connection;
   }
@@ -420,6 +425,7 @@ export class LabelConnector extends Connector {
       if (index >= 0) {
         label.data.labeling.splice(index, 1);
       }
+      this.SL.Paper.removeStyle(label, 'labelStyle', true);
     }
     // @TODO: snap label's point (it WAS snapped to the connection, but is now disconnected)
   }
