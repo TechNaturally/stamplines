@@ -548,10 +548,65 @@ export default class PaperCanvas extends Component {
     return item;
   }
 
-  applyStyle(item, style) {
+  applyStyle(item, style, cache=true) {
     if (item && style) {
+      if (cache) {
+        this.cacheStyle(item, style);
+      }
       for (var prop in style) {
         item[prop] = style[prop];
+      }
+    }
+  }
+  removeStyle(item, style, all=false) {
+    this.uncacheStyle(item, style, all);
+  }
+  stackStyles(item) {
+    var stacked = {};
+    if (item && item.data && item.data.Styles) {
+      for (var style of item.data.Styles) {
+        for (var prop in style) {
+          stacked[prop] = style[prop];
+        }
+      }
+    }
+    return stacked;
+  }
+  cacheStyle(item, style) {
+    if (item && style) {
+      if (!item.data) {
+        item.data = {};
+      }
+      if (!item.data.Styles) {
+        item.data.Styles = [];
+      }
+      
+      if (!item.data.Styles.length || item.data.Styles[item.data.Styles.length-1] != style) {
+        // only cache it if it isn't already the last style in the cache
+        item.data.Styles.push(style);
+      }
+    }
+  }
+  uncacheStyle(item, style, all=false) {
+    if (item && style && item.data && item.data.Styles) {
+      let reverseIndex = item.data.Styles.slice().reverse().findIndex(check => {
+        if (typeof style == 'string') {
+          return (check && check.Class == style);
+        }
+        return (check == style);
+      });
+      let styleIndex = ((reverseIndex < 0) ? -1 : (item.data.Styles.length - reverseIndex - 1));
+      if (styleIndex != -1) {
+        let last = (styleIndex == item.data.Styles.length-1);
+        item.data.Styles.splice(styleIndex, 1);
+        if (all) {
+          // keep removing it as long as it is found
+          this.uncacheStyle(item, style, all);
+        }
+        if (last && item.data.Styles.length) {
+          // last style in cache removed, apply the next last style (don't cache it though)
+          this.applyStyle(item, this.stackStyles(item), false);
+        }
       }
     }
   }
