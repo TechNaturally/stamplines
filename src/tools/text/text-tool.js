@@ -563,7 +563,8 @@ export class TextTool extends Tool {
       // perform the scale
       if (scaleAmount) {
         let targetSize = parseFloat(item.fontSize) + (scaleAmount*this.config.interactive.deltaMultiplier);
-        item.fontSize = targetSize + 'px';
+        this.SL.Paper.removeStyle(item, 'textScale', true);
+        this.SL.Paper.applyStyle(item, {fontSize: targetSize + 'px', Class: 'textScale'});
       }
 
       // check the anchor
