@@ -179,9 +179,25 @@ export class LineConnector extends Connector {
   }
   SnapItemConnections(item, config) {
     if (this.itemHasConnections(item)) {
+      let Snap = this.SL.Utils.get('Snap');
       for (let Connection of item.data.Connections) {
         for (let connection of Connection.connected) {
-          connection.segment.point.set(this.globalTargetPoint(connection.target, connection.target.item, connection.offset));
+          let point = this.globalTargetPoint(connection.target, connection.target.item, connection.offset);
+
+          // update the connected line point
+          connection.segment.point.set(point);
+
+          if (Snap) {
+            // run the line-point snap to allow other snappers respond to the adjusted line (ex. LabelConnector refreshes label positions)
+            let snapConfig = {
+              context: 'line-point',
+              interactive: config.interactive,
+              move: false,
+              scale: false,
+              segment: connection.segment
+            };
+            point = Snap.Point(point, snapConfig);
+          }
         }
       }
     }
