@@ -95,6 +95,7 @@ export class LabelConnector extends Connector {
           angle: labelSlot.angle,
           lockX: labelSlot.lockX,
           lockY: labelSlot.lockY,
+          labelOffset: labelSlot.labelOffset,
           labelStyle: labelSlot.labelStyle
         });
       }
@@ -124,6 +125,7 @@ export class LabelConnector extends Connector {
           lockX: labelSlot.lockX,
           lockY: labelSlot.lockY,
           lockDistance: labelSlot.lockDistance,
+          labelOffset: labelSlot.labelOffset,
           labelStyle: labelSlot.labelStyle
         };
         line.data.Labels.push(labelConfig);
@@ -243,30 +245,48 @@ export class LabelConnector extends Connector {
           offset: targetOffset,
           atSegment: atSegment
         });
-        let Snap = this.SL.Utils.get('Snap');
-        let offset = new paper.Point(0, 0);
-        if (Snap && item && item.data && item.data.Type == 'Line' && snapPoint && linePoint) {
-          if (Snap.Equal(snapPoint.x, linePoint.x, 1.0)) {
-            offset.x = config.item.bounds.width/2.0;
+        if (snapPoint) {
+          let Snap = this.SL.Utils.get('Snap');
+          let offset = new paper.Point(0, 0);
+
+          // manually configured offset
+          if (target.labelOffset) {
+            if (target.labelOffset.x) {
+              offset.x += config.item.bounds.width * target.labelOffset.x;
+            }
+            if (target.labelOffset.y) {
+              offset.y += config.item.bounds.height * target.labelOffset.y;
+            }
+            snapPoint.set(snapPoint.add(offset));
           }
-          else if (snapPoint.x < linePoint.x) {
-            offset.x = config.item.bounds.width;
+
+          // automatic offset for Line targets
+          if (Snap && item.data && item.data.Type == 'Line' && linePoint) {
+            offset.set(0, 0);
+            if (Snap.Equal(snapPoint.x, linePoint.x, 1.0)) {
+              offset.x = config.item.bounds.width/2.0;
+            }
+            else if (snapPoint.x < linePoint.x) {
+              offset.x = config.item.bounds.width;
+            }
+            if (Snap.Equal(snapPoint.y, linePoint.y, 1.0)) {
+              offset.y = config.item.bounds.height/2.0;
+            }
+            else if (snapPoint.y < linePoint.y) {
+              offset.y = config.item.bounds.height;
+            }
+            snapPoint.set(snapPoint.subtract(offset));
           }
-          if (Snap.Equal(snapPoint.y, linePoint.y, 1.0)) {
-            offset.y = config.item.bounds.height/2.0;
-          }
-          else if (snapPoint.y < linePoint.y) {
-            offset.y = config.item.bounds.height;
-          }
-          snapPoint.set(snapPoint.subtract(offset));
+
+          // update the point
+          point.set(snapPoint);
         }
-        point.set(snapPoint);
 
         if (hitCheck && hitCheck.offset && config.context != 'label') {
           this.ConnectPoint(target, hitCheck.offset.point, config);
         }
       }
-      else if (config.context != 'label' && hitCheck && hitCheck.oldTarget) {
+      else if (hitCheck && hitCheck.oldTarget && config.context != 'label') {
         if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
           let oldTarget = hitCheck.oldTarget.data.target;
           this.DisconnectPoint(oldTarget, config);
