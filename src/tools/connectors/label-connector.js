@@ -64,6 +64,32 @@ export class LabelConnector extends Connector {
 
   registerSnappers() {
     super.registerSnappers(['point', 'item']);
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      if (!this.Snappers) {
+        this.Snappers = {};
+      }
+      this.Snappers.linePoint = Snap.addSnapper('point', {
+        priority: 1000, // high priority so it runs after all others
+        callback: (point, config) => {
+          if (config && config.context == 'line-point') {
+            return this.SnapLinePoint(point, config);
+          }
+          return point;
+        }
+      });
+    }
+  }
+  unregisterSnappers() {
+    super.unregisterSnappers();
+    let Snap = this.SL.Utils.get('Snap');
+    if (!Snap || !this.Snappers) {
+      return;
+    }
+    if (this.Snappers.linePoint) {
+      Snap.dropSnapper('point', this.Snappers.linePoint.id);
+      this.Snappers.linePoint = undefined;
+    }
   }
 
   InitLabels(item) {
@@ -369,6 +395,23 @@ export class LabelConnector extends Connector {
         }
       }
     }
+  }
+  SnapLinePoint(point, config) {
+    if (config && config.segment && config.segment.path) { 
+      var line = config.segment.path;
+      this.SnapItemLabels(line, config);
+
+      if (!config.interactive) {
+        // the actual line point gets set after all line-point snappers run (ie. after this function finishes)
+        // wait a few cycles and snap the line's labels again
+        // in most cases the change is unnoticeable, but can be apparent for labels positioned at line corners
+        var _this = this;
+        setTimeout(() => {
+          _this.SnapItemLabels(line, config);
+        }, 10);
+      }
+    }
+    return point;
   }
 
   isTargetConnected(target, config) {
