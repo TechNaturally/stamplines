@@ -606,6 +606,7 @@ export class TextTool extends Tool {
       let position = this.State.cursor.index;
       textContent = textContent.substr(0, position) + text + textContent.substr(position);
       let point = this.State.textItem.bounds.topLeft.clone();
+      let oldContent = this.State.textItem.content;
       this.State.textItem.content = textContent;
       this.State.textItem.bounds.topLeft.set(point);
       this.snapTextItem(this.State.textItem, {
@@ -613,6 +614,7 @@ export class TextTool extends Tool {
       });
       this.shiftCursor(text.length);
       this.refreshUI();
+      this.SL.Paper.emit('TextTool.TextInserted', {newContent: this.State.textItem.content, oldContent: oldContent}, this.State.textItem);
     }
   }
   deleteText() {
@@ -625,6 +627,7 @@ export class TextTool extends Tool {
       }
       textContent = textContent.substr(0, position-length) + textContent.substr(position);
       let point = this.State.textItem.bounds.topLeft.clone();
+      let oldContent = this.State.textItem.content;
       this.State.textItem.content = textContent;
       this.State.textItem.bounds.topLeft.set(point);
       this.snapTextItem(this.State.textItem, {
@@ -632,6 +635,7 @@ export class TextTool extends Tool {
       });
       this.shiftCursor(-length);
       this.refreshUI();
+      this.SL.Paper.emit('TextTool.TextDeleted', {newContent: this.State.textItem.content, oldContent: oldContent}, this.State.textItem);
     }
   }
   shiftCursor(shift) {
