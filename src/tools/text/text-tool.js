@@ -437,11 +437,13 @@ export class TextTool extends Tool {
     this.setTarget(textItem);
     this.calculateCursor({index: 0});
     this.refreshUITarget();
+    this.SL.Paper.emit('TextTool.CreateItem', {item: textItem}, textItem);
   }
   editTextItem(item, point) {
     this.setTarget(item);
     this.calculateCursor({position: {x: point.x - item.bounds.left, y: point.y - item.bounds.top}});
     this.refreshUITarget();
+    this.SL.Paper.emit('TextTool.EditItem', {item: item}, item);
   }
   snapTextItem(item, args={}) {
     if (item && item.data && item.data.Type == 'Text') {
