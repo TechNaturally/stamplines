@@ -498,20 +498,32 @@ export class LabelConnector extends Connector {
         // disconnect all connected Labels
         for (let Label of item.data.Labels) {
           if (Label.connected && Label.connected.length) {
+            let labels = [];
             for (let connection of Label.connected) {
               if (connection && connection.label && connection.target) {
-                this.DetachLabel(connection.label, connection.target);
+                if (connection.target == Label && labels.indexOf(connection.label) == -1) {
+                  labels.push(connection.label);
+                }
               }
+            }
+            for (let label of labels) {
+              this.DetachLabel(label, Label);
             }
           }
         }
       }
       if (this.itemIsLabel(item)) {
+        let targets = [];
         // disconnect the item from anything it's labeling
         for (let connection of item.data.labeling) {
           if (connection && connection.label && connection.target) {
-            this.DetachLabel(connection.label, connection.target);
+            if (connection.label == item && targets.indexOf(connection.target) == -1) {
+              targets.push(connection.target);
+            }
           }
+        }
+        for (let target of targets) {
+          this.DetachLabel(item, target);
         }
       }
     }
