@@ -94,7 +94,7 @@ export class Connector extends Tool {
       this.Snappers = {};
     }
     if (snaps.length) {
-      if (snaps.includes('point')) {
+      if (snaps.indexOf('point') !== -1) {
         this.Snappers.point = Snap.addSnapper('point', {
           priority: 250,
           callback: (point, config) => {
@@ -102,7 +102,7 @@ export class Connector extends Tool {
           }
         });
       }
-      if (snaps.includes('item')) {
+      if (snaps.indexOf('item') !== -1) {
         this.Snappers.item = Snap.addSnapper('item', {
           priority: 250,
           callback: (item, config) => {
@@ -194,15 +194,15 @@ export class Connector extends Tool {
     }
     return false;
   }
-  refreshTargets(args) {
-    if (this.shouldShowTargets(args)) {
+  refreshTargets(args, eventType='') {
+    if (this.shouldShowTargets(args, eventType)) {
       this.showTargets();
     }
     else {
       this.hideTargets();
     }
   }
-  shouldShowTargets(args) {
+  shouldShowTargets(args, eventType) {
     throw new Error(`Abstract method: ${this.constructor.name}::shouldShowTargets is not implemented!`);
   }
   showTargets() {
@@ -609,7 +609,7 @@ export class Connector extends Tool {
             let cornerSeg2 = pointOnLine.segment.next.point.subtract(pointOnLine.segment.point);
             pointOnLine.vector.angle = cornerNormal.angle;
             //console.log(`globalTargetPoint on CORNER (${cornerSeg2.angle} @ [${pointOnLine.segment.point.x}, ${pointOnLine.segment.point.y}]) in QUAD #${pointOnLine.vector.quadrant} @ ${pointOnLine.vector.angle} -> ${pointOnLine.vector.length} with DISTANCE [${distance}]`);
-            if ((distance < 0.0 && (![1,2].includes(pointOnLine.vector.quadrant) || (pointOnLine.vector.quadrant == 1 && cornerSeg2.angle <= 0) || cornerSeg2.angle >= 0 || pointOnLine.vector.angle == 0))
+            if ((distance < 0.0 && (![1,2].indexOf(pointOnLine.vector.quadrant) !== -1 || (pointOnLine.vector.quadrant == 1 && cornerSeg2.angle <= 0) || cornerSeg2.angle >= 0 || pointOnLine.vector.angle == 0))
               || (distance > 0.0 && ((pointOnLine.vector.quadrant == 1 && cornerSeg2.angle >= 0.0) || (pointOnLine.vector.quadrant == 2 && cornerSeg2.angle >= 90.0)))) {
               pointOnLine.vector.angle += 180.0;
               //console.log(`* FLIPPED TO QUAD #${pointOnLine.vector.quadrant} @ ${pointOnLine.vector.angle} -> ${pointOnLine.vector.length}`);

@@ -25,13 +25,27 @@ export class LabelConnector extends Connector {
           if (args && args.item) {
             this.bringLabelsToFront(args.item);
           }
-          this.refreshTargets(args);
+          this.refreshTargets(args, 'SelectionItemSelected');
         }, 'LabelConnector.SelectionItemSelected');
       }
       if (!this.eventHandlers.SelectionItemUnselected) {
         this.eventHandlers.SelectionItemUnselected = this.SL.Paper.on('SelectionItemUnselected', undefined, (args) => {
-          this.refreshTargets(args);
+          this.refreshTargets(args, 'SelectionItemUnselected');
         }, 'LabelConnector.SelectionItemUnselected');
+      }
+      if (!this.eventHandlers.TextToolActivated) {
+        this.eventHandlers.TextToolActivated = this.SL.Paper.on('ToolActivated', undefined, (args, item) => {
+          if (item && item.constructor && item.constructor.name == 'TextTool') {
+            this.refreshTargets(args, 'TextTool.Activated');
+          }          
+        }, 'LabelConnector.TextTool.Activated');
+      }
+      if (!this.eventHandlers.TextToolDeactivated) {
+        this.eventHandlers.TextToolDeactivated = this.SL.Paper.on('ToolDeactivated', undefined, (args, item) => {
+          if (item && item.constructor && item.constructor.name == 'TextTool') {
+            this.refreshTargets(args, 'TextTool.Deactivated');
+          }          
+        }, 'LabelConnector.TextTool.Deactivated');
       }
     }
   }
@@ -59,6 +73,16 @@ export class LabelConnector extends Connector {
       this.SL.Paper.off('SelectionItemUnselected', this.eventHandlers.SelectionItemUnselected.id);
       delete this.eventHandlers.SelectionItemUnselected;
       this.eventHandlers.SelectionItemUnselected = undefined;
+    }
+    if (this.eventHandlers.TextToolActivated) {
+      this.SL.Paper.off('ToolActivated', this.eventHandlers.TextToolActivated.id);
+      delete this.eventHandlers.TextToolActivated;
+      this.eventHandlers.TextToolActivated = undefined;
+    }
+    if (this.eventHandlers.TextToolDeactivated) {
+      this.SL.Paper.off('ToolDeactivated', this.eventHandlers.TextToolDeactivated.id);
+      delete this.eventHandlers.TextToolDeactivated;
+      this.eventHandlers.TextToolDeactivated = undefined;
     }
   }
 
@@ -172,14 +196,19 @@ export class LabelConnector extends Connector {
     }
   }
 
-  shouldShowTargets(args) {
+  shouldShowTargets(args, eventType) {
     let Select = this.Belt.Belt.Select;
-    if (Select && Select.Items && Select.Items.length == 1) {
-      let checkItem = Select.Items[0];
-      if (checkItem && checkItem.data && checkItem.data.Type == 'Text') {
-        // show the Label targets when a single Text item is selected
-        return true;
+    if (['SelectionItemSelected', 'SelectionItemUnselected'].indexOf(eventType) !== -1) {
+      if (Select && Select.Items && Select.Items.length == 1) {
+        let checkItem = Select.Items[0];
+        if (checkItem && checkItem.data && checkItem.data.Type == 'Text') {
+          // show the Label targets when a single Text item is selected
+          return true;
+        }
       }
+    }
+    else if (eventType == 'TextTool.Activated') {
+      return true;
     }
     return false;
   }
@@ -216,7 +245,7 @@ export class LabelConnector extends Connector {
   }
 
   shouldSnapPoint(point, config) {
-    return (config && ['create', 'move', 'label'].includes(config.context) && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
+    return (config && ['create', 'move', 'label'].indexOf(config.context) !== -1 && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
   }
   SnapPoint(point, config) {
     if (this.shouldSnapPoint(point, config)) {

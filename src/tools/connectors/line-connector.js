@@ -22,7 +22,7 @@ export class LineConnector extends Connector {
       }
       if (!this.eventHandlers.LineEndTarget) {
         this.eventHandlers.LineEndTarget = this.SL.Paper.on('LineEndTarget', undefined, (args) => {
-          this.refreshTargets(args);
+          this.refreshTargets(args, 'LineEndTarget');
         }, 'LineConnector.LineEndTarget');
       }
       if (!this.eventHandlers.LineSegmentAdded) {
@@ -112,7 +112,7 @@ export class LineConnector extends Connector {
     }
   }
 
-  shouldShowTargets(args) {
+  shouldShowTargets(args, eventType) {
     return args.toggle;
   }
   drawItemTargets(item) {
