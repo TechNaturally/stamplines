@@ -27,12 +27,23 @@ export class LineConnector extends Connector {
       }
       if (!this.eventHandlers.LineSegmentAdded) {
         this.eventHandlers.LineSegmentAdded = this.SL.Paper.on('LineSegmentAdded', undefined, (args) => {
-          if (args.from && args.from.path && args.from.path.segments && args.from.data && args.from.data.connection) {
+          if (args.from && args.from.path && args.from.path.segments && args.from.data && args.from.data.connected) {
             // process line segments that have data.connection
             let segmentIndex = args.from.path.segments.indexOf(args.from);
             if (segmentIndex > 0 && segmentIndex < args.from.path.segments.length-1) {
               // disconnect points that are not an end point
-              this.DisconnectSegment(args.from);
+              // collect all targets that it is connected to
+              let targets = [];
+              for (let connection of args.from.data.connected) {
+                // note: using DisconnectSegment here could be unsafe since it would remove entries from the array it loops over
+                if (connection.segment == args.from && targets.indexOf(connection.target) == -1) {
+                  targets.push(connection.target);
+                }
+              }
+              // disconnect from all targets
+              for (let target of targets) {
+                this.DisconnectSegment(args.from, target);
+              }
             }
           }
         }, 'LineConnector.LineSegmentAdded');
@@ -285,10 +296,16 @@ export class LineConnector extends Connector {
         // disconnect all connected Connections
         for (let Connection of item.data.Connections) {
           if (Connection.connected && Connection.connected.length) {
+            let segments = [];
             for (let connection of Connection.connected) {
               if (connection && connection.segment && connection.target) {
-                this.DisconnectSegment(connection.segment, connection.target);
+                if (connection.target == Connection && segments.indexOf(connection.segment) == -1) {
+                  segments.push(connection.segment);
+                }
               }
+            }
+            for (let segment of segments) {
+              this.DisconnectSegment(segment, Connection);
             }
           }
         }
@@ -297,11 +314,17 @@ export class LineConnector extends Connector {
         // disconnect all segments from connected targets
         for (let segment of item.segments) {
           if (this.segmentIsConnected(segment)) {
+            let targets = [];
             // loop through each Connection the segment is connected to
             for (let connection of segment.data.connected) {
               if (connection && connection.segment && connection.target) {
-                this.DisconnectSegment(connection.segment, connection.target);
+                if (connection.segment == segment && targets.indexOf(connection.target) == -1) {
+                  targets.push(connection.target);
+                }
               }
+            }
+            for (let target of targets) {
+              this.DisconnectSegment(segment, target);
             }
           }
         }

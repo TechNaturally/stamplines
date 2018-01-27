@@ -145,7 +145,7 @@ export class Connector extends Tool {
           if (snapPoint) {
             point.set(snapPoint);
           }
-          if (!point.equals(config.original)) {
+          if (!config.interactive || !point.equals(config.original)) {
             this.ConnectPoint(target, offset, config);
           }
         }
