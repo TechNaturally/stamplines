@@ -37,15 +37,37 @@ export class LabelConnector extends Connector {
         this.eventHandlers.TextToolActivated = this.SL.Paper.on('ToolActivated', undefined, (args, item) => {
           if (item && item.constructor && item.constructor.name == 'TextTool') {
             this.refreshTargets(args, 'TextTool.Activated');
-          }          
+          }
         }, 'LabelConnector.TextTool.Activated');
       }
       if (!this.eventHandlers.TextToolDeactivated) {
         this.eventHandlers.TextToolDeactivated = this.SL.Paper.on('ToolDeactivated', undefined, (args, item) => {
           if (item && item.constructor && item.constructor.name == 'TextTool') {
             this.refreshTargets(args, 'TextTool.Deactivated');
-          }          
+          }
         }, 'LabelConnector.TextTool.Deactivated');
+      }
+      if (!this.eventHandlers.TextToolCreateItem) {
+        this.eventHandlers.TextToolCreateItem = this.SL.Paper.on('TextTool.CreateItem', {Type: ['Text']}, (args, item) => {
+          this.refreshTargets(args, 'TextTool.CreateItem');
+          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true});
+        }, 'LabelConnector.TextTool.CreateItem');
+      }
+      if (!this.eventHandlers.TextToolEditItem) {
+        this.eventHandlers.TextToolEditItem = this.SL.Paper.on('TextTool.EditItem', {Type: ['Text']}, (args, item) => {
+          this.refreshTargets(args, 'TextTool.EditItem');
+          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true});
+        }, 'LabelConnector.TextTool.EditItem');
+      }
+      if (!this.eventHandlers.TextToolTextInserted) {
+        this.eventHandlers.TextToolTextInserted = this.SL.Paper.on('TextTool.TextInserted', {Type: ['Text']}, (args, item) => {
+          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true});
+        }, 'LabelConnector.TextTool.TextInserted');
+      }
+      if (!this.eventHandlers.TextToolTextDeleted) {
+        this.eventHandlers.TextToolTextDeleted = this.SL.Paper.on('TextTool.TextDeleted', {Type: ['Text']}, (args, item) => {
+          this.SnapItemAsLabel(item, {context: 'text-deleted', interactive: true});
+        }, 'LabelConnector.TextTool.TextDeleted');
       }
     }
   }
@@ -83,6 +105,26 @@ export class LabelConnector extends Connector {
       this.SL.Paper.off('ToolDeactivated', this.eventHandlers.TextToolDeactivated.id);
       delete this.eventHandlers.TextToolDeactivated;
       this.eventHandlers.TextToolDeactivated = undefined;
+    }
+    if (this.eventHandlers.TextToolCreateItem) {
+      this.SL.Paper.off('TextTool.CreateItem', this.eventHandlers.TextToolCreateItem.id);
+      delete this.eventHandlers.TextToolCreateItem;
+      this.eventHandlers.TextToolCreateItem = undefined;
+    }
+    if (this.eventHandlers.TextToolEditItem) {
+      this.SL.Paper.off('TextTool.EditItem', this.eventHandlers.TextToolEditItem.id);
+      delete this.eventHandlers.TextToolEditItem;
+      this.eventHandlers.TextToolEditItem = undefined;
+    }
+    if (this.eventHandlers.TextToolTextInserted) {
+      this.SL.Paper.off('TextTool.TextInserted', this.eventHandlers.TextToolTextInserted.id);
+      delete this.eventHandlers.TextToolTextInserted;
+      this.eventHandlers.TextToolTextInserted = undefined;
+    }
+    if (this.eventHandlers.TextToolTextDeleted) {
+      this.SL.Paper.off('TextTool.TextDeleted', this.eventHandlers.TextToolTextDeleted.id);
+      delete this.eventHandlers.TextToolTextDeleted;
+      this.eventHandlers.TextToolTextDeleted = undefined;
     }
   }
 
@@ -304,6 +346,12 @@ export class LabelConnector extends Connector {
           let Snap = this.SL.Utils.get('Snap');
           let offset = new paper.Point(0, 0);
 
+          if (!config.item.content) {
+            // this is enough to refresh item.bounds.height to current font
+            config.item.content = ' ';
+            config.item.content = '';
+          }
+
           // manually configured offset
           if (target.labelOffset) {
             if (target.labelOffset.x) {
@@ -375,52 +423,53 @@ export class LabelConnector extends Connector {
   SnapItemAsLabel(item, config) {
     if (this.itemIsLabel(item) && item.data.labeling.length) {
       let connection = item.data.labeling[0];
-      console.log('[LabelConnector]->SnapItemAsLabel', item);
-      // @TODO: snap to the connection slot
-      // - this has apparently never been called so far
+      this.SnapConnectedLabel(connection, config);
     }
   }
   SnapItemLabels(item, config) {
     if (this.itemHasLabels(item)) {
-      let Snap = this.SL.Utils.get('Snap');
-      let Geo = this.SL.Utils.get('Geo');
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
-          if (connection.label) {
-            let offset = new paper.Point(connection.offset);
-
-            if (Geo && item && item.data && item.data.Type == 'Line') {              
-              let section = Geo.Line.defineSection(connection.target);
-              let start = section.start;
-              let end = section.end;
-
-              offset.x = ((end - start) / 2.0) * (offset.x);
-
-              if (connection.target.distance) {
-                offset.y -= connection.target.distance;
-              }
-            }
-
-            let point = this.globalTargetPoint(connection.target, item, offset);
-            connection.label.bounds.topLeft.set(point);
-
-            if (Snap) {
-              let snapConfig = {
-                context: 'label',
-                interactive: config.interactive,
-                move: true,
-                scale: false,
-                target: connection.target,
-                offset: connection.offset
-              };
-              if (this.SL.Paper.Item.hasCustomMethod(connection.label, 'SnapItem')) {
-                this.SL.Paper.Item.callCustomMethod(connection.label, 'SnapItem', snapConfig);
-              }
-              else {
-                Snap.Item(connection.label, snapConfig);
-              }
-            }
-          }
+          this.SnapConnectedLabel(connection, config);
+        }
+      }
+    }
+  }
+  SnapConnectedLabel(connection, config) {
+    if (connection.label) {
+      let Snap = this.SL.Utils.get('Snap');
+      let Geo = this.SL.Utils.get('Geo');
+      let offset = new paper.Point(connection.offset);
+      let item = (connection.target ? connection.target.item : null);
+      if (Geo && item && item.data && item.data.Type == 'Line') {
+        let section = Geo.Line.defineSection(connection.target);
+        let start = section.start;
+        let end = section.end;
+        offset.x = ((end - start) / 2.0) * (offset.x);
+        if (connection.target.distance) {
+          offset.y -= connection.target.distance;
+        }
+      }
+      let point = this.globalTargetPoint(connection.target, item, offset);
+      connection.label.bounds.topLeft.set(point);
+      if (Snap) {
+        let snapConfig = {
+          context: 'label',
+          interactive: config.interactive,
+          move: true,
+          scale: false,
+          target: connection.target,
+          offset: connection.offset
+        };
+        if (this.SL.Paper.Item.hasCustomMethod(connection.label, 'SnapItem')) {
+          this.SL.Paper.Item.callCustomMethod(connection.label, 'SnapItem', snapConfig);
+        }
+        else {
+          Snap.Item(connection.label, snapConfig);
+        }
+        let TextTool = this.SL.Tools.Belt['TextTool'];
+        if (TextTool && TextTool.isActive()) {
+          TextTool.refreshUI();
         }
       }
     }
