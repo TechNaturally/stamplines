@@ -60,6 +60,7 @@ export default class ToolBelt extends Component {
       this.State.ActiveTool = activate;
       if (activate && !activate.isActive() && typeof activate.activate == 'function') {
         activate.activate();
+        this.SL.Paper.emit('ToolActivated', {tool: activate, activated: true}, activate);
       }
       if (activate != wasActive) {
         this.checkMouseTarget();
@@ -82,6 +83,9 @@ export default class ToolBelt extends Component {
     }
     if (checkForActive) {
       this.checkActiveTool();
+    }
+    if (deactivate) {
+      this.SL.Paper.emit('ToolDeactivated', {tool: deactivate, deactivated: true}, deactivate);
     }
     return deactivate;
   }
