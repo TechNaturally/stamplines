@@ -718,6 +718,15 @@ export class TextTool extends Tool {
       }
     }
   }
+  onDoubleClick(event) {
+    if (event.event.button === 0) {
+      let targetItem = this.Belt.State.Mouse.Hover.targetItem;
+      if (targetItem && targetItem.data && targetItem.data.Type == 'Text') {
+        this.start();
+        this.editTextItem(targetItem, event.point);
+      }
+    }
+  }
   onKeyDown(event) {
     if (this.isActive()) {
       if (event.key == 'left') {
