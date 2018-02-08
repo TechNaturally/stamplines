@@ -158,7 +158,6 @@ export class LineConnector extends Connector {
   }
 
   shouldSnapPoint(point, config) {
-    // @TODO: needs to snap new line points as well
     return (config && config.context == 'line-point');
   }
 
