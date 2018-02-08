@@ -3,6 +3,13 @@ export class LabelConnector extends Connector {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
   }
+  configureUI(config={}) {
+    super.configureUI(config);
+    config = this.config.ui;
+    if (config.target.detachDragDelta == undefined) {
+      config.target.detachDragDelta = 3;
+    }
+  }
 
   initEventHandlers() {
     super.initEventHandlers();
@@ -422,8 +429,36 @@ export class LabelConnector extends Connector {
   }
   SnapItemAsLabel(item, config) {
     if (this.itemIsLabel(item) && item.data.labeling.length) {
-      let connection = item.data.labeling[0];
-      this.SnapConnectedLabel(connection, config);
+      let distance = (this.SL.UI.Mouse.State.lastMove && this.SL.UI.Mouse.State.lastMove.delta && this.SL.UI.Mouse.State.lastMove.delta.length) || 0;
+      let point = this.SL.UI.Mouse.State.point.clone();
+      let hitCheck = this.getTargetHit(point, config.interactive, config);
+      let labelTargetHit = (hitCheck.target ? true : false);
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        if (config.interactive && !labelTargetHit && distance > this.config.ui.target.detachDragDelta) {
+          // distance threshold vs detachDrag to allow tolerance when double-clicking the label for editing
+          this.enableCustomSnapItem(item);
+          Snap.Item(item);
+        }
+        else {
+          // dragging slowly or on a target
+          let connection = item.data.labeling[0];
+          if (hitCheck && hitCheck.target && hitCheck.target.data && hitCheck.offset && hitCheck.offset.point) {
+            // update the connection data
+            connection.target = hitCheck.target.data.target;
+            connection.offset = hitCheck.offset.point;
+          }
+          let snapConfig = {
+            context: 'label',
+            interactive: config.interactive,
+            move: true,
+            scale: false, // @TODO: snap scale and rotate of labels
+            target: connection.target,
+            offset: connection.offset
+          };
+          this.SnapConnectedLabel(connection, snapConfig);
+        }
+      }
     }
   }
   SnapItemLabels(item, config) {
@@ -438,31 +473,20 @@ export class LabelConnector extends Connector {
   SnapConnectedLabel(connection, config) {
     if (connection.label) {
       let Snap = this.SL.Utils.get('Snap');
-      let Geo = this.SL.Utils.get('Geo');
-      let offset = new paper.Point(connection.offset);
       let item = (connection.target ? connection.target.item : null);
-      if (Geo && item && item.data && item.data.Type == 'Line') {
-        let section = Geo.Line.defineSection(connection.target);
-        let start = section.start;
-        let end = section.end;
-        offset.x = ((end - start) / 2.0) * (offset.x);
-        if (connection.target.distance) {
-          offset.y -= connection.target.distance;
-        }
-      }
-      let point = this.globalTargetPoint(connection.target, item, offset);
+      let point = this.connectionPoint(connection.target, item, {offset: connection.offset});
       connection.label.bounds.topLeft.set(point);
       if (Snap) {
         let snapConfig = {
           context: 'label',
           interactive: config.interactive,
           move: true,
-          scale: false,
+          scale: false, // @TODO: snap scale and rotate of labels
           target: connection.target,
           offset: connection.offset
         };
-        if (this.SL.Paper.Item.hasCustomMethod(connection.label, 'SnapItem')) {
-          this.SL.Paper.Item.callCustomMethod(connection.label, 'SnapItem', snapConfig);
+        if (this.SL.Paper.Item.hasCustomMethod(connection.label, '_SnapItem')) {
+          this.SL.Paper.Item.callCustomMethod(connection.label, '_SnapItem', snapConfig);
         }
         else {
           Snap.Item(connection.label, snapConfig);
@@ -490,6 +514,19 @@ export class LabelConnector extends Connector {
       }
     }
     return point;
+  }
+  disableCustomSnapItem(item) {
+    if (item.data.SnapItem) {
+      item.data._SnapItem = item.data.SnapItem;
+      item.data.SnapItem = undefined;
+    }
+  }
+  enableCustomSnapItem(item) {
+    if (item.data._SnapItem) {
+      item.data.SnapItem = item.data._SnapItem;
+      item.data._SnapItem = undefined;
+      delete item.data._SnapItem;
+    }
   }
 
   isTargetConnected(target, config) {
@@ -551,6 +588,7 @@ export class LabelConnector extends Connector {
       if (target.labelStyle) {
         this.SL.Paper.applyStyle(label, $.extend({}, target.labelStyle, {Class: 'labelStyle'}));
       }
+      this.disableCustomSnapItem(label);
     }
     return connection;
   }
@@ -568,6 +606,7 @@ export class LabelConnector extends Connector {
       }
       this.SL.Paper.removeStyle(label, 'labelStyle', true);
     }
+    this.enableCustomSnapItem(label);
     // @TODO: snap label's point (it WAS snapped to the connection, but is now disconnected)
   }
   DetachLabels(item) {
