@@ -429,15 +429,19 @@ export class LabelConnector extends Connector {
   }
   SnapItemAsLabel(item, config) {
     if (this.itemIsLabel(item) && item.data.labeling.length) {
+      if (config.size && item && item.bounds && config.original && config.original.bounds) {
+        item.bounds.set(config.original.bounds);
+      }
+
       let distance = (this.SL.UI.Mouse.State.lastMove && this.SL.UI.Mouse.State.lastMove.delta && this.SL.UI.Mouse.State.lastMove.delta.length) || 0;
       let point = this.SL.UI.Mouse.State.point.clone();
       let hitCheck = this.getTargetHit(point, config.interactive, config);
       let labelTargetHit = (hitCheck.target ? true : false);
       let Snap = this.SL.Utils.get('Snap');
-      if (Snap) {
+      if (Snap && config.position) {
         if (config.interactive && !labelTargetHit && distance > this.config.ui.target.detachDragDelta) {
           // distance threshold vs detachDrag to allow tolerance when double-clicking the label for editing
-          this.enableCustomSnapItem(item);
+          this.enableCustomSnaps(item);
           Snap.Item(item);
         }
         else {
@@ -515,14 +519,35 @@ export class LabelConnector extends Connector {
     }
     return point;
   }
+  disableCustomSnaps(item) {
+    this.disableCustomScaleItem(item);
+    this.disableCustomSnapItem(item);
+  }
+  enableCustomSnaps(item) {
+    this.enableCustomScaleItem(item);
+    this.enableCustomSnapItem(item);
+  }
+  disableCustomScaleItem(item) {
+    if (item && item.data && item.data.ScaleItem) {
+      item.data._ScaleItem = item.data.ScaleItem;
+      item.data.ScaleItem = function(args) {};
+    }
+  }
+  enableCustomScaleItem(item) {
+    if (item && item.data && item.data._ScaleItem) {
+      item.data.ScaleItem = item.data._ScaleItem;
+      item.data._ScaleItem = undefined;
+      delete item.data._ScaleItem;
+    }
+  }
   disableCustomSnapItem(item) {
-    if (item.data.SnapItem) {
+    if (item && item.data && item.data.SnapItem) {
       item.data._SnapItem = item.data.SnapItem;
       item.data.SnapItem = undefined;
     }
   }
   enableCustomSnapItem(item) {
-    if (item.data._SnapItem) {
+    if (item && item.data && item.data._SnapItem) {
       item.data.SnapItem = item.data._SnapItem;
       item.data._SnapItem = undefined;
       delete item.data._SnapItem;
@@ -588,7 +613,7 @@ export class LabelConnector extends Connector {
       if (target.labelStyle) {
         this.SL.Paper.applyStyle(label, $.extend({}, target.labelStyle, {Class: 'labelStyle'}));
       }
-      this.disableCustomSnapItem(label);
+      this.disableCustomSnaps(label);
     }
     return connection;
   }
@@ -606,7 +631,7 @@ export class LabelConnector extends Connector {
       }
       this.SL.Paper.removeStyle(label, 'labelStyle', true);
     }
-    this.enableCustomSnapItem(label);
+    this.enableCustomSnaps(label);
     // @TODO: snap label's point (it WAS snapped to the connection, but is now disconnected)
   }
   DetachLabels(item) {
