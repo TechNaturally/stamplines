@@ -413,7 +413,7 @@ export class LabelConnector extends Connector {
     return (item && item.data && item.data.Labels) ? true : false;
   }
   itemIsLabel(item) {
-    return (item && item.data && item.data.Type == 'Text' && item.data.labeling) ? true : false;
+    return (item && item.data && item.data.Type == 'Text' && item.data.labeling && item.data.labeling.length) ? true : false;
   }
   
   shouldSnapItem(item, config) {
@@ -540,42 +540,48 @@ export class LabelConnector extends Connector {
     this.enableCustomSnapItem(item);
   }
   disableCustomRotateItem(item) {
-    if (item && item.data) {
+    if (item && item.data && !item.data.RotateItemDisabled) {
       item.data._RotateItem = item.data.RotateItem;
       item.data.RotateItem = function(args) {};
+      item.data.RotateItemDisabled = true;
     }
   }
   enableCustomRotateItem(item) {
-    if (item && item.data) {
+    if (item && item.data && item.data.RotateItemDisabled) {
       item.data.RotateItem = item.data._RotateItem;
       item.data._RotateItem = undefined;
       delete item.data._RotateItem;
+      delete item.data.RotateItemDisabled;
     }
   }
   disableCustomScaleItem(item) {
-    if (item && item.data) {
+    if (item && item.data && !item.data.ScaleItemDisabled) {
       item.data._ScaleItem = item.data.ScaleItem;
       item.data.ScaleItem = function(args) {};
+      item.data.ScaleItemDisabled = true;
     }
   }
   enableCustomScaleItem(item) {
-    if (item && item.data) {
+    if (item && item.data && item.data.ScaleItemDisabled) {
       item.data.ScaleItem = item.data._ScaleItem;
       item.data._ScaleItem = undefined;
       delete item.data._ScaleItem;
+      delete item.data.ScaleItemDisabled;
     }
   }
   disableCustomSnapItem(item) {
-    if (item && item.data) {
+    if (item && item.data && !item.data.SnapItemDisabled) {
       item.data._SnapItem = item.data.SnapItem;
       item.data.SnapItem = undefined;
+      item.data.SnapItemDisabled = true;
     }
   }
   enableCustomSnapItem(item) {
-    if (item && item.data) {
+    if (item && item.data && item.data.SnapItemDisabled) {
       item.data.SnapItem = item.data._SnapItem;
       item.data._SnapItem = undefined;
       delete item.data._SnapItem;
+      delete item.data.SnapItemDisabled;
     }
   }
 
