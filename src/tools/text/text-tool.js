@@ -451,6 +451,7 @@ export class TextTool extends Tool {
       if (Snap) {
         let pointArgs = {
           context: args.context,
+          originalContext: args.originalContext,
           type: 'text-point',
           item: item,
           interactive: args.interactive,

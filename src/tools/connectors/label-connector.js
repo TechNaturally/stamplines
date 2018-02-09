@@ -302,6 +302,9 @@ export class LabelConnector extends Connector {
       if (config.context == 'label') {
         // label context is already snapped and its parent is being manipulated
         point.set(config.original);
+        if (config.originalContext != 'move') {
+          return;
+        }
       }
       else {
         // this is a text-point, which snaps the top-left corner.  make it interactive with the mouse point instead
@@ -429,8 +432,13 @@ export class LabelConnector extends Connector {
   }
   SnapItemAsLabel(item, config) {
     if (this.itemIsLabel(item) && item.data.labeling.length) {
-      if (config.size && item && item.bounds && config.original && config.original.bounds) {
-        item.bounds.set(config.original.bounds);
+      if (config.context == 'rotate' || config.originalContext == 'rotate') {
+        return;
+      }
+      if (config.original) {
+        if (config.size && item.bounds && config.original.bounds) {
+          item.bounds.set(config.original.bounds);
+        }
       }
 
       let distance = (this.SL.UI.Mouse.State.lastMove && this.SL.UI.Mouse.State.lastMove.delta && this.SL.UI.Mouse.State.lastMove.delta.length) || 0;
@@ -454,9 +462,10 @@ export class LabelConnector extends Connector {
           }
           let snapConfig = {
             context: 'label',
+            originalContext: (config.originalContext || config.context),
             interactive: config.interactive,
             move: true,
-            scale: false, // @TODO: snap scale and rotate of labels
+            scale: false,
             target: connection.target,
             offset: connection.offset
           };
@@ -483,9 +492,10 @@ export class LabelConnector extends Connector {
       if (Snap) {
         let snapConfig = {
           context: 'label',
+          originalContext: (config.originalContext || config.context),
           interactive: config.interactive,
           move: true,
-          scale: false, // @TODO: snap scale and rotate of labels
+          scale: false,
           target: connection.target,
           offset: connection.offset
         };
@@ -520,34 +530,49 @@ export class LabelConnector extends Connector {
     return point;
   }
   disableCustomSnaps(item) {
+    this.disableCustomRotateItem(item);
     this.disableCustomScaleItem(item);
     this.disableCustomSnapItem(item);
   }
   enableCustomSnaps(item) {
+    this.enableCustomRotateItem(item);
     this.enableCustomScaleItem(item);
     this.enableCustomSnapItem(item);
   }
+  disableCustomRotateItem(item) {
+    if (item && item.data) {
+      item.data._RotateItem = item.data.RotateItem;
+      item.data.RotateItem = function(args) {};
+    }
+  }
+  enableCustomRotateItem(item) {
+    if (item && item.data) {
+      item.data.RotateItem = item.data._RotateItem;
+      item.data._RotateItem = undefined;
+      delete item.data._RotateItem;
+    }
+  }
   disableCustomScaleItem(item) {
-    if (item && item.data && item.data.ScaleItem) {
+    if (item && item.data) {
       item.data._ScaleItem = item.data.ScaleItem;
       item.data.ScaleItem = function(args) {};
     }
   }
   enableCustomScaleItem(item) {
-    if (item && item.data && item.data._ScaleItem) {
+    if (item && item.data) {
       item.data.ScaleItem = item.data._ScaleItem;
       item.data._ScaleItem = undefined;
       delete item.data._ScaleItem;
     }
   }
   disableCustomSnapItem(item) {
-    if (item && item.data && item.data.SnapItem) {
+    if (item && item.data) {
       item.data._SnapItem = item.data.SnapItem;
       item.data.SnapItem = undefined;
     }
   }
   enableCustomSnapItem(item) {
-    if (item && item.data && item.data._SnapItem) {
+    if (item && item.data) {
       item.data.SnapItem = item.data._SnapItem;
       item.data._SnapItem = undefined;
       delete item.data._SnapItem;
