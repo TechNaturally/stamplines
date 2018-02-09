@@ -58,7 +58,7 @@ export class Snap extends Util {
     return (this.Equal(point1.x, point2.x, threshold) && this.Equal(point1.y, point2.y, threshold));
   }
   Rectangle(rectangle, config={}) {
-    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), $.extend(config, {original: rectangle}));
+    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), $.extend(config, {original: (rectangle ? rectangle.clone() : undefined)}));
   }
   Rotation(angle, config={}) {
     return this.runSnappers('rotation', angle, $.extend(config, {original: angle}));
