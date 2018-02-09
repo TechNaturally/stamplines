@@ -287,7 +287,12 @@ export class LineConnector extends Connector {
         segment.data.connected.splice(index, 1);
       }
     }
-    // @TODO: snap segment's point (it WAS snapped to the connection, but is now disconnected)
+    if (segment && segment.point) {
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        segment.point.set(Snap.Point(segment.point));
+      }
+    }
   }
   DisconnectItem(item) {
     if (item && item.data) {

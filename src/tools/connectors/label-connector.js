@@ -457,7 +457,10 @@ export class LabelConnector extends Connector {
           let connection = item.data.labeling[0];
           if (hitCheck && hitCheck.target && hitCheck.target.data && hitCheck.offset && hitCheck.offset.point) {
             // update the connection data
-            connection.target = hitCheck.target.data.target;
+            if (connection && connection.target != hitCheck.target.data.target) {
+              this.DetachLabel(item, connection.target);
+              this.AttachLabel(item, hitCheck.target.data.target);
+            }
             connection.offset = hitCheck.offset.point;
           }
           let snapConfig = {
@@ -663,7 +666,10 @@ export class LabelConnector extends Connector {
       this.SL.Paper.removeStyle(label, 'labelStyle', true);
     }
     this.enableCustomSnaps(label);
-    // @TODO: snap label's point (it WAS snapped to the connection, but is now disconnected)
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      Snap.Item(label);
+    }
   }
   DetachLabels(item) {
     if (item && item.data) {
