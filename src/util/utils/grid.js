@@ -223,7 +223,7 @@ export class Grid extends Util {
     return point;
   }
   snapRectangle(rectangle, config={}) {
-    if (config && config.interactive && config.size === false) {
+    if (config && config.size === false) {
       return rectangle;
     }
     let interactive = !!(config && config.interactive);
