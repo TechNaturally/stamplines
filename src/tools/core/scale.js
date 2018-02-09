@@ -81,7 +81,6 @@ export class Scale extends Tool {
           x: snapped.width - bounds.width,
           y: snapped.height - bounds.height
         };
-        let Snap = this.SL.Utils.get('Snap');
 
         let anchor = config.anchor || item.bounds.center;
         if (config.anchorEdge) {
@@ -113,7 +112,7 @@ export class Scale extends Tool {
       }
       if (rotation) {
         item.rotate(rotation, rotationPoint);
-      }      
+      }
     }
     return item;
   }
@@ -193,7 +192,7 @@ export class Scale extends Tool {
       for (let item of items) {
         // support for items to supply a custom Scaling method
         if (this.SL.Paper.Item.hasCustomMethod(item, 'ScaleItem')) {
-          this.SL.Paper.Item.callCustomMethod(item, 'ScaleItem', {'delta': delta, 'edge': edge, 'point': point});
+          this.SL.Paper.Item.callCustomMethod(item, 'ScaleItem', {context: 'scale', 'delta': delta, 'edge': edge, 'point': point, 'original': item.clone({insert:false}), 'bounds': item.bounds.clone()});
           continue;
         }
 
