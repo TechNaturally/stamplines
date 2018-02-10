@@ -476,7 +476,7 @@ export class LabelConnector extends Connector {
             // update the connection data
             if (connection && connection.target != hitCheck.target.data.target) {
               this.DetachLabel(item, connection.target);
-              this.AttachLabel(item, hitCheck.target.data.target);
+              this.AttachLabel(item, hitCheck.target.data.target, (hitCheck.offset ? hitCheck.offset.point : undefined));
             }
             connection.offset = hitCheck.offset.point;
           }
