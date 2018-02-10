@@ -291,6 +291,30 @@ export default class PaperCanvas extends Component {
         if (this.hasCustomMethod(item, methodName)) {
           item.data[methodName](args);
         }
+      },
+      blockTransform(item, transform) {
+        if (transform && item && item.data) {
+          if (!item.data.blockedTransforms) {
+            item.data.blockedTransforms = [];
+          }
+          if (item.data.blockedTransforms.indexOf(transform) == -1) {
+            item.data.blockedTransforms.push(transform);
+          }
+        }
+      },
+      canTransform(item, transform) {
+        if (transform && item && item.data && item.data.blockedTransforms) {
+          return (item.data.blockedTransforms.indexOf(transform) == -1);
+        }
+        return true;
+      },
+      unblockTransform(item, transform) {
+        if (transform && item && item.data && item.data.blockedTransforms) {
+          let index = item.data.blockedTransforms.indexOf(transform);
+          if (index != -1) {
+            item.data.blockedTransforms.splice(index, 1);
+          }
+        }
       }
     };
   }

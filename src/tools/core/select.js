@@ -138,6 +138,19 @@ export class Select extends Tool {
   hasItems() {
     return !!(this.Items.length);
   }
+  canTransform(transform) {
+    if (this.Items.length == 1) {
+      return this.SL.Paper.Item.canTransform(this.Items[0], transform);
+    }
+    let allBlocked = true;
+    for (let item of this.Items) {
+      if (item && this.SL.Paper.Item.canTransform(item, transform)) {
+        allBlocked = false;
+        break;
+      }
+    }
+    return !allBlocked;
+  }
   refreshUI() {
     if (this.isActive()) {
       let cursor = 'crosshair';

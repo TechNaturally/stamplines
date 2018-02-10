@@ -38,6 +38,9 @@ export class Snap extends Util {
     return (this.Around(value2, value1, threshold) == value2);
   }
   Item(item, config={}) {
+    if (!this.SL.Paper.Item.canTransform(item, 'snapItem')) {
+      return item;
+    }
     config = $.extend(config, {original: item.clone({insert:false})});
     // support for items to supply a custom Snapping method
     if (this.SL.Paper.Item.hasCustomMethod(item, 'SnapItem')) {
