@@ -82,6 +82,7 @@ export class LineTool extends Tool {
       // 1 point == 1 segment, so there is no line if there are less than 2 points
       this.SL.Paper.destroyPaperItem(this.State.Append.line);
     }
+    this.SL.Paper.emit('LineSegmentCancelled', {from: this.State.Append.from, to: this.State.Append.to}, this.State.Append.line);
     this.State.Append.line = null;
     this.State.Append.from = null;
     this.State.Append.to = null;

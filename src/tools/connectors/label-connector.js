@@ -76,6 +76,11 @@ export class LabelConnector extends Connector {
           this.SnapItemAsLabel(item, {context: 'text-deleted', interactive: true, position: true, keepOffset: true});
         }, 'LabelConnector.TextTool.TextDeleted');
       }
+      if (!this.eventHandlers.LineSegmentCancelled) {
+        this.eventHandlers.LineSegmentCancelled = this.SL.Paper.on('LineSegmentCancelled', undefined, (args, item) => {
+          this.SnapItemLabels(item, {context: 'line-point', interactive: false, keepOffset: true});
+        }, 'LabelConnector.LineSegmentCancelled');
+      }
     }
   }
   resetEventHandlers() {
@@ -132,6 +137,11 @@ export class LabelConnector extends Connector {
       this.SL.Paper.off('TextTool.TextDeleted', this.eventHandlers.TextToolTextDeleted.id);
       delete this.eventHandlers.TextToolTextDeleted;
       this.eventHandlers.TextToolTextDeleted = undefined;
+    }
+    if (this.eventHandlers.LineSegmentCancelled) {
+      this.SL.Paper.off('LineSegmentCancelled', this.eventHandlers.LineSegmentCancelled.id);
+      delete this.eventHandlers.LineSegmentCancelled;
+      this.eventHandlers.LineSegmentCancelled = undefined;
     }
   }
 
