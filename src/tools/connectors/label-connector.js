@@ -354,6 +354,12 @@ export class LabelConnector extends Connector {
         }
       }
 
+      if (hitCheck && hitCheck.oldTarget && config.context != 'label') {
+        if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
+          let oldTarget = hitCheck.oldTarget.data.target;
+          this.DisconnectPoint(oldTarget, config);
+        }
+      }
       if (target && item && targetOffset) {
         let snapPoint = this.connectionPoint(target, item, {
           offset: targetOffset,
@@ -404,12 +410,6 @@ export class LabelConnector extends Connector {
 
         if (hitCheck && hitCheck.offset && config.context != 'label') {
           this.ConnectPoint(target, hitCheck.offset.point, config);
-        }
-      }
-      else if (hitCheck && hitCheck.oldTarget && config.context != 'label') {
-        if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
-          let oldTarget = hitCheck.oldTarget.data.target;
-          this.DisconnectPoint(oldTarget, config);
         }
       }
     }

@@ -136,6 +136,12 @@ export class Connector extends Tool {
   SnapPoint(point, config) {
     if (this.shouldSnapPoint(config.original, config)) {
       let hitCheck = this.getTargetHit(config.original, config.interactive, config);
+      if (hitCheck && hitCheck.oldTarget) {
+        if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
+          let oldTarget = hitCheck.oldTarget.data.target;
+          this.DisconnectPoint(oldTarget, config);
+        }
+      }
       if (hitCheck && hitCheck.target) {
         if (hitCheck.target.data && hitCheck.offset.point) {
           let target = hitCheck.target.data.target;
@@ -148,12 +154,6 @@ export class Connector extends Tool {
           if (!config.interactive || !point.equals(config.original)) {
             this.ConnectPoint(target, offset, config);
           }
-        }
-      }
-      else if (hitCheck && hitCheck.oldTarget) {
-        if (hitCheck.oldTarget.data && hitCheck.oldTarget.data.target) {
-          let oldTarget = hitCheck.oldTarget.data.target;
-          this.DisconnectPoint(oldTarget, config);
         }
       }
     }
