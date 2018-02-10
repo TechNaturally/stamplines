@@ -57,23 +57,23 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.TextToolCreateItem) {
         this.eventHandlers.TextToolCreateItem = this.SL.Paper.on('TextTool.CreateItem', {Type: ['Text']}, (args, item) => {
           this.refreshTargets(args, 'TextTool.CreateItem');
-          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true});
+          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true, position: true, keepOffset: true});
         }, 'LabelConnector.TextTool.CreateItem');
       }
       if (!this.eventHandlers.TextToolEditItem) {
         this.eventHandlers.TextToolEditItem = this.SL.Paper.on('TextTool.EditItem', {Type: ['Text']}, (args, item) => {
           this.refreshTargets(args, 'TextTool.EditItem');
-          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true});
+          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true, position: true, keepOffset: true});
         }, 'LabelConnector.TextTool.EditItem');
       }
       if (!this.eventHandlers.TextToolTextInserted) {
         this.eventHandlers.TextToolTextInserted = this.SL.Paper.on('TextTool.TextInserted', {Type: ['Text']}, (args, item) => {
-          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true});
+          this.SnapItemAsLabel(item, {context: 'text-inserted', interactive: true, position: true, keepOffset: true});
         }, 'LabelConnector.TextTool.TextInserted');
       }
       if (!this.eventHandlers.TextToolTextDeleted) {
         this.eventHandlers.TextToolTextDeleted = this.SL.Paper.on('TextTool.TextDeleted', {Type: ['Text']}, (args, item) => {
-          this.SnapItemAsLabel(item, {context: 'text-deleted', interactive: true});
+          this.SnapItemAsLabel(item, {context: 'text-deleted', interactive: true, position: true, keepOffset: true});
         }, 'LabelConnector.TextTool.TextDeleted');
       }
     }
@@ -302,9 +302,6 @@ export class LabelConnector extends Connector {
       if (config.context == 'label') {
         // label context is already snapped and its parent is being manipulated
         point.set(config.original);
-        if (config.originalContext != 'move') {
-          return;
-        }
       }
       else {
         // this is a text-point, which snaps the top-left corner.  make it interactive with the mouse point instead
@@ -440,21 +437,31 @@ export class LabelConnector extends Connector {
           item.bounds.set(config.original.bounds);
         }
       }
-
-      let distance = (this.SL.UI.Mouse.State.lastMove && this.SL.UI.Mouse.State.lastMove.delta && this.SL.UI.Mouse.State.lastMove.delta.length) || 0;
-      let point = this.SL.UI.Mouse.State.point.clone();
-      let hitCheck = this.getTargetHit(point, config.interactive, config);
-      let labelTargetHit = (hitCheck.target ? true : false);
+      let connection = item.data.labeling[0];
+      let distance = 0;
+      let point = new paper.Point();
       let Snap = this.SL.Utils.get('Snap');
       if (Snap && config.position) {
-        if (config.interactive && !labelTargetHit && distance > this.config.ui.target.detachDragDelta) {
+        if (config.keepOffset) {
+          distance = 0;
+          point = this.connectionPoint(connection.target, connection.label, {
+            offset: connection.offset
+          });
+        }
+        else {
+          distance = (this.SL.UI.Mouse.State.lastMove && this.SL.UI.Mouse.State.lastMove.delta && this.SL.UI.Mouse.State.lastMove.delta.length) || 0;
+          point.set(this.SL.UI.Mouse.State.point);
+        }
+        let hitCheck = this.getTargetHit(point, config.interactive, config);
+        let labelTargetHit = (hitCheck.target ? true : false);
+
+        if (!config.keepOffset && config.interactive && !labelTargetHit && distance > this.config.ui.target.detachDragDelta) {
           // distance threshold vs detachDrag to allow tolerance when double-clicking the label for editing
           this.enableCustomSnaps(item);
           Snap.Item(item);
         }
         else {
           // dragging slowly or on a target
-          let connection = item.data.labeling[0];
           if (hitCheck && hitCheck.target && hitCheck.target.data && hitCheck.offset && hitCheck.offset.point) {
             // update the connection data
             if (connection && connection.target != hitCheck.target.data.target) {
@@ -467,8 +474,8 @@ export class LabelConnector extends Connector {
             context: 'label',
             originalContext: (config.originalContext || config.context),
             interactive: config.interactive,
-            move: true,
-            scale: false,
+            position: true,
+            size: false,
             target: connection.target,
             offset: connection.offset
           };
@@ -497,8 +504,8 @@ export class LabelConnector extends Connector {
           context: 'label',
           originalContext: (config.originalContext || config.context),
           interactive: config.interactive,
-          move: true,
-          scale: false,
+          position: true,
+          size: false,
           target: connection.target,
           offset: connection.offset
         };
@@ -519,7 +526,6 @@ export class LabelConnector extends Connector {
     if (config && config.segment && config.segment.path) { 
       var line = config.segment.path;
       this.SnapItemLabels(line, config);
-
       if (!config.interactive) {
         // the actual line point gets set after all line-point snappers run (ie. after this function finishes)
         // wait a few cycles and snap the line's labels again
