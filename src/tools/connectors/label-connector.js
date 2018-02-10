@@ -544,47 +544,42 @@ export class LabelConnector extends Connector {
   }
   disableCustomRotateItem(item) {
     if (item && item.data && !item.data.RotateItemDisabled) {
-      item.data._RotateItem = item.data.RotateItem;
-      item.data.RotateItem = function(args) {};
+      this.SL.Paper.Item.blockTransform(item, 'rotate');
       item.data.RotateItemDisabled = true;
     }
   }
   enableCustomRotateItem(item) {
     if (item && item.data && item.data.RotateItemDisabled) {
-      item.data.RotateItem = item.data._RotateItem;
-      item.data._RotateItem = undefined;
-      delete item.data._RotateItem;
+      this.SL.Paper.Item.unblockTransform(item, 'rotate');
       delete item.data.RotateItemDisabled;
     }
   }
   disableCustomScaleItem(item) {
     if (item && item.data && !item.data.ScaleItemDisabled) {
-      item.data._ScaleItem = item.data.ScaleItem;
-      item.data.ScaleItem = function(args) {};
+      this.SL.Paper.Item.blockTransform(item, 'scale');
       item.data.ScaleItemDisabled = true;
     }
   }
   enableCustomScaleItem(item) {
     if (item && item.data && item.data.ScaleItemDisabled) {
-      item.data.ScaleItem = item.data._ScaleItem;
-      item.data._ScaleItem = undefined;
-      delete item.data._ScaleItem;
+      this.SL.Paper.Item.unblockTransform(item, 'scale');
       delete item.data.ScaleItemDisabled;
     }
   }
   disableCustomSnapItem(item) {
-    if (item && item.data && !item.data.SnapItemDisabled) {
+    if (item && item.data && !item.data.LabelSnapItemDisabled) {
+      // don't block it, but override its custom SnapItem function
       item.data._SnapItem = item.data.SnapItem;
       item.data.SnapItem = undefined;
-      item.data.SnapItemDisabled = true;
+      item.data.LabelSnapItemDisabled = true;
     }
   }
   enableCustomSnapItem(item) {
-    if (item && item.data && item.data.SnapItemDisabled) {
+    if (item && item.data && item.data.LabelSnapItemDisabled) {
       item.data.SnapItem = item.data._SnapItem;
       item.data._SnapItem = undefined;
       delete item.data._SnapItem;
-      delete item.data.SnapItemDisabled;
+      delete item.data.LabelSnapItemDisabled;
     }
   }
 
