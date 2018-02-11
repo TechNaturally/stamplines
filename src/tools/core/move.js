@@ -46,7 +46,7 @@ export class Move extends Tool {
       this.Belt.Belt.Select.SnapSelected({
         context: 'move',
         position: true,
-        size: false
+        size: true
       });
     }
   }

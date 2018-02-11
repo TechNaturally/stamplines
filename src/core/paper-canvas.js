@@ -253,7 +253,12 @@ export default class PaperCanvas extends Component {
           let props = Object.keys(filter);
           let result = true;
           for (let prop of props) {
-            if (item.data[prop] != filter[prop]) {
+            if (Array.isArray(filter[prop]) && !Array.isArray(item.data[prop])) {
+              if (filter[prop].indexOf(item.data[prop]) == -1) {
+                result = false;
+              }
+            }
+            else if (item.data[prop] != filter[prop]) {
               result = false;
             }
           }
@@ -286,6 +291,30 @@ export default class PaperCanvas extends Component {
         if (this.hasCustomMethod(item, methodName)) {
           item.data[methodName](args);
         }
+      },
+      blockTransform(item, transform) {
+        if (transform && item && item.data) {
+          if (!item.data.blockedTransforms) {
+            item.data.blockedTransforms = [];
+          }
+          if (item.data.blockedTransforms.indexOf(transform) == -1) {
+            item.data.blockedTransforms.push(transform);
+          }
+        }
+      },
+      canTransform(item, transform) {
+        if (transform && item && item.data && item.data.blockedTransforms) {
+          return (item.data.blockedTransforms.indexOf(transform) == -1);
+        }
+        return true;
+      },
+      unblockTransform(item, transform) {
+        if (transform && item && item.data && item.data.blockedTransforms) {
+          let index = item.data.blockedTransforms.indexOf(transform);
+          if (index != -1) {
+            item.data.blockedTransforms.splice(index, 1);
+          }
+        }
       }
     };
   }
@@ -301,12 +330,14 @@ export default class PaperCanvas extends Component {
           id = ID.getUnique(type, this.paperEvents[type]);
         }
       }
-      if (id && !this.paperEvents[type][id]) {
-        this.paperEvents[type][id] = {
-          id: id,
-          filter: filter,
-          callback: callback
-        };
+      if (id) {
+        if (!this.paperEvents[type][id]) {
+          this.paperEvents[type][id] = {
+            id: id,
+            filter: filter,
+            callback: callback
+          };
+        }
         return this.paperEvents[type][id];
       }
     }
@@ -541,10 +572,65 @@ export default class PaperCanvas extends Component {
     return item;
   }
 
-  applyStyle(item, style) {
+  applyStyle(item, style, cache=true) {
     if (item && style) {
+      if (cache) {
+        this.cacheStyle(item, style);
+      }
       for (var prop in style) {
         item[prop] = style[prop];
+      }
+    }
+  }
+  removeStyle(item, style, all=false) {
+    this.uncacheStyle(item, style, all);
+  }
+  stackStyles(item) {
+    var stacked = {};
+    if (item && item.data && item.data.Styles) {
+      for (var style of item.data.Styles) {
+        for (var prop in style) {
+          stacked[prop] = style[prop];
+        }
+      }
+    }
+    return stacked;
+  }
+  cacheStyle(item, style) {
+    if (item && style) {
+      if (!item.data) {
+        item.data = {};
+      }
+      if (!item.data.Styles) {
+        item.data.Styles = [];
+      }
+      
+      if (!item.data.Styles.length || item.data.Styles[item.data.Styles.length-1] != style) {
+        // only cache it if it isn't already the last style in the cache
+        item.data.Styles.push(style);
+      }
+    }
+  }
+  uncacheStyle(item, style, all=false) {
+    if (item && style && item.data && item.data.Styles) {
+      let reverseIndex = item.data.Styles.slice().reverse().findIndex(check => {
+        if (typeof style == 'string') {
+          return (check && check.Class == style);
+        }
+        return (check == style);
+      });
+      let styleIndex = ((reverseIndex < 0) ? -1 : (item.data.Styles.length - reverseIndex - 1));
+      if (styleIndex != -1) {
+        let last = (styleIndex == item.data.Styles.length-1);
+        item.data.Styles.splice(styleIndex, 1);
+        if (all) {
+          // keep removing it as long as it is found
+          this.uncacheStyle(item, style, all);
+        }
+        if (last && item.data.Styles.length) {
+          // last style in cache removed, apply the next last style (don't cache it though)
+          this.applyStyle(item, this.stackStyles(item), false);
+        }
       }
     }
   }

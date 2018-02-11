@@ -118,9 +118,9 @@ export class Select extends Tool {
         }
         unselected.push(item);
       }
+      this.Items.length = 0;
       this.Belt.onSelectionItemUnselected({ items: unselected });
       this.SL.Paper.emit('SelectionItemUnselected', { items: unselected });
-      this.Items.length = 0;
     }
   }
   SnapSelected(config={}) {
@@ -137,6 +137,19 @@ export class Select extends Tool {
   }
   hasItems() {
     return !!(this.Items.length);
+  }
+  canTransform(transform) {
+    if (this.Items.length == 1) {
+      return this.SL.Paper.Item.canTransform(this.Items[0], transform);
+    }
+    let allBlocked = true;
+    for (let item of this.Items) {
+      if (item && this.SL.Paper.Item.canTransform(item, transform)) {
+        allBlocked = false;
+        break;
+      }
+    }
+    return !allBlocked;
   }
   refreshUI() {
     if (this.isActive()) {

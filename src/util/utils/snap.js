@@ -38,23 +38,30 @@ export class Snap extends Util {
     return (this.Around(value2, value1, threshold) == value2);
   }
   Item(item, config={}) {
+    if (!this.SL.Paper.Item.canTransform(item, 'snapItem')) {
+      return item;
+    }
+    config = $.extend(config, {original: item.clone({insert:false})});
     // support for items to supply a custom Snapping method
     if (this.SL.Paper.Item.hasCustomMethod(item, 'SnapItem')) {
       return this.SL.Paper.Item.callCustomMethod(item, 'SnapItem', config);
     }
-    return this.runSnappers('item', item, $.extend(config, {original: item.clone({insert:false})}));
+    return this.runSnappers('item', item, config);
   }
   Point(point, config={}) {
-    return this.runSnappers('point', new paper.Point(point), $.extend(config, {original: point}));
+    return this.runSnappers('point', new paper.Point(point), $.extend(config, {original: (point ? point.clone() : undefined)}));
   }
   PointMin(point, config={}) {
-    return this.runSnappers('pointMin', new paper.Point(point), $.extend(config, {original: point}));
+    return this.runSnappers('pointMin', new paper.Point(point), $.extend(config, {original: (point ? point.clone() : undefined)}));
   }
   PointMax(point, config={}) {
-    return this.runSnappers('pointMax', new paper.Point(point), $.extend(config, {original: point}));
+    return this.runSnappers('pointMax', new paper.Point(point), $.extend(config, {original: (point ? point.clone() : undefined)}));
+  }
+  PointsEqual(point1, point2, threshold=1.0/10000000.0) {
+    return (this.Equal(point1.x, point2.x, threshold) && this.Equal(point1.y, point2.y, threshold));
   }
   Rectangle(rectangle, config={}) {
-    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), $.extend(config, {original: rectangle}));
+    return this.runSnappers('rectangle', new paper.Rectangle(rectangle), $.extend(config, {original: (rectangle ? rectangle.clone() : undefined)}));
   }
   Rotation(angle, config={}) {
     return this.runSnappers('rotation', angle, $.extend(config, {original: angle}));

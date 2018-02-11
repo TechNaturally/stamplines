@@ -262,7 +262,7 @@ describe('Utils.Geo', () => {
         runTests(Geo.Normalize.pointFromRectangle, testPoints, rectangle, 'normal', 'global');
       });
     });
-    describe('#pointAtLineDistance', () => {
+    describe('#pointOnLine', () => {
       let testLine;
       before(() => {
         testLine = new paper.Path.Line(new paper.Point(25, 50), new paper.Point(125, 50));
@@ -273,25 +273,25 @@ describe('Utils.Geo', () => {
       });
       it('should calculate a point on a line at a given distance normal', () => {
         let distance = 0.25;
-        let testPoint = Geo.Normalize.pointAtLineDistance(testLine, distance);
+        let testPoint = Geo.Normalize.pointOnLine(testLine, distance);
         let checkPoint = new paper.Point(75, 50);
         expect(testPoint).to.eql(checkPoint);
       });
       it('should calculate a point on a multi-segment line at a given distance normal', () => {
         let distance = 0.75;
-        let testPoint = Geo.Normalize.pointAtLineDistance(testLine, distance);
+        let testPoint = Geo.Normalize.pointOnLine(testLine, distance);
         let checkPoint = new paper.Point(125, 100);
         expect(testPoint).to.eql(checkPoint);
       });
       it('should calculate a point on a line at a given distance from the tail when distance is negative', () => {
         let distance = -0.25;
-        let testPoint = Geo.Normalize.pointAtLineDistance(testLine, distance);
+        let testPoint = Geo.Normalize.pointOnLine(testLine, distance);
         let checkPoint = new paper.Point(125, 100);
         expect(testPoint).to.eql(checkPoint);
       });
       it('should calculate a point on a multi-segment line at a given distance from the tail when distance is negative', () => {
         let distance = -0.75;
-        let testPoint = Geo.Normalize.pointAtLineDistance(testLine, distance);
+        let testPoint = Geo.Normalize.pointOnLine(testLine, distance);
         let checkPoint = new paper.Point(75, 50);
         expect(testPoint).to.eql(checkPoint);
       });

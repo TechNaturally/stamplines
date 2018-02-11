@@ -223,7 +223,7 @@ export class Grid extends Util {
     return point;
   }
   snapRectangle(rectangle, config={}) {
-    if (config && config.interactive && config.size === false) {
+    if (config && config.size === false) {
       return rectangle;
     }
     let interactive = !!(config && config.interactive);
@@ -386,7 +386,7 @@ export class Grid extends Util {
     pt2 = new paper.Point(def.offset.x, def.offset.y+def.height);
     while (n <= def.cols) {
       pt2.x = pt1.x;
-      let gridLine = this.SL.Paper.generatePaperItem({Class:'UI.Grid', Layer:'GROUPED', Grid:'COL-'+n}, paper.Path.Line, pt1, pt2);
+      let gridLine = this.SL.Paper.generatePaperItem({Class:['UI','UI.Grid'], Layer:'GROUPED', Grid:'COL-'+n}, paper.Path.Line, pt1, pt2);
       let applyStyle = style;
       if (strong && n % strong == 0) {
         applyStyle = strongStyle;
@@ -403,7 +403,7 @@ export class Grid extends Util {
     pt2 = new paper.Point(def.offset.x+def.width, def.offset.y);
     while (n <= def.rows) {
       pt2.y = pt1.y;
-      let gridLine = this.SL.Paper.generatePaperItem({Class:'UI.Grid', Layer:'GROUPED', Grid:'ROW-'+n}, paper.Path.Line, pt1, pt2);
+      let gridLine = this.SL.Paper.generatePaperItem({Class:['UI','UI.Grid'], Layer:'GROUPED', Grid:'ROW-'+n}, paper.Path.Line, pt1, pt2);
       let applyStyle = style;
       if (strong && n % strong == 0) {
         applyStyle = strongStyle;

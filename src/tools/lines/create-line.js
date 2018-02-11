@@ -57,10 +57,21 @@ export class CreateLine extends LineTool {
   onMouseMove(event) {
     super.onMouseMove(event);
     if (this.isActive()) {
+      if (!this.State.Append.to) {
+        let point = event.point.clone();
+        let Snap = this.SL.Utils.get('Snap');
+        if (Snap) {
+          point.set(Snap.Point(point, {context: 'line-point', interactive: true, segment: this.State.Append.to}));
+        }
+        this.State.Append.to = { point: point };
+      }
       if (!this.State.Append.line && this.State.Append.to && this.State.Append.from && this.loaded.palette) {
+        // no line, but have to and from points
+        // create a new line
         this.State.Append.line = this.loaded.palette.createLine(this.State.Append.from, this.State.Append.to, this.loaded.line);
         this.State.Append.from = this.State.Append.line.segments[0];
         this.State.Append.to = this.State.Append.line.segments[this.State.Append.line.segments.length-1];
+        this.SL.Paper.emit('LineSegmentAdded', {from: this.State.Append.from, to: this.State.Append.to});
         let Snap = this.SL.Utils.get('Snap');
         if (Snap) {
           // from and to were spoof segments before, now snap them with the real segments

@@ -10,22 +10,33 @@
           "name": "Circle",
           "connections": [
             { "x": -25, "y": 0 },
-            { "x": 25, "y": 0 }
+            { "x": 25, "y": 0 },
+            { "x": 0, "y": 1.0, "width": 30, "height": 30, "lockX": false, "lockY": false }
+          ],
+          "labels": [
+            { "x": 0, "y": 0, "lockX": false, "lockY": false, "labelOffset": { "x": -0.5, "y": -0.5 }, "labelStyle": { "fontSize": 18, "fontWeight": "Bold Italic", "fontFamily": "serif" } }
           ]
         },
         {
           "id": "rectangle",
           "image": "rectangle-rounded.svg",
           "connections": [
-            { "x": -1.0, "y": 0 },
-            { "x": 1.0, "y": 0 },
-            { "x": 0, "y": -1.0 },
-            { "x": 0, "y": 1.0 }
+            { "x": -1.0, "y": 0, "height": 0.9, "lockY": false },
+            { "x": 1.0, "y": 0, "height": 0.9, "lockY": false },
+            { "x": 0, "y": -1.0, "width": 0.9, "lockX": false, "targetStyle": { "strokeColor": "#AA6600" } },
+            { "x": 0, "y": 1.0 , "width": 0.9, "lockX": false }
+          ],
+          "labels": [
+            { "x": 0, "y": 0, "labelOffset": { "x": -0.5, "y": -0.5 }, "labelStyle": { "fontSize": 18, "fontWeight": "Bold Italic" }, "targetStyle": { "strokeColor": "#00AA66" }  }
           ]
         },
         {
           "id": "triangle",
-          "name": "Triangle"
+          "name": "Triangle",
+          "connections": [
+            { "x": -0.5, "y": 0, "height": 0.85, "width": 15, "angle": 30, "lockY": false },
+            { "x": 0.5, "y": 0, "height": 0.85, "width": 15, "angle": -30, "lockY": false }
+          ]
         }
       ]
     },
@@ -40,8 +51,17 @@
           "name": "Solid Black",
           "style": {
             "strokeColor": "black",
-            "strokeWidth": 5
-          }
+            "strokeWidth": 5,
+            "strokeJoin": "round"
+          },
+          "labels": [
+            { "position": 0.075, "labelOffset": { "x": -0.5, "y": -0.5 }, "labelStyle": { "fontSize": 32, "fontWeight": "Bold" }, "targetStyle": { "strokeColor": "#AA6600" } },
+            { "position": 0.925, "labelOffset": { "x": -0.5, "y": -0.5 }, "labelStyle": { "fontSize": 32, "fontWeight": "Bold" }, "targetStyle": { "strokeColor": "#AA6600" } },
+            { "position": 0.5, "length": 0.8, "distance": 10, "labelStyle": { "fontSize": 14, "fontWeight": "Italic" }, "targetStyle": { "strokeColor": "#0066AA" } },
+            { "start": 0.25, "length": 0.5, "distance": -10, "labelStyle": { "fontSize": 14, "fontWeight": "Italic" }, "targetStyle": { "strokeColor": "#6600AA" } },
+            { "start": 0, "end": 0.05, "width": 15, "labelStyle": { "fontSize": 18, "fontWeight": "Bold" }, "targetStyle": { "strokeColor": "#00AA66" } },
+            { "start": 0.95, "end": 1.0, "width": 15, "labelStyle": { "fontSize": 18, "fontWeight": "Bold" }, "targetStyle": { "strokeColor": "#00AA66" } }
+          ]
         },
         {
           "id": "thin-green",

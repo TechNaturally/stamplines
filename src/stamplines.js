@@ -159,7 +159,7 @@ StampLines.DEFAULT = {
     },
     Panels: {},
     Tools: {
-      enable: ['CreateLine', 'EditLine', 'CreateStamp', 'TextTool', 'Connect'],
+      enable: ['CreateLine', 'EditLine', 'CreateStamp', 'TextTool', 'LabelConnector', 'LineConnector'],
       Rotate: {
         slices: (360/45),
         snap: true

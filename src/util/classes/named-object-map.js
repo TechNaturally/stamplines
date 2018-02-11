@@ -19,13 +19,17 @@ export default class NamedObjectMap extends Component {
   get type() {
     return 'NamedObjectMap';
   }
+  reset() {
+    super.reset();
+    this.removeEntry();
+  }
   runCallback(callback, forEntry, type) {
     let cbOrig = callback;
     if (callback) {
-      if (this.config[callback]) {
-        callback = this.config[callback];
+      if (typeof callback == 'string' && this.config[callback]) {
+        return this.runCallback(this.config[callback], forEntry, type);
       }
-      if (typeof callback == 'string' && typeof forEntry[callback] == 'function') {
+      if (typeof callback == 'string' && forEntry && typeof forEntry[callback] == 'function') {
         forEntry[callback]();
       }
       else if (typeof callback == 'function') {

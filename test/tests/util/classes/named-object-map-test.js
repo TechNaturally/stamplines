@@ -1,4 +1,4 @@
-describe('Classes.NamedObjectMap', () => {
+describe('Utils.Classes.NamedObjectMap', () => {
   let Utils, configEntries, configNOL;
 
   before(() => {
@@ -29,11 +29,152 @@ describe('Classes.NamedObjectMap', () => {
       NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
     });
     after(() => {
-      NOL.removeEntry();
+      NOL.destroy();
       NOL = undefined;
     });
     it('should initialize', () => {
       expect(NOL).to.exist;
+    });
+  });
+
+  describe('#runCallback', () => {
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.destroy();
+      NOL = undefined;
+    });
+    describe('- when called with a string callback defined in the NamedObjectMap\'s config', () => {
+      let test;
+      before(() => {
+        test = {
+          entry: {},
+          type: 'test',
+          callback: '#onRemove'
+        };
+      });
+      it('should call runCallback with the callback defined in its config, passing the entry and type as arguments', () => {
+        let spy = sinon.spy(NOL, 'runCallback');
+        NOL.runCallback(test.callback, test.entry, test.type);
+        expect(spy.withArgs(NOL.config[test.callback], test.entry, test.type).callCount).to.equal(1);
+        NOL.runCallback.restore();
+      });
+    });
+    describe('- when called with a string callback defined on the entry', () => {
+      let test;
+      before(() => {
+        test = {
+          entry: {
+            test: function(forEntry, type) {
+              // do nothing
+            }
+          },
+          type: 'test',
+          callback: 'test'
+        };
+      });
+      it('should call the callback with no args', () => {
+        let spy = sinon.spy(test.entry, test.callback);
+        NOL.runCallback(test.callback, test.entry, test.type);
+        expect(spy.callCount).to.equal(1);
+        test.entry[test.callback].restore();
+      });
+    });
+    describe('- when called with a function callback', () => {
+      let test;
+      before(() => {
+        test = {
+          entry: {},
+          type: 'test',
+          callback: function(forEntry, type) {
+            // do nothing
+          }
+        };
+      });
+      it('should call the callback, passing the entry and type as arguments', () => {
+        let spy = sinon.spy(test, 'callback');
+        NOL.runCallback(test.callback, test.entry, test.type);
+        expect(spy.withArgs(test.entry, test.type).callCount).to.equal(1);
+        test.callback.restore();
+      });
+    });
+    describe('- when called with an array callback', () => {
+      let test;
+      before(() => {
+        test = {
+          entry: {},
+          type: 'test',
+          callbacks: [
+            function(forEntry, type) {
+              // do nothing
+            },
+            '#onRemove']
+        };
+      });
+      it('should call runCallback for each item in the array', () => {
+        let spy = sinon.spy(NOL, 'runCallback');
+        NOL.runCallback(test.callbacks, test.entry, test.type);
+        test.callbacks.forEach((callback) => {
+          expect(spy.withArgs(callback, test.entry, test.type).callCount).to.equal(1);
+        });
+        NOL.runCallback.restore();
+      });
+    });
+  });
+  describe('#hasType', () => {
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.destroy();
+      NOL = undefined;
+    });
+    it('should return true when called with an existing entry type', () => {
+      expect(NOL.hasType('Grid')).to.be.true;
+    });
+    it('should return false when called with an non-existant entry type', () => {
+      expect(NOL.hasType('Foo')).to.be.false;
+    });
+  });
+  describe('#hasNonStaticType', () => {
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.destroy();
+      NOL = undefined;
+    });
+    it('should return true when called with an existing non-static (class) entry type', () => {
+      expect(NOL.hasNonStaticType('Grid')).to.be.true;
+    });
+    it('should return false when called with an existing static (object) entry type', () => {
+      expect(NOL.hasNonStaticType('Identity')).to.be.false;
+    });
+    it('should return false when called with an non-existant entry type', () => {
+      expect(NOL.hasNonStaticType('Foo')).to.be.false;
+    });
+  });
+  describe('#hasStaticType', () => {
+    let NOL;
+    before(() => {
+      NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
+    });
+    after(() => {
+      NOL.destroy();
+      NOL = undefined;
+    });
+    it('should return true when called with an existing static (object) entry type', () => {
+      expect(NOL.hasStaticType('Identity')).to.be.true;
+    });
+    it('should return false when called with an existing non-static (dynamic) entry type', () => {
+      expect(NOL.hasStaticType('Grid')).to.be.false;
+    });
+    it('should return false when called with an non-existant entry type', () => {
+      expect(NOL.hasStaticType('Foo')).to.be.false;
     });
   });
 
@@ -43,7 +184,7 @@ describe('Classes.NamedObjectMap', () => {
       NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
     });
     afterEach(() => {
-      NOL.removeEntry();
+      NOL.destroy();
       NOL = undefined;
     });
     it('should add an entry to the table', () => {
@@ -98,7 +239,7 @@ describe('Classes.NamedObjectMap', () => {
       NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
     });
     after(() => {
-      NOL.removeEntry();
+      NOL.destroy();
       NOL = undefined;
     });
     it('should retrieve an entry from the table', () => {
@@ -114,7 +255,7 @@ describe('Classes.NamedObjectMap', () => {
       NOL = new Test.Lib.Utils.Classes.NamedObjectMap(Test.SL, configNOL);
     });
     after(() => {
-      NOL.removeEntry();
+      NOL.destroy();
       NOL = undefined;
     });
     describe('should enable configured entries', () => {
@@ -166,7 +307,7 @@ describe('Classes.NamedObjectMap', () => {
       });
     });
     afterEach(() => {
-      NOL.removeEntry();
+      NOL.destroy();
       NOL = undefined;
     });
     describe('- given no id', () => {

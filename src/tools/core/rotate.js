@@ -208,7 +208,7 @@ export class Rotate extends Tool {
   }
   refreshUI() {
     let Select = this.Belt.Belt.Select;
-    if (Select && Select.hasItems()) {
+    if (Select && Select.hasItems() && Select.canTransform('rotate')) {
       let radius = this.config.ui.circle.radius;
       let position = Select.Group.bounds.center;
       if (!this.UI.circle) {
@@ -379,6 +379,9 @@ export class Rotate extends Tool {
       let delta = angle - this.currentAngle;
       this.State.rotation = angle;
       for (let item of this.Belt.Belt.Select.Items) {
+        if (!this.SL.Paper.Item.canTransform(item, 'rotate')) {
+          continue;
+        }
         // support for items to supply a custom Rotate method
         if (this.SL.Paper.Item.hasCustomMethod(item, 'RotateItem')) {
           this.SL.Paper.Item.callCustomMethod(item, 'RotateItem', {'delta': delta, 'anchor': this.UI.circle.position});

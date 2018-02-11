@@ -10,12 +10,14 @@ export class Geo extends Util {
     super.configure(config);
     this.initCircle();
     this.initDirection();
+    this.initLine();
     this.initNormalize();
   }
   reset() {
     super.reset();
     this.resetCircle();
     this.resetDirection();
+    this.resetLine();
     this.resetNormalize();
   }
   initCircle() {
@@ -101,6 +103,85 @@ export class Geo extends Util {
     }
     this.Direction = undefined;
   }
+  initLine() {
+    this.resetLine();
+    let self = this;
+    this.Line = {
+      mitreLengthAtCorner(segment, width=1.0) {
+        if (segment && segment.previous && segment.next) {
+          // calculate the angle between segments
+          let angle1 = segment.point.subtract(segment.previous.point).angle;
+          let angle2 = segment.next.point.subtract(segment.point).angle;
+          let angleDiff = angle2 - angle1;
+
+          // calculate the width of the target at the corner
+          let mitreLength = width / Math.cos((angleDiff/2.0) * (Math.PI/180.0));
+
+          return mitreLength;
+        }
+        return width;
+      },
+      normalAtCorner(segment, length=1.0) {
+        let result = new paper.Point();
+        let point = segment.point;
+        let prev = segment.previous;
+        let next = segment.next;
+        if (!prev) {
+          result.angle = segment.point.angle;
+        }
+        else if (!next) {
+          result.angle = point.subtract(prev.point).angle;
+        }
+        else {
+          let angle1 = point.subtract(prev.point).angle;
+          let angle2 = next.point.subtract(point).angle;
+          result.angle = angle1 + (angle2 - angle1)/2.0 + 90.0;
+        }
+        result.length = length;
+        return result;
+      },
+      defineSection(definition) {
+        let section = {
+          start: definition.start,
+          end: definition.end,
+          length: definition.length,
+          middle: definition.position
+        };
+        if (section.start == null && section.end == null && section.length == null && section.middle != null) {
+          section.start = section.end = section.middle;
+          section.length = 0;
+        }
+        if ((section.start == null || section.end == null) && section.length != null) {
+          if (section.end == null && section.start != null) {
+            section.end = section.start + section.length;
+          }
+          else if (section.start == null && section.end != null) {
+            section.start = section.end - section.length;
+          }
+          else if (section.middle) {
+            let halfLength = section.length/2.0;
+            section.start = section.middle - halfLength;
+            section.end = section.middle + halfLength;
+          }
+        }
+        if (section.start != null && section.end != null) {
+          if (section.length == null) {
+            section.length = section.end - section.start;
+          }
+          if (section.middle == null) {
+            section.middle = section.start + section.length/2.0;
+          }
+        }
+        return section;
+      }
+    };
+  }
+  resetLine() {
+    if (!this.initialized || !this.Line) {
+      return;
+    }
+    this.Line = undefined;
+  }
   initNormalize() {
     this.resetNormalize();
     let self = this;
@@ -123,27 +204,43 @@ export class Geo extends Util {
         point = rectangle.center.add(point.multiply(bounds));
         return point;
       },
-      pointAtLineDistance(line, distance, includeVector=false) {
-        let reverse = distance < 0;
+      pointOnLine(line, distance, includeMeta=false) {
+        let Snap = self.SL.Utils.get('Snap');
+        let reverse = (distance < 0);
+        let length = distance;
         if (reverse) {
-          distance *= -1.0;
+          length *= -1.0;
         }
-        distance *= line.length;
+        length *= line.length;
         for (let i=0; i < (line.segments.length-1); i++) {
-          let p1 = line.segments[(reverse ? line.segments.length-1-i : i)].point;
-          let p2 = line.segments[(reverse ? line.segments.length-2-i : i+1)].point;
+          let s1 = line.segments[(reverse ? line.segments.length-1-i : i)];
+          let s2 = line.segments[(reverse ? line.segments.length-2-i : i+1)];
+          let p1 = s1.point;
+          let p2 = s2.point;
           let delta = p2.subtract(p1);
-          if (delta.length > distance) {
-            delta.length = distance;
+          if (delta.length >= length) {
+            let vector = delta.clone();
+            let fullSeg = Snap.Equal(delta.length, length);
+            vector.length = 1.0;
+            delta.length = length;
             let p3 = p1.add(delta);
-            return (includeVector ? { point: p3, vector: p3.subtract(p1) } : p3);
+            return (includeMeta ? { point: p3, vector: vector, segment: (fullSeg ? s2 : s1) } : p3);
           }
           else {
-            distance -= delta.length;
+            length -= delta.length;
           }
         }
-        let result = new paper.Point(line.segments[(reverse ? line.segments.length-1 : 0)].point);
-        return (includeVector ? { point: result, vector: result.subtract(result) } : result);
+        let segmentIndex = ((reverse || distance == 1.0) ? line.segments.length-1 : 0);
+        let result = line.segments[segmentIndex].point.clone();
+        let vector;
+        if (segmentIndex) {
+          vector = result.subtract(line.segments[segmentIndex-1].point);
+        }
+        else {
+          vector = line.segments[segmentIndex+1].point.subtract(result);
+        }
+        vector.length = 1.0;
+        return (includeMeta ? { point: result, vector: vector, segment: line.segments[segmentIndex] } : result);
       }
     };
   }

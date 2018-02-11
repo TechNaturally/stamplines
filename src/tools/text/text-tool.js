@@ -277,7 +277,7 @@ export class TextTool extends Tool {
   }
 
   addTemporaryStraighten(item, id) {
-    if (item && item.rotation) {
+    if (item && item.data && item.data.Type == 'Text' && item.rotation) {
       if (!item.data) {
         item.data = {};
       }
@@ -433,26 +433,37 @@ export class TextTool extends Tool {
     this.SL.Paper.applyStyle(textItem, this.config.font);
     this.SL.Paper.Item.addCustomMethod(textItem, 'SnapItem', this.snapTextItem, this);
     this.SL.Paper.Item.addCustomMethod(textItem, 'ScaleItem', this.scaleTextItem, this);
-    this.snapTextItem(textItem);
+    this.snapTextItem(textItem, { context: 'create' });
     this.setTarget(textItem);
     this.calculateCursor({index: 0});
     this.refreshUITarget();
+    this.SL.Paper.emit('TextTool.CreateItem', {item: textItem}, textItem);
   }
   editTextItem(item, point) {
     this.setTarget(item);
     this.calculateCursor({position: {x: point.x - item.bounds.left, y: point.y - item.bounds.top}});
     this.refreshUITarget();
+    this.SL.Paper.emit('TextTool.EditItem', {item: item}, item);
   }
   snapTextItem(item, args={}) {
     if (item && item.data && item.data.Type == 'Text') {
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        let pointArgs = {
+          context: args.context,
+          originalContext: args.originalContext,
+          type: 'text-point',
+          item: item,
+          interactive: args.interactive,
+          target: args.target,
+          offset: args.offset
+        };
+        let refItem = args.original || item;
+        let point = Snap.Point(refItem.bounds.topLeft, pointArgs);
+        let delta = point.subtract(refItem.bounds.topLeft);
+        item.translate(delta);
+      }
       if (!args.interactive) {
-        let Snap = this.SL.Utils.get('Snap');
-        if (Snap) {
-          let point = Snap.Point(item.bounds.topLeft, {context: 'text-point', interactive: args.interactive});
-          let delta = point.subtract(item.bounds.topLeft);
-          item.translate(delta);
-        }
-
         var snapSizes = this.config.interactive.allowSizes;
         let fontSize = parseFloat(item.fontSize);
         if (snapSizes.indexOf(fontSize) == -1) {
@@ -555,7 +566,8 @@ export class TextTool extends Tool {
       // perform the scale
       if (scaleAmount) {
         let targetSize = parseFloat(item.fontSize) + (scaleAmount*this.config.interactive.deltaMultiplier);
-        item.fontSize = targetSize + 'px';
+        this.SL.Paper.removeStyle(item, 'textScale', true);
+        this.SL.Paper.applyStyle(item, {fontSize: targetSize + 'px', Class: 'textScale'});
       }
 
       // check the anchor
@@ -597,6 +609,7 @@ export class TextTool extends Tool {
       let position = this.State.cursor.index;
       textContent = textContent.substr(0, position) + text + textContent.substr(position);
       let point = this.State.textItem.bounds.topLeft.clone();
+      let oldContent = this.State.textItem.content;
       this.State.textItem.content = textContent;
       this.State.textItem.bounds.topLeft.set(point);
       this.snapTextItem(this.State.textItem, {
@@ -604,6 +617,7 @@ export class TextTool extends Tool {
       });
       this.shiftCursor(text.length);
       this.refreshUI();
+      this.SL.Paper.emit('TextTool.TextInserted', {newContent: this.State.textItem.content, oldContent: oldContent}, this.State.textItem);
     }
   }
   deleteText() {
@@ -616,6 +630,7 @@ export class TextTool extends Tool {
       }
       textContent = textContent.substr(0, position-length) + textContent.substr(position);
       let point = this.State.textItem.bounds.topLeft.clone();
+      let oldContent = this.State.textItem.content;
       this.State.textItem.content = textContent;
       this.State.textItem.bounds.topLeft.set(point);
       this.snapTextItem(this.State.textItem, {
@@ -623,6 +638,7 @@ export class TextTool extends Tool {
       });
       this.shiftCursor(-length);
       this.refreshUI();
+      this.SL.Paper.emit('TextTool.TextDeleted', {newContent: this.State.textItem.content, oldContent: oldContent}, this.State.textItem);
     }
   }
   shiftCursor(shift) {
@@ -700,6 +716,15 @@ export class TextTool extends Tool {
         else {
           this.createTextItem(event.point);
         }
+      }
+    }
+  }
+  onDoubleClick(event) {
+    if (event.event.button === 0) {
+      let targetItem = this.Belt.State.Mouse.Hover.targetItem;
+      if (targetItem && targetItem.data && targetItem.data.Type == 'Text') {
+        this.start();
+        this.editTextItem(targetItem, event.point);
       }
     }
   }
