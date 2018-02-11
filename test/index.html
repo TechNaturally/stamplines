@@ -26,14 +26,6 @@
   <body>
     <canvas id="canvas"></canvas>
 
-    <!-- load and configure test environment -->
-    <div id="mocha"></div>
-    <script src="../node_modules/mocha/mocha.js"></script>
-    <script src="../node_modules/chai/chai.js"></script>
-    <script src="../node_modules/sinon/pkg/sinon.js"></script>
-    <script src="../node_modules/sinon-chai/lib/sinon-chai.js"></script>
-    <script>mocha.setup('bdd')</script>
-
     <!-- load dependencies -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/paper/dist/paper-full.js"></script>
@@ -41,14 +33,10 @@
     <!-- load code to test -->
     <script src="../dist/stamplines.js"></script>
 
-    <!-- load test files -->
-    <script src="test-lib.js"></script>
-    <script src="tests.js"></script>
     <script>
     $(function documentReady(){
       let SL = new StampLines('#canvas');
       SL.loadConfig('assets/StampLines.json');
-      mocha.run();
     });
     </script>
   </body>
