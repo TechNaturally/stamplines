@@ -439,6 +439,9 @@ export default class PaperCanvas extends Component {
         item.data.Source.trackPaperItem(item);
       }
     }
+    if (item && item.style) {
+      item.style.strokeScaling = false;
+    }
     this.emit('Generate', {}, item);
     return item;
   }
