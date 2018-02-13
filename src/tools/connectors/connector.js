@@ -7,7 +7,7 @@ export class Connector extends Tool {
       Targets: []
     };
     this.initialized = true;
-    this.configure();
+    this.configure(config);
   }
   configure(config) {
     if (!this.initialized) {
