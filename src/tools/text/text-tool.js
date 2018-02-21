@@ -15,12 +15,15 @@ export class TextTool extends Tool {
       selectCache: null
     };
     this.UI = {};
+    this.decoTypes = ['underline', 'overline', 'strikethrough'];
   }
   configure(config) {
     config = super.configure(config);
     this.configureFont(config.font);
+    this.configureFontDecorations(config.fontDecorations);
     this.configureInteractive(config.interactive);
     this.configureUI(config.ui);
+    this.registerSnappers();
     return config;
   }
   configureFont(config={}) {
@@ -33,6 +36,15 @@ export class TextTool extends Tool {
     }
     if (config.fontSize == null) {
       config.fontSize = 14;
+    }
+  }
+  configureFontDecorations(config={}) {
+    this.config.fontDecorations = config;
+    if (!config.defaultLineStyle) {
+      config.defaultLineStyle = {};
+    }
+    if (config.defaultLineStyle.strokeWidth == undefined) {
+      config.defaultLineStyle.strokeWidth = 1;
     }
   }
   configureInteractive(config={}) {
@@ -107,6 +119,7 @@ export class TextTool extends Tool {
   reset() {
     super.reset();
     this.resetState();
+    this.unregisterSnappers();
   }
   resetState() {
     this.resetStateCursor();
@@ -150,6 +163,34 @@ export class TextTool extends Tool {
         this.Belt.Belt.Select.Select(this.State.selectCache);
       }
       this.State.selectCache = null;
+    }
+  }
+
+  registerSnappers() {
+    let Snap = this.SL.Utils.get('Snap');
+    if (Snap) {
+      if (!this.Snappers) {
+        this.Snappers = {};
+      }
+      this.Snappers.textItem = Snap.addSnapper('item', {
+        priority: 1000, // high priority so it runs after the others
+        callback: (item, config) => {
+          if (item && item.data && item.data.Type == 'Text' && !this.SL.Paper.Item.hasCustomMethod(item, 'SnapItem')) {
+            this.snapTextItem(item, config);
+          }
+          return item;
+        }
+      });
+    }
+  }
+  unregisterSnappers() {
+    let Snap = this.SL.Utils.get('Snap');
+    if (!Snap || !this.Snappers) {
+      return;
+    }
+    if (this.Snappers.textItem) {
+      Snap.dropSnapper('item', this.Snappers.textItem.id);
+      this.Snappers.textItem = undefined;
     }
   }
 
@@ -422,6 +463,128 @@ export class TextTool extends Tool {
     this.refreshUICursor(true);
   }
 
+  assertDecoration(item, decoType, decoStyle, index=-1) {
+    if (item && item.data && item.data.Type == 'Text') {
+      if (this.decoTypes.indexOf(decoType) != -1) {
+        let decoration = null;
+        let pt1 = item.bounds.bottomLeft.clone();
+        let pt2 = item.bounds.bottomRight.clone();
+
+        if (decoType == 'underline') {
+          pt1.set(item.bounds.bottomLeft);
+          pt2.set(item.bounds.bottomRight);
+        }
+        else if (decoType == 'overline') {
+          pt1.set(item.bounds.topLeft);
+          pt2.set(item.bounds.topRight);
+        }
+        else if (decoType == 'strikethrough') {
+          pt1.set(item.bounds.leftCenter);
+          pt2.set(item.bounds.rightCenter);
+        }
+        if (decoStyle.display) {
+          if (decoStyle.display.extends) {
+            pt1.x -= decoStyle.display.extends;
+            pt2.x += decoStyle.display.extends;
+          }
+          if (decoStyle.display.offset) {
+            pt1.x += decoStyle.display.offset.x;
+            pt2.x += decoStyle.display.offset.x;
+            pt1.y += decoStyle.display.offset.y;
+            pt2.y += decoStyle.display.offset.y;
+          }
+        }
+
+        if (!item.data.FontDecorations) {
+          item.data.FontDecorations = {};
+        }
+        if (!item.data.FontDecorations[decoType]) {
+          item.data.FontDecorations[decoType] = [];
+        }
+
+        if (index < item.data.FontDecorations[decoType].length) {
+          decoration = item.data.FontDecorations[decoType][index];
+        }
+        else {
+          decoration = this.SL.Paper.generatePaperItem({ParentItem: item, Source: this, Type: 'FontDecoration', Class: 'ContentAddon', Layer: (this.SL.Paper.Layers['CONTENT_ACTIVE']+1)}, paper.Path.Line, pt1, pt2);
+          item.data.FontDecorations[decoType].push(decoration);
+          index = item.data.FontDecorations[decoType].length - 1;
+        }
+        if (decoration) {
+          let styleMods = {};
+          if (!decoStyle.style.strokeColor) {
+            styleMods.strokeColor = item.fillColor;
+          }
+          if (decoStyle.style) {
+            this.SL.Paper.applyStyle(decoration, $.extend({}, decoStyle.style, styleMods));
+          }
+          if (decoration.segments && decoration.segments.length > 1) {
+            decoration.segments[0].point.set(pt1);
+            decoration.segments[1].point.set(pt2);
+          }
+          let lastItem = ((index > 0 && index-1 < item.data.FontDecorations[decoType].length) ? item.data.FontDecorations[decoType][index-1] : item);
+          decoration.moveAbove(lastItem);
+        }
+        return index;
+      }
+    }
+    return -1;
+  }
+  decorateText(item) {
+    if (item && item.data && item.data.Type == 'Text' && item.fontDecoration) {
+      let decorations;
+      if (Array.isArray(item.fontDecoration)) {
+        decorations = item.fontDecoration;
+      }
+      else if (typeof item.fontDecoration == 'string') {
+        decorations = item.fontDecoration.toLowerCase().replace(/,/g, ' ').split(' ');
+      }
+      else if (item.fontDecoration === Object(item.fontDecoration)) {
+        decorations = [item.fontDecoration];
+      }
+      if (decorations && decorations.length) {
+        let counts = {
+          underline: 0,
+          overline: 0,
+          strikethrough: 0
+        };
+        for (let decoration of decorations) {
+          let decoStyle = this.parseDecoration(decoration);
+          for (let decoType of this.decoTypes) {
+            if (decoStyle[decoType]) {
+              counts[decoType] = 1 + this.assertDecoration(item, decoType, decoStyle[decoType], counts[decoType]);
+            }
+          }
+        }
+      }
+    }
+  }
+  parseDecoration(decoration) {
+    let decoStyle = {};
+    if (decoration) {
+      let defaultLineStyle = this.config.fontDecorations.defaultLineStyle;
+      if (typeof decoration == 'string') {
+        decoration = decoration.trim().toLowerCase();
+        if (this.decoTypes.indexOf(decoration) != -1) {
+          decoStyle[decoration] = {
+            style: defaultLineStyle
+          };
+        }
+      }
+      else if (decoration === Object(decoration)) {
+        for (let decoType of this.decoTypes) {
+          if (decoration[decoType]) {
+            decoStyle[decoType] = (decoration[decoType] === Object(decoration[decoType])) ? decoration[decoType] : {};
+            if (!decoStyle[decoType].style) {
+              decoStyle[decoType].style = defaultLineStyle;
+            }
+          }
+        }
+      }
+    }
+    return decoStyle;
+  }
+
   createTextItem(point) {
     let Grid = this.SL.Utils.get('Grid');
     if (Grid) {
@@ -447,22 +610,6 @@ export class TextTool extends Tool {
   }
   snapTextItem(item, args={}) {
     if (item && item.data && item.data.Type == 'Text') {
-      let Snap = this.SL.Utils.get('Snap');
-      if (Snap) {
-        let pointArgs = {
-          context: args.context,
-          originalContext: args.originalContext,
-          type: 'text-point',
-          item: item,
-          interactive: args.interactive,
-          target: args.target,
-          offset: args.offset
-        };
-        let refItem = args.original || item;
-        let point = Snap.Point(refItem.bounds.topLeft, pointArgs);
-        let delta = point.subtract(refItem.bounds.topLeft);
-        item.translate(delta);
-      }
       if (!args.interactive) {
         var snapSizes = this.config.interactive.allowSizes;
         let fontSize = parseFloat(item.fontSize);
@@ -493,6 +640,33 @@ export class TextTool extends Tool {
         else if (parseFloat(item.fontSize) > this.config.interactive.maxSize) {
           item.fontSize = this.config.interactive.maxSize+'px';
         }
+      }
+
+      if (item.fontDecoration) {
+        this.decorateText(item);
+      }
+
+      if (args && args.context == 'format') {
+        // all formatting should be taken care of by now
+        return;
+      }
+
+      // allow snapping the text to a target
+      let Snap = this.SL.Utils.get('Snap');
+      if (Snap) {
+        let pointArgs = {
+          context: args.context,
+          originalContext: args.originalContext,
+          type: 'text-point',
+          item: item,
+          interactive: args.interactive,
+          target: args.target,
+          offset: args.offset
+        };
+        let refItem = args.original || item;
+        let point = Snap.Point(refItem.bounds.topLeft, pointArgs);
+        let delta = point.subtract(refItem.bounds.topLeft);
+        item.translate(delta);
       }
     }
     return item;
