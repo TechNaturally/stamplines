@@ -113,7 +113,7 @@ export default class ToolBelt extends Component {
       var target = this.SL.Paper.project.hitTest(this.SL.UI.Mouse.State.point);
       this.State.Mouse.Hover.target = target;
       let targetItem = ((target && target.item) ? target.item : null);
-      if (targetItem && targetItem.data && targetItem.data.ParentItem) {
+      while (targetItem && targetItem.data && targetItem.data.ParentItem) {
         targetItem = targetItem.data.ParentItem;
       }
       this.State.Mouse.Hover.targetItem = targetItem;
