@@ -28,6 +28,9 @@ export default class Palette extends Component {
   generateDOMItem(item) {
     // sub-classes should implement this
   }
+  getPreviewItem(item) {
+    // sub-classes should implement this
+  }
 
   configure(config) {
     config = super.configure(config);

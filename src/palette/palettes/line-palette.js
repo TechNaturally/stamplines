@@ -90,6 +90,20 @@ export default class LinePalette extends Palette {
     }
     return lineButton;
   }
+  getPreviewItem(item, config={}) {
+    if (item && item.data && item.data.Line) {
+      let width = config.width || 50;
+      let height = config.height || 50;
+      let pt1 = new paper.Point(0, 0);
+      let pt2 = new paper.Point(width, 0);
+      let preview = this.SL.Paper.generatePaperItem({Source: (config.Source || this), Type: 'LinePreview', Line: item.data.Line, Class: 'ContentAddon', Layer: 'GROUPED'}, paper.Path.Line, pt1, pt2);
+      if (item.data.Line.style) {
+        this.SL.Paper.applyStyle(preview, item.data.Line.style);
+      }
+      return preview;
+    }
+    return null;
+  }
   createLine(from, to, lineDef) {
     let line = this.SL.Paper.generatePaperItem({Source: this, Type: 'Line', Line: lineDef}, paper.Path.Line, from.point, to.point);
     this.SL.Paper.Item.addCustomMethod(line, 'refresh', this.refreshItem, this);
@@ -108,6 +122,7 @@ export default class LinePalette extends Palette {
     }
   }
 
+  // @TODO: item label stuff can be removed in favour of the LabelConnector tool
   assertItemLabel(item) {
     if (item && item.data && !item.data.paperLabel) {
       let labelData = {

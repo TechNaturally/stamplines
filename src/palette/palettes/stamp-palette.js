@@ -108,6 +108,25 @@ export default class StampPalette extends Palette {
     }
     return stampButton;
   }
+  getPreviewItem(item, config={}) {
+    if (item && item.data && item.data.Stamp) {
+      let symbol = this.getStampSymbol(item.data.Stamp);
+      if (symbol) {
+        symbol = symbol.clone({insert:false});
+        let preview = this.SL.Paper.generatePaperItem({Source: (config.Source || this), Type: 'StampPreview', Stamp: item, Class: 'ContentAddon', Layer: 'GROUPED'}, paper.SymbolItem, symbol);
+        preview.remove();
+        if (config) {
+          if (config.width && preview.bounds.width > config.width) {
+            preview.scale(config.width / preview.bounds.width);
+          }
+          if (config.height && preview.bounds.height > config.height) {
+            preview.scale(config.height / preview.bounds.height);
+          }
+        }
+        return preview;
+      }
+    }
+  }
   placeStamp(item, position) {
     let symbol = this.getStampSymbol(item).clone();
     if (symbol) {
@@ -126,6 +145,7 @@ export default class StampPalette extends Palette {
     }
   }
 
+  // @TODO: item label stuff can be removed in favour of the LabelConnector tool
   assertItemLabel(item) {
     if (item && item.data && !item.data.paperLabel) {
       let labelData = {
