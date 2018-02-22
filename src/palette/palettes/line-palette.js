@@ -4,6 +4,7 @@ export default class LinePalette extends Palette {
     super(SL, config);
     this.id = 'Lines';
     this.PaperItems = [];
+    this.previewImagePaths = {};
     this.initialized = true;
     this.configure();
   }
@@ -31,27 +32,31 @@ export default class LinePalette extends Palette {
     this.resetEventHandlers();
   }
 
-  getImagePath(item) {
-    var width = (this.config.preview && this.config.preview.width ) || 36;
-    var height = (this.config.preview && this.config.preview.height ) || 25;
-    var linePreviewCanvas = $(`<canvas width="${width}" height="${height}"></canvas>`);
-    var linePreview = linePreviewCanvas[0].getContext('2d');
-    if (item.style) {
-      if (item.style.strokeColor) {
-        linePreview.strokeStyle = item.style.strokeColor;
+  getImagePath(item, config={}) {
+    let width = config.width || (this.config.preview && this.config.preview.width ) || 36;
+    let height = config.height || (this.config.preview && this.config.preview.height ) || 25;
+    let pathID = (config.id || item.id || Object.keys(this.previewImagePaths).length) + `-${width}x${height}`;
+    if (!this.previewImagePaths[pathID]) {
+      let linePreviewCanvas = $(`<canvas width="${width}" height="${height}"></canvas>`);
+      let linePreview = linePreviewCanvas[0].getContext('2d');
+      if (item.style) {
+        if (item.style.strokeColor) {
+          linePreview.strokeStyle = item.style.strokeColor;
+        }
+        if (item.style.strokeWidth) {
+          linePreview.lineWidth = item.style.strokeWidth;
+        }
+        if (item.style.dashArray) {
+          linePreview.setLineDash(item.style.dashArray);
+        }
       }
-      if (item.style.strokeWidth) {
-        linePreview.lineWidth = item.style.strokeWidth;
-      }
-      if (item.style.dashArray) {
-        linePreview.setLineDash(item.style.dashArray);
-      }
+      linePreview.beginPath();
+      linePreview.moveTo(0, height/2.0);
+      linePreview.lineTo(width, height/2.0);
+      linePreview.stroke();
+      this.previewImagePaths[pathID] = linePreviewCanvas[0].toDataURL('image/png');
     }
-    linePreview.beginPath();
-    linePreview.moveTo(0, height/2.0);
-    linePreview.lineTo(width, height/2.0);
-    linePreview.stroke();
-    return linePreviewCanvas[0].toDataURL('image/png');
+    return this.previewImagePaths[pathID];
   }
   generateDOMItem(item) {
     let itemName = (item.name || item.id);
