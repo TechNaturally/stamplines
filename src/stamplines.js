@@ -2,6 +2,7 @@ import PaperCanvas from './core/paper-canvas.js';
 import UI from './ui/ui.js';
 import Utils from './util/utils.js';
 import ToolBelt from './tools/toolbelt.js';
+import * as Operation from './operation/operation.js';
 import * as Palette from './palette/palette.js';
 import * as Panel from './panel/panel.js';
 export default class StampLines {
@@ -24,12 +25,14 @@ export default class StampLines {
     this.initUtils();
     this.initUI();
     this.initTools();
+    this.initOperations();
     this.initPalettes();
     this.initPanels();
   }
   reset() {
     this.resetPanels();
     this.resetPalettes();
+    this.resetOperations();
     this.resetTools();
     this.resetUI();
     this.resetUtils();
@@ -71,6 +74,15 @@ export default class StampLines {
       this.Tools.destroy();
     }
     this.Tools = undefined;
+  }
+  initOperations() {
+    let config = this.config.Operations || {};
+    this.Operations = new Operation.Manager(this, config);
+  }
+  resetOperations() {
+    if (this.Operations) {
+      this.Operations.destroy();
+    }
   }
   initPalettes() {
     let config = this.config.Palettes || {};
@@ -216,6 +228,13 @@ StampLines.DEFAULT = {
           strokeWidth: 1.0,
           opacity: 0.3
         }
+      }
+    },
+    Operations: {
+      Ops: {
+        ImportDrawing: {},
+        ExportDrawing: {},
+        SaveDrawing: {}
       }
     }
   }

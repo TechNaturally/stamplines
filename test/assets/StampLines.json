@@ -99,5 +99,42 @@
         }
       ]
     }
+  },
+  "Tools": {
+    "enable": ["CreateLine", "EditLine", "CreateStamp", "TextTool", "LabelConnector", "LineConnector"],
+    "Rotate": {
+      "slices": 8,
+      "snap": true
+    },
+    "Scale": {
+      "minSize": {
+        "width": 10,
+        "height": 10
+      }
+    }
+  },
+  "Utils": {
+    "Snap": {},
+    "Bounds": {},
+    "Geo": {},
+    "Grid": {
+      "size": 10,
+      "strong": 5,
+      "style": {
+        "strokeWidth": 0.5,
+        "strokeColor": 0.75,
+        "opacity": 0.25
+      },
+      "strongStyle": {
+        "opacity": 0.3
+      }
+    }
+  },
+  "Operations": {
+    "Ops": {
+      "ImportDrawing": {},
+      "ExportDrawing": {},
+      "SaveDrawing": {}
+    }
   }
 }

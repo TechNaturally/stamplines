@@ -21,9 +21,28 @@
         margin: 15px;
         display: inline-block;
       }
+      .controls {
+        font-size: 16px;
+        margin: 15px 15px 0;
+      }
+      .controls .control {
+        float: left;
+      }
+      .controls.import {
+        display: none;
+      }
     </style>
   </head>
   <body>
+    <div id="#import" class="controls import">
+      <div class="control">
+        <input type="file" id="import-file" name="import-file" />
+      </div>
+      <div class="control">
+        <button type="button" id="import-button" name="import-button">Import</button>
+      </div>
+    </div>
+
     <canvas id="canvas"></canvas>
 
     <!-- load dependencies -->
@@ -36,7 +55,31 @@
     <script>
     $(function documentReady(){
       let SL = new StampLines('#canvas');
-      SL.loadConfig('assets/StampLines.json');
+      let slLoaded = SL.loadConfig('assets/StampLines.json');
+      slLoaded.then(() => {
+        if (SL.Operations && SL.Operations.canRun('ImportDrawing', { file: true })) {
+          $('.controls.import').show();
+          $('#import-button').on('click', (clickEvent) => {
+            clickEvent.preventDefault();
+            let importButton = $(clickEvent.target);
+            let fileInput = $('#import-file').first();
+            let file = (fileInput && fileInput.length && fileInput[0].files && fileInput[0].files.length && fileInput[0].files[0]);
+            if (file) {
+              $(importButton).prop('disabled', true);
+              $(fileInput).prop('disabled', true);
+              SL.Operations.run('ImportDrawing', { file }).then((result) => {
+                $(importButton).prop('disabled', false);
+                $(fileInput).prop('disabled', false);
+                $(fileInput).val(null);
+              });
+            }
+            else {
+              $(fileInput).val(null);
+            }
+            return false;
+          });
+        }
+      });
     });
     </script>
   </body>
