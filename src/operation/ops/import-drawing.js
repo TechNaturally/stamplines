@@ -10,8 +10,10 @@ export class ImportDrawing extends Operation {
     return true;
   }
   import(input) {
-    if (input === Object(input) && input.Content) {
-      // @TODO: the magic.
+    if (input === Object(input) && Array.isArray(input.Content)) {
+      for (let item of input.Content) {
+        this.SL.Paper.emit('Content.Import', {}, {data: item});
+      }
       return true;
     }
   }
