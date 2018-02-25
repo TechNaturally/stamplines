@@ -80,8 +80,13 @@ export default class StampPalette extends Palette {
     }
   }
   getStampSymbol(stamp) {
-    if (stamp && stamp.id) {
-      return this.symbols[stamp.id];
+    if (stamp) {
+      if (stamp.symbol) {
+        return stamp.symbol;
+      }
+      if (stamp.id) {
+        return this.symbols[stamp.id];
+      }
     }
   }
   generateDOMItem(item) {
@@ -154,7 +159,7 @@ export default class StampPalette extends Palette {
   }
   importStamp(item, args) {
     if (item && item.data && item.data.id) {
-      let stampDef = this.getStampDef(item.data.id);
+      let stampDef = (args && args.Stamp) || this.getStampDef(item.data.id);
       if (stampDef) {
         let Snap = this.SL.Utils.get('Snap');
         let pt = new paper.Point();

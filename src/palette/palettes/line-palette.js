@@ -131,7 +131,7 @@ export default class LinePalette extends Palette {
   }
   importLine(item, args) {
     if (item && item.data && item.data.id && item.data.points && item.data.points.length >= 2) {
-      let lineDef = this.getLineDef(item.data.id);
+      let lineDef = (args && args.Line) || this.getLineDef(item.data.id);
       if (lineDef) {
         let Snap = this.SL.Utils.get('Snap');
         let pt1 = new paper.Point(item.data.points[0]);
