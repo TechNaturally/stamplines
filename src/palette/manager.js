@@ -25,6 +25,10 @@ export default class PaletteManager extends Component {
     });
     return this.config;
   }
+  reset() {
+    super.reset();
+    this.removePalette();
+  }
   addPalette(type, id, config) {
     let newPalette = this.palettes.addEntry(type, id, config);
     if (this.SL.UI.Dock) {

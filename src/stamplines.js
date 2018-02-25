@@ -51,8 +51,8 @@ export default class StampLines {
   resetUI() {
     if (this.UI) {
       this.UI.destroy();
-      this.UI = undefined;
     }
+    this.UI = undefined;
   }
   initTools() {
     let config = this.config.Tools || {};
@@ -78,8 +78,9 @@ export default class StampLines {
   }
   resetPalettes() {
     if (this.Palettes) {
-      this.Palettes.removePalette('*');
+      this.Palettes.destroy();
     }
+    this.Palettes = undefined;
   }
   initPanels() {
     let config = this.config.Panels || {};
@@ -87,8 +88,9 @@ export default class StampLines {
   }
   resetPanels() {
     if (this.Panels) {
-      this.Panels.closeItemPanel('*');
+      this.Panels.destroy();
     }
+    this.Panels = undefined;
   }
 
   activate() {
