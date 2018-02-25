@@ -297,46 +297,52 @@ export class LineConnector extends Connector {
   DisconnectItem(item) {
     if (item && item.data) {
       if (this.itemHasConnections(item)) {
-        // disconnect all connected Connections
-        for (let Connection of item.data.Connections) {
-          if (Connection.connected && Connection.connected.length) {
-            let segments = [];
-            for (let connection of Connection.connected) {
-              if (connection && connection.segment && connection.target) {
-                if (connection.target == Connection && segments.indexOf(connection.segment) == -1) {
-                  segments.push(connection.segment);
-                }
-              }
-            }
-            for (let segment of segments) {
-              this.DisconnectSegment(segment, Connection);
-            }
-          }
-        }
+        this.DisconnectItemConnections(item);
       }
       else if (this.itemHasSegments(item)) {
-        // disconnect all segments from connected targets
-        for (let segment of item.segments) {
-          if (this.segmentIsConnected(segment)) {
-            let targets = [];
-            // loop through each Connection the segment is connected to
-            for (let connection of segment.data.connected) {
-              if (connection && connection.segment && connection.target) {
-                if (connection.segment == segment && targets.indexOf(connection.target) == -1) {
-                  targets.push(connection.target);
-                }
+        this.DisconnectItemSegments(item);
+      }
+    }
+  }
+  DisconnectItemSegments(item) {
+    if (this.itemHasSegments(item)) {
+      // disconnect all segments from connected targets
+      for (let segment of item.segments) {
+        if (this.segmentIsConnected(segment)) {
+          let targets = [];
+          // loop through each Connection the segment is connected to
+          for (let connection of segment.data.connected) {
+            if (connection && connection.segment && connection.target) {
+              if (connection.segment == segment && targets.indexOf(connection.target) == -1) {
+                targets.push(connection.target);
               }
             }
-            for (let target of targets) {
-              this.DisconnectSegment(segment, target);
-            }
+          }
+          for (let target of targets) {
+            this.DisconnectSegment(segment, target);
           }
         }
       }
     }
   }
-  DisconnectItemSegments(item) {
-  }
   DisconnectItemConnections(item) {
+    if (this.itemHasConnections(item)) {
+      // disconnect all connected Connections
+      for (let Connection of item.data.Connections) {
+        if (Connection.connected && Connection.connected.length) {
+          let segments = [];
+          for (let connection of Connection.connected) {
+            if (connection && connection.segment && connection.target) {
+              if (connection.target == Connection && segments.indexOf(connection.segment) == -1) {
+                segments.push(connection.segment);
+              }
+            }
+          }
+          for (let segment of segments) {
+            this.DisconnectSegment(segment, Connection);
+          }
+        }
+      }
+    }
   }
 }

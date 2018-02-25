@@ -32,6 +32,14 @@ export default class LinePalette extends Palette {
     this.resetEventHandlers();
   }
 
+  getLineDef(id) {
+    if (this.config && this.config.lines) {
+      let lineDef = this.config.lines.find((item) => {
+        return (item && item.id == id);
+      });
+      return lineDef;
+    }
+  }
   getImagePath(item, config={}) {
     let width = config.width || (this.config.preview && this.config.preview.width ) || 36;
     let height = config.height || (this.config.preview && this.config.preview.height ) || 25;
@@ -119,6 +127,42 @@ export default class LinePalette extends Palette {
     }
     else if (item.data.paperLabel) {
       this.removeItemLabel(item);
+    }
+  }
+  importLine(item, args) {
+    if (item && item.data && item.data.id && item.data.points && item.data.points.length >= 2) {
+      let lineDef = this.getLineDef(item.data.id);
+      if (lineDef) {
+        let Snap = this.SL.Utils.get('Snap');
+        let pt1 = new paper.Point(item.data.points[0]);
+        let pt2 = new paper.Point(item.data.points[1]);
+        let line = this.createLine({point: pt1}, {point: pt2}, lineDef);
+        if (line) {
+          if (item.data.points.length > 2) {
+            for (let i=2; i < item.data.points.length; i++) {
+              let pt = new paper.Point(item.data.points[i]);
+              line.add(pt);
+            }
+          }
+          if (Snap && line.segments) {
+            for (let i=0; i < line.segments.length; i++) {
+              let segment = line.segments[i];
+              let endPoint = (i==0 || i==(line.segments.length-1));
+              if (endPoint) {
+                this.SL.Paper.emit('LineEndTarget', {toggle: true});
+              }
+              segment.point.set(Snap.Point(segment.point, {
+                context: 'line-point',
+                interactive: false,
+                segment: segment
+              }));
+              if (endPoint) {
+                this.SL.Paper.emit('LineEndTarget', {toggle: false});
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -238,6 +282,11 @@ export default class LinePalette extends Palette {
         this.removeItemLabel(item);
       }, 'Item.Destroyed');
     }
+    if (!this.eventHandlers.ContentImport) {
+      this.eventHandlers.ContentImport = this.SL.Paper.on('Content.Import', ItemFilter, (args, item) => {
+        this.importLine(item, args);
+      }, 'Line.Import');
+    }
   }
   resetEventHandlers() {
     if (!this.initialized || !this.eventHandlers) {
@@ -257,6 +306,11 @@ export default class LinePalette extends Palette {
       this.SL.Paper.off('Destroy', this.eventHandlers.ItemDestroyed.id);
       delete this.eventHandlers.ItemDestroyed;
       this.eventHandlers.ItemDestroyed = undefined;
+    }
+    if (this.eventHandlers.ContentImport) {
+      this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);
+      delete this.eventHandlers.ContentImport;
+      this.eventHandlers.ContentImport = undefined;
     }
   }
   registerSnappers() {
