@@ -71,6 +71,14 @@ export default class StampPalette extends Palette {
       return imagePath;
     }
   }
+  getStampDef(id) {
+    if (this.config && this.config.stamps) {
+      let stampDef = this.config.stamps.find((item) => {
+        return (item && item.id == id);
+      });
+      return stampDef;
+    }
+  }
   getStampSymbol(stamp) {
     if (stamp && stamp.id) {
       return this.symbols[stamp.id];
@@ -142,6 +150,24 @@ export default class StampPalette extends Palette {
     }
     else if (item.data.paperLabel) {
       this.removeItemLabel(item);
+    }
+  }
+  importStamp(item, args) {
+    if (item && item.data && item.data.id) {
+      let stampDef = this.getStampDef(item.data.id);
+      if (stampDef) {
+        let Snap = this.SL.Utils.get('Snap');
+        let pt = new paper.Point();
+        let stamp = this.placeStamp(stampDef, pt);
+        if (stamp) {
+          if (stamp.bounds && item.data.bounds) {
+            stamp.bounds.set(item.data.bounds);
+          }
+          if (Snap) {
+            Snap.Item(stamp, {context: 'import', size: true, position: true});
+          }
+        }
+      }
     }
   }
 
@@ -250,6 +276,11 @@ export default class StampPalette extends Palette {
         this.removeItemLabel(stamp);
       }, 'Stamp.Destroyed');
     }
+    if (!this.eventHandlers.ContentImport) {
+      this.eventHandlers.ContentImport = this.SL.Paper.on('Content.Import', StampFilter, (args, item) => {
+        this.importStamp(item, args);
+      }, 'Stamp.Import');
+    }
   }
   resetEventHandlers() {
     if (!this.initialized || !this.eventHandlers) {
@@ -269,6 +300,11 @@ export default class StampPalette extends Palette {
       this.SL.Paper.off('Destroy', this.eventHandlers.ItemDestroyed.id);
       delete this.eventHandlers.ItemDestroyed;
       this.eventHandlers.ItemDestroyed = undefined;
+    }
+    if (this.eventHandlers.ContentImport) {
+      this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);
+      delete this.eventHandlers.ContentImport;
+      this.eventHandlers.ContentImport = undefined;
     }
   }
   registerSnappers() {
