@@ -233,7 +233,11 @@ StampLines.DEFAULT = {
     Operations: {
       Ops: {
         ImportDrawing: {},
-        ExportDrawing: {},
+        ExportDrawing: {
+          Content: {
+            types: ['Stamp', 'Line', 'Text']
+          }
+        },
         SaveDrawing: {}
       }
     }

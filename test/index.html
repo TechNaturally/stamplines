@@ -29,7 +29,8 @@
       .controls .control {
         float: left;
       }
-      .controls.import {
+      .controls.import,
+      .controls.export {
         display: none;
       }
     </style>
@@ -42,6 +43,9 @@
       <div class="control">
         <button type="button" id="import-button" name="import-button">Import</button>
       </div>
+      <div class="control">
+        <button type="button" id="export-button" name="export-button">Export</button>
+      </div>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -49,6 +53,9 @@
     <!-- load dependencies -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/paper/dist/paper-full.js"></script>
+    <script src="../bower_components/Blob/Blob.js"></script>
+    <script src="../bower_components/canvas-to-Blob.js/canvas-toBlob.js"></script>
+    <script src="../bower_components/file-saver/FileSaver.js"></script>
 
     <!-- load code to test -->
     <script src="../dist/stamplines.js"></script>
@@ -58,27 +65,44 @@
       let SL = new StampLines('#canvas');
       let slLoaded = SL.loadConfig('assets/StampLines.json');
       slLoaded.then(() => {
-        if (SL.Operations && SL.Operations.canRun('ImportDrawing', { file: true })) {
-          $('.controls.import').show();
-          $('#import-button').on('click', (clickEvent) => {
-            clickEvent.preventDefault();
-            let importButton = $(clickEvent.target);
-            let fileInput = $('#import-file').first();
-            let file = (fileInput && fileInput.length && fileInput[0].files && fileInput[0].files.length && fileInput[0].files[0]);
-            if (file) {
-              $(importButton).prop('disabled', true);
-              $(fileInput).prop('disabled', true);
-              SL.Operations.run('ImportDrawing', { file }).then((result) => {
-                $(importButton).prop('disabled', false);
-                $(fileInput).prop('disabled', false);
+        if (SL.Operations) {
+          // prepare the Importer
+          if (SL.Operations.canRun('ImportDrawing', { file: true })) {
+            $('.controls.import').show();
+            $('#import-button').on('click', (clickEvent) => {
+              clickEvent.preventDefault();
+              let importButton = $(clickEvent.target);
+              let fileInput = $('#import-file').first();
+              let file = (fileInput && fileInput.length && fileInput[0].files && fileInput[0].files.length && fileInput[0].files[0]);
+              if (file) {
+                $(importButton).prop('disabled', true);
+                $(fileInput).prop('disabled', true);
+                SL.Operations.run('ImportDrawing', { file }).then((result) => {
+                  $(importButton).prop('disabled', false);
+                  $(fileInput).prop('disabled', false);
+                  $(fileInput).val(null);
+                });
+              }
+              else {
                 $(fileInput).val(null);
+              }
+              return false;
+            });
+          }
+
+          // prepare the Exporter
+          if (SL.Operations.canRun('ExportDrawing', { download: true })) {
+            $('.controls.export').show();
+            $('#export-button').on('click', (clickEvent) => {
+              clickEvent.preventDefault();
+              let exportButton = $(clickEvent.target);
+              $(exportButton).prop('disabled', true);
+              SL.Operations.run('ExportDrawing', { download: true }).then((result) => {
+                $(exportButton).prop('disabled', false);
               });
-            }
-            else {
-              $(fileInput).val(null);
-            }
-            return false;
-          });
+              return false;
+            });
+          }
         }
       });
     });
