@@ -16,3 +16,21 @@ String.prototype.toCamelCase = function() {
             return $1.toUpperCase().replace('-','');
           });
 };
+Date.prototype.getDateTimeStamp = function() {
+  let hours = this.getHours();
+  let minutes = this.getMinutes();
+  let seconds = this.getSeconds();
+  return this.getDateStamp() + '-' + [
+    (hours > 9 ? '' : '0') + hours,
+    (minutes > 9 ? '' : '0') + minutes,
+    (seconds > 9 ? '' : '0') + seconds
+  ].join('');
+};
+Date.prototype.getDateStamp = function() {
+  let month = this.getMonth()+1;
+  let day = this.getDate();
+  return [this.getFullYear(),
+    (month > 9 ? '' : '0') + month,
+    (day > 9 ? '' : '0') + day
+  ].join('');
+};
