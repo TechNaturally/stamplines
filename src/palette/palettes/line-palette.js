@@ -165,6 +165,24 @@ export default class LinePalette extends Palette {
       }
     }
   }
+  exportLine(item, args) {
+    if (item && item.data && item.data.Type == 'Line' && args && args.into) {
+      let points = [];
+      if (item.segments) {
+        for (let segment of item.segments) {
+          if (segment.point) {
+            points.push({ x: segment.point.x, y: segment.point.y });
+          }
+        }
+      }
+      args.into.Content = {
+        Type: 'Line',
+        id: (item.data.Line && item.data.Line.id),
+        points
+      };
+      args.into.Definition = $.extend({}, item.data.Line);
+    }
+  }
 
   // @TODO: item label stuff can be removed in favour of the LabelConnector tool
   assertItemLabel(item) {
@@ -287,6 +305,11 @@ export default class LinePalette extends Palette {
         this.importLine(item, args);
       }, 'Line.Import');
     }
+    if (!this.eventHandlers.ContentExport) {
+      this.eventHandlers.ContentExport = this.SL.Paper.on('Content.Export', ItemFilter, (args, item) => {
+        this.exportLine(item, args);
+      }, 'Line.Export');
+    }
   }
   resetEventHandlers() {
     if (!this.initialized || !this.eventHandlers) {
@@ -311,6 +334,11 @@ export default class LinePalette extends Palette {
       this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);
       delete this.eventHandlers.ContentImport;
       this.eventHandlers.ContentImport = undefined;
+    }
+    if (this.eventHandlers.ContentExport) {
+      this.SL.Paper.off('Content.Export', this.eventHandlers.ContentExport.id);
+      delete this.eventHandlers.ContentExport;
+      this.eventHandlers.ContentExport = undefined;
     }
   }
   registerSnappers() {
