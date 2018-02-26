@@ -16,6 +16,8 @@ export class TextTool extends Tool {
     };
     this.UI = {};
     this.decoTypes = ['underline', 'overline', 'strikethrough'];
+    this.initialized = true;
+    this.configure(this.config);
   }
   configure(config) {
     config = super.configure(config);
@@ -23,6 +25,7 @@ export class TextTool extends Tool {
     this.configureFontDecorations(config.fontDecorations);
     this.configureInteractive(config.interactive);
     this.configureUI(config.ui);
+    this.initEventHandlers();
     this.registerSnappers();
     return config;
   }
@@ -120,6 +123,7 @@ export class TextTool extends Tool {
     super.reset();
     this.resetState();
     this.unregisterSnappers();
+    this.resetEventHandlers();
   }
   resetState() {
     this.resetStateCursor();
@@ -163,6 +167,51 @@ export class TextTool extends Tool {
         this.Belt.Belt.Select.Select(this.State.selectCache);
       }
       this.State.selectCache = null;
+    }
+  }
+
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ItemSelected) {
+      this.eventHandlers.ItemSelected = this.SL.Paper.on('SelectionItemSelected', {Type: 'Text'}, (args, item) => {
+        if (item && item.fontDecoration) {
+          this.decorateText(item);
+        }
+      }, 'Text.Selected');
+    }
+    if (!this.eventHandlers.ItemUnselected) {
+      this.eventHandlers.ItemUnselected = this.SL.Paper.on('SelectionItemUnselected', {Type: 'Text'}, (args, item) => {
+        if (args.items) {
+          args.items.forEach((item) => {
+            if (item && item.fontDecoration) {
+              this.decorateText(item);
+            }
+          });
+        }
+        else if (item && item.fontDecoration) {
+          this.decorateText(item);
+        }
+      }, 'Text.Unselected');
+    }
+    if (!this.eventHandlers.ContentImport) {
+      this.eventHandlers.ContentImport = this.SL.Paper.on('Content.Import', {Type: 'Text'}, (args, item) => {
+        this.importTextItem(item, args);
+      }, 'Text.Import');
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ContentImport) {
+      this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);
+      delete this.eventHandlers.ContentImport;
+      this.eventHandlers.ContentImport = undefined;
     }
   }
 
@@ -332,6 +381,9 @@ export class TextTool extends Tool {
         item.data.straightened.angle = item.rotation;
         item.rotate(-1.0*item.rotation);
         item.data.straightened.by.push(id);
+        if (item.fontDecoration) {
+          this.decorateText(item);
+        }
       }
     }
     if (item && item.data && item.data.straightened && item.data.straightened.by.indexOf(id) == -1) {
@@ -347,6 +399,9 @@ export class TextTool extends Tool {
           item.rotate(item.data.straightened.angle);
           item.data.straightened = undefined;
           delete item.data.straightened;
+          if (item.fontDecoration) {
+            this.decorateText(item);
+          }
         }
       }
     }
@@ -466,6 +521,13 @@ export class TextTool extends Tool {
   assertDecoration(item, decoType, decoStyle, index=-1) {
     if (item && item.data && item.data.Type == 'Text') {
       if (this.decoTypes.indexOf(decoType) != -1) {
+        // temporarily straighten item for calculations
+        let rotation = item.rotation;
+        let rotationPoint = item.bounds.center;
+        if (rotation) {
+          item.rotate(-rotation, rotationPoint);
+        }
+
         let decoration = null;
         let pt1 = item.bounds.bottomLeft.clone();
         let pt2 = item.bounds.bottomRight.clone();
@@ -524,6 +586,15 @@ export class TextTool extends Tool {
           }
           let lastItem = ((index > 0 && index-1 < item.data.FontDecorations[decoType].length) ? item.data.FontDecorations[decoType][index-1] : item);
           decoration.moveAbove(lastItem);
+
+          if (rotation) {
+            decoration.rotate(rotation, rotationPoint);
+          }
+        }
+
+        // rotate item back
+        if (rotation) {
+          item.rotate(rotation, rotationPoint);
         }
         return index;
       }
@@ -601,12 +672,36 @@ export class TextTool extends Tool {
     this.calculateCursor({index: 0});
     this.refreshUITarget();
     this.SL.Paper.emit('TextTool.CreateItem', {item: textItem}, textItem);
+    return textItem;
   }
   editTextItem(item, point) {
     this.setTarget(item);
     this.calculateCursor({position: {x: point.x - item.bounds.left, y: point.y - item.bounds.top}});
     this.refreshUITarget();
     this.SL.Paper.emit('TextTool.EditItem', {item: item}, item);
+  }
+  importTextItem(item, args={}) {
+    if (item && item.data && item.data.point && item.data.content) {
+      let point = new paper.Point(item.data.point);
+      let Grid = this.SL.Utils.get('Grid');
+      if (Grid) {
+        // force rounding to left edge of whatever grid cell was clicked in - same trick as classic int(float(val + 0.5))
+        let grid = Grid.getCurrentDefinition();
+        point = point.add(new paper.Point({x: grid.cell.width/2.0, y: grid.cell.height/2.0}));
+      }
+      let textItem = this.createTextItem(point);
+      if (textItem) {
+        let Snap = this.SL.Utils.get('Snap');
+        if (item.data.font) {
+          this.SL.Paper.applyStyle(textItem, item.data.font);
+        }
+        textItem.content = item.data.content;
+        if (Snap) {
+          Snap.Item(textItem, {context: 'import', size: true, position: true});
+        }
+      }
+      this.deactivate();
+    }
   }
   snapTextItem(item, args={}) {
     if (item && item.data && item.data.Type == 'Text') {
@@ -667,6 +762,9 @@ export class TextTool extends Tool {
         let point = Snap.Point(refItem.bounds.topLeft, pointArgs);
         let delta = point.subtract(refItem.bounds.topLeft);
         item.translate(delta);
+        if (item.fontDecoration) {
+          this.decorateText(item);
+        }
       }
     }
     return item;
