@@ -3,7 +3,7 @@ import * as Ops from './ops/_index.js';
 export default class OperationManager extends Component {
   constructor(SL, config) {
     super(SL, config);
-    this.configure();
+    this.configure(config);
   }
   configure(config) {
     config = super.configure(config);

@@ -2,6 +2,7 @@ import Operation from '../../core/operation.js';
 export class ExportDrawing extends Operation {
   constructor(SL, config) {
     super(SL, config);
+    this.configure(config);
   }
   configure(config) {
     config = super.configure(config);

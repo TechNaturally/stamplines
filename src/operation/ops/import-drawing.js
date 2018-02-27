@@ -2,6 +2,7 @@ import Operation from '../../core/operation.js';
 export class ImportDrawing extends Operation {
   constructor(SL, config) {
     super(SL, config);
+    this.configure(config);
   }
   static canRun(args={}) {
     if (args && args.file && !window.FileReader) {
