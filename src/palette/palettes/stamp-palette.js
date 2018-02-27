@@ -218,12 +218,19 @@ export default class StampPalette extends Palette {
     if (item && item.data && item.data.id) {
       let stampDef = (args && args.Stamp) || this.getStampDef(item.data.id);
       if (stampDef) {
+        if (stampDef.symbol) {
+          stampDef.symbol = undefined;
+          delete stampDef.symbol;
+        }
         let Snap = this.SL.Utils.get('Snap');
         let pt = new paper.Point();
         let stamp = this.placeStamp(stampDef, pt);
         if (stamp) {
           if (stamp.bounds && item.data.bounds) {
             stamp.bounds.set(item.data.bounds);
+          }
+          if (item.data.rotation) {
+            stamp.rotate(item.data.rotation);
           }
           if (Snap) {
             Snap.Item(stamp, {context: 'import', size: true, position: true});
@@ -234,6 +241,11 @@ export default class StampPalette extends Palette {
   }
   exportStamp(item, args) {
     if (item && item.data && item.data.Type == 'Stamp' && args && args.into) {
+      let rotation = item.rotation;
+      let rotationPoint = item.bounds.center;
+      if (rotation) {
+        item.rotate(-rotation, rotationPoint);
+      }
       args.into.Content = {
         Type: 'Stamp',
         id: (item.data.Stamp && item.data.Stamp.id),
@@ -242,7 +254,8 @@ export default class StampPalette extends Palette {
           y: item.bounds.topLeft.y,
           width: item.bounds.width,
           height: item.bounds.height
-        }
+        },
+        rotation: rotation
       };
       args.into.Definition = $.extend({}, item.data.Stamp);
       let svgLoader = this.getStampSVG(item);
@@ -250,6 +263,10 @@ export default class StampPalette extends Palette {
         args.into.Definition.symbol_def = svgData;
       });
       args.into.Loaders = [svgLoader];
+      // rotate item back
+      if (rotation) {
+        item.rotate(rotation, rotationPoint);
+      }
     }
   }
 
