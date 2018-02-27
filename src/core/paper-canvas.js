@@ -319,34 +319,42 @@ export default class PaperCanvas extends Component {
     };
   }
 
-  on(type, filter, callback, id) {
+  on(type, filter, callback, id, priority=10) {
     if (type && typeof callback == 'function') {
       if (!this.paperEvents[type]) {
         this.paperEvents[type] = {};
       }
+      if (!this.paperEvents[type][priority]) {
+        this.paperEvents[type][priority] = {};
+      }
       if (!id) {
         let ID = this.SL.Utils.gets('Identity');
         if (ID) {
-          id = ID.getUnique(type, this.paperEvents[type]);
+          id = ID.getUnique(type, this.paperEvents[type][priority]);
         }
       }
       if (id) {
-        if (!this.paperEvents[type][id]) {
-          this.paperEvents[type][id] = {
+        if (!this.paperEvents[type][priority][id]) {
+          this.paperEvents[type][priority][id] = {
             id: id,
             filter: filter,
-            callback: callback
+            callback: callback,
+            priority: priority
           };
         }
-        return this.paperEvents[type][id];
+        return this.paperEvents[type][priority][id];
       }
     }
   }
-  off(type, id) {
-    if (type && id && this.paperEvents[type] && this.paperEvents[type][id]) {
-      let handler = this.paperEvents[type][id];
-      this.paperEvents[type][id] = undefined;
-      delete this.paperEvents[type][id];
+  off(type, id, priority=10) {
+    if (type && id && this.paperEvents[type] && this.paperEvents[type][priority] && this.paperEvents[type][priority][id]) {
+      let handler = this.paperEvents[type][priority][id];
+      this.paperEvents[type][priority][id] = undefined;
+      delete this.paperEvents[type][priority][id];
+      if (Object.keys(this.paperEvents[type][priority]).length == 0) {
+        this.paperEvents[type][priority] = undefined;
+        delete this.paperEvents[type][priority];
+      }
       if (Object.keys(this.paperEvents[type]).length == 0) {
         this.paperEvents[type] = undefined;
         delete this.paperEvents[type];
@@ -356,12 +364,15 @@ export default class PaperCanvas extends Component {
   }
   emit(type, args, item) {
     if (type && this.paperEvents[type]) {
-      let keys = Object.keys(this.paperEvents[type]);
-      for (let id of keys) {
-        let handler = this.paperEvents[type][id];
-        if (typeof handler.callback == 'function' && (!item || !handler.filter 
-          || (item && handler.filter && this.Item.passesFilter(item, handler.filter)))) {
-          handler.callback(args, item);
+      let priorities = Object.keys(this.paperEvents[type]).sort();
+      for (let priority of priorities) {
+        let keys = Object.keys(this.paperEvents[type][priority]);
+        for (let id of keys) {
+          let handler = this.paperEvents[type][priority][id];
+          if (typeof handler.callback == 'function' && (!item || !handler.filter 
+            || (item && handler.filter && this.Item.passesFilter(item, handler.filter)))) {
+            handler.callback(args, item);
+          }
         }
       }
     }
