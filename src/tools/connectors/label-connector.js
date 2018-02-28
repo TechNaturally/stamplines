@@ -90,6 +90,10 @@ export class LabelConnector extends Connector {
               this.SL.Paper.emit('Label.Importing', {toggle: true});
               this.SnapPoint(point, {context: 'import', type: 'text-point', original: point, item: imported});
               this.SL.Paper.emit('Label.Importing', {toggle: false});
+              let Snap = this.SL.Utils.get('Snap');
+              if (Snap) {
+                Snap.Item(imported, {context: 'import', size: false, position: true});
+              }
             }
           }
         }, 'LabelConnector.Import', 15); // priority 15, should run after the host Content's handler
