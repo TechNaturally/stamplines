@@ -21,7 +21,7 @@ export default class OperationManager extends Component {
         let op = new Ops[operation](this.SL, opConfig);
         if (op) {
           let ran = op.run(args);
-          if (ran.constructor.name == 'Promise') {
+          if (ran && ran.constructor.name == 'Promise') {
             ran.then(result => {
               resolve(result);
             })
