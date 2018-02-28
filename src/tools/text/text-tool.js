@@ -809,7 +809,7 @@ export class TextTool extends Tool {
           target: args.target,
           offset: args.offset
         };
-        let refItem = args.original || item;
+        let refItem = item;
         let point = Snap.Point(refItem.bounds.topLeft, pointArgs);
         let delta = point.subtract(refItem.bounds.topLeft);
         item.translate(delta);
