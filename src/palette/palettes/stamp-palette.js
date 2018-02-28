@@ -235,6 +235,9 @@ export default class StampPalette extends Palette {
           if (Snap) {
             Snap.Item(stamp, {context: 'import', size: true, position: true});
           }
+          if (args && Array.isArray(args.Imported)) {
+            args.Imported.push(stamp);
+          }
         }
       }
     }

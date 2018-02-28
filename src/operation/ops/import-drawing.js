@@ -53,7 +53,9 @@ export class ImportDrawing extends Operation {
               cached_def.symbol = cached_symbol;
             }
           }
-          let args = {};
+          let args = {
+            Imported: []
+          };
           if (cached_def && item.Type) {
             args[item.Type] = cached_def;
           }

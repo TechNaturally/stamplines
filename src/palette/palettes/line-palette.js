@@ -162,6 +162,9 @@ export default class LinePalette extends Palette {
               }
             }
           }
+          if (args && Array.isArray(args.Imported)) {
+            args.Imported.push(line);
+          }
         }
       }
     }
