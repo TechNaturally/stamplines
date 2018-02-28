@@ -252,7 +252,11 @@ StampLines.DEFAULT = {
             types: ['Stamp', 'Line', 'Text']
           }
         },
-        SaveDrawing: {}
+        SaveDrawing: {
+          Content: {
+            classes: ['BG', 'Content', 'ContentAddon']
+          }
+        }
       }
     }
   }
