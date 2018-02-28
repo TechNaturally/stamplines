@@ -81,6 +81,46 @@ export class LabelConnector extends Connector {
           this.SnapItemLabels(item, {context: 'line-point', interactive: false, keepOffset: true});
         }, 'LabelConnector.LineSegmentCancelled');
       }
+
+      if (!this.eventHandlers.ContentImport) {
+        this.eventHandlers.ContentImport = this.SL.Paper.on('Content.Import', {Type: ['Text']}, (args, item) => {
+          if (item && item.data.LabelPoint) {
+            for (let imported of args.Imported) {
+              let point = new paper.Point(item.data.LabelPoint);
+              this.SL.Paper.emit('Label.Importing', {toggle: true});
+              this.SnapPoint(point, {context: 'import', type: 'text-point', original: point, item: imported});
+              this.SL.Paper.emit('Label.Importing', {toggle: false});
+            }
+          }
+        }, 'LabelConnector.Import', 15); // priority 15, should run after the host Content's handler
+      }
+      if (!this.eventHandlers.LabelImporting) {
+        this.eventHandlers.LabelImporting = this.SL.Paper.on('Label.Importing', undefined, (args, item) => {
+          this.refreshTargets(args, 'Label.Importing');
+        }, 'LabelConnector.Label.Importing');
+      }
+      if (!this.eventHandlers.ContentExport) {
+        this.eventHandlers.ContentExport = this.SL.Paper.on('Content.Export', {Type: ['Text']}, (args, item) => {
+          if (item && item.data && item.data.labeling && item.data.labeling.length && args && args.into && args.into.Content && args.into.Content.Type == 'Text') {
+            let connection = item.data.labeling[0];
+            if (connection && connection.offset && connection.target && connection.target.item) {
+              this.SL.Paper.removeStyle(item, 'labelStyle', true);
+              args.into.Content.font.fontFamily = item.fontFamily;
+              args.into.Content.font.fontSize = item.fontSize;
+              args.into.Content.font.fontWeight = item.fontWeight;
+              args.into.Content.font.fontDecoration = item.fontDecoration;
+              if (connection.target.labelStyle) {
+                this.SL.Paper.applyStyle(item, $.extend({}, connection.target.labelStyle, {Class: 'labelStyle'}));
+              }
+
+              let point = this.connectionPoint(connection.target, connection.target.item, {offset: connection.offset});
+              if (point) {
+                args.into.Content.LabelPoint = { x: point.x, y: point.y };
+              }
+            }
+          }
+        }, 'LabelConnector.Export', 15); // priority 15, should run after the host Content's handler
+      }
     }
   }
   resetEventHandlers() {
@@ -142,6 +182,21 @@ export class LabelConnector extends Connector {
       this.SL.Paper.off('LineSegmentCancelled', this.eventHandlers.LineSegmentCancelled.id);
       delete this.eventHandlers.LineSegmentCancelled;
       this.eventHandlers.LineSegmentCancelled = undefined;
+    }
+    if (this.eventHandlers.ContentImport) {
+      this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id, this.eventHandlers.ContentImport.priority);
+      delete this.eventHandlers.ContentImport;
+      this.eventHandlers.ContentImport = undefined;
+    }
+    if (this.eventHandlers.LabelImporting) {
+      this.SL.Paper.off('Label.Importing', this.eventHandlers.LabelImporting.id);
+      delete this.eventHandlers.LabelImporting;
+      this.eventHandlers.LabelImporting = undefined;
+    }
+    if (this.eventHandlers.ContentExport) {
+      this.SL.Paper.off('Content.Export', this.eventHandlers.ContentExport.id, this.eventHandlers.ContentExport.priority);
+      delete this.eventHandlers.ContentExport;
+      this.eventHandlers.ContentExport = undefined;
     }
   }
 
@@ -266,6 +321,9 @@ export class LabelConnector extends Connector {
         }
       }
     }
+    else if (eventType == 'Label.Importing' && args && args.toggle) {
+      return true;
+    }
     else if (eventType == 'TextTool.Activated') {
       return true;
     }
@@ -304,13 +362,16 @@ export class LabelConnector extends Connector {
   }
 
   shouldSnapPoint(point, config) {
-    return (config && ['create', 'move', 'label'].indexOf(config.context) !== -1 && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
+    return (config && ['create', 'move', 'label', 'import'].indexOf(config.context) !== -1 && config.type == 'text-point' && config.item && config.item.data && config.item.data.Type == 'Text');
   }
   SnapPoint(point, config) {
     if (this.shouldSnapPoint(point, config)) {
       // make sure no other Point snappers interfere with the label's original point
       if (config.context == 'label') {
         // label context is already snapped and its parent is being manipulated
+        point.set(config.original);
+      }
+      else if (config.context == 'import') {
         point.set(config.original);
       }
       else {
