@@ -774,17 +774,17 @@ export class TextTool extends Tool {
             }
           }
           if (lastSize) {
-            item.fontSize = lastSize+'px';
+            item.fontSize = lastSize;
           }
         }
       }
       else {
         // interactive
         if (parseFloat(item.fontSize) < this.config.interactive.minSize) {
-          item.fontSize = this.config.interactive.minSize+'px';
+          item.fontSize = this.config.interactive.minSize;
         }
         else if (parseFloat(item.fontSize) > this.config.interactive.maxSize) {
-          item.fontSize = this.config.interactive.maxSize+'px';
+          item.fontSize = this.config.interactive.maxSize;
         }
       }
 

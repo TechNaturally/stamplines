@@ -370,6 +370,11 @@ export class LabelConnector extends Connector {
       if (config.context == 'label') {
         // label context is already snapped and its parent is being manipulated
         point.set(config.original);
+        if (config.item && config.target) {
+          this.SL.Paper.removeStyle(config.item, 'labelStyle', true);
+          this.SL.Paper.applyStyle(config.item, $.extend({}, config.target.labelStyle, {Class: 'labelStyle'}));
+        }
+        
       }
       else if (config.context == 'import') {
         point.set(config.original);
@@ -715,11 +720,11 @@ export class LabelConnector extends Connector {
           label.data.labeling.push(connection);
         }
       }
+      this.disableCustomSnaps(label);
       this.SL.Paper.removeStyle(label, 'labelStyle', true);
       if (target.labelStyle) {
         this.SL.Paper.applyStyle(label, $.extend({}, target.labelStyle, {Class: 'labelStyle'}));
       }
-      this.disableCustomSnaps(label);
     }
     return connection;
   }
