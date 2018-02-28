@@ -550,10 +550,10 @@ export class TextTool extends Tool {
             pt2.x += decoStyle.display.extends;
           }
           if (decoStyle.display.offset) {
-            pt1.x += decoStyle.display.offset.x;
-            pt2.x += decoStyle.display.offset.x;
-            pt1.y += decoStyle.display.offset.y;
-            pt2.y += decoStyle.display.offset.y;
+            pt1.x += decoStyle.display.offset.x || 0;
+            pt2.x += decoStyle.display.offset.x || 0;
+            pt1.y += decoStyle.display.offset.y || 0;
+            pt2.y += decoStyle.display.offset.y || 0;
           }
         }
 

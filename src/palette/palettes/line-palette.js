@@ -108,6 +108,7 @@ export default class LinePalette extends Palette {
       if (item.data.Line.style) {
         this.SL.Paper.applyStyle(preview, item.data.Line.style);
       }
+      preview.remove();
       return preview;
     }
     return null;

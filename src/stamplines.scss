@@ -45,7 +45,7 @@ $border-color: #999;
   .sl-palette {
     display: inline-block;
     vertical-align: top;
-    height: 84px;
+    min-height: 84px;
     line-height: 0;
     padding: 6px;
     + .sl-palette {
