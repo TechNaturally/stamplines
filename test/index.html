@@ -21,30 +21,52 @@
         margin: 15px;
         display: inline-block;
       }
+      .control-panel {
+        margin: 0 15px;
+        padding: 15px 8px 0;
+      }
       .controls {
         font-size: 16px;
-        margin: 15px 15px 0;
+        padding: 2px 15px;
         overflow: auto;
+        float: left;
+      }
+      .control-panel .controls {
+        border: 0 solid #000;
+        border-right-width: 1px;
+      }
+      .control-panel .controls:first-child {
+        border-left-width: 1px;
       }
       .controls .control {
         float: left;
       }
-      .controls.import,
-      .controls.export {
+      #import,
+      #export,
+      #save-image {
         display: none;
       }
     </style>
   </head>
   <body>
-    <div id="#import" class="controls import">
-      <div class="control">
-        <input type="file" id="import-file" name="import-file" />
+    <div class="control-panel">
+      <div id="import" class="controls import">
+        <div class="control">
+          <input type="file" class="import-file" name="import-file" />
+        </div>
+        <div class="control">
+          <button type="button" class="import-button" name="import-button">Import</button>
+        </div>
       </div>
-      <div class="control">
-        <button type="button" id="import-button" name="import-button">Import</button>
+      <div id="export" class="controls export">
+        <div class="control">
+          <button type="button" class="export-button" name="export-button">Export</button>
+        </div>
       </div>
-      <div class="control">
-        <button type="button" id="export-button" name="export-button">Export</button>
+      <div id="save-image" class="controls save-image">
+        <div class="control">
+          <button type="button" class="save-image-button" name="save-image-button">Save Image</button>
+        </div>
       </div>
     </div>
 
@@ -54,7 +76,7 @@
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/paper/dist/paper-full.js"></script>
     <script src="../bower_components/Blob/Blob.js"></script>
-    <script src="../bower_components/canvas-to-Blob.js/canvas-toBlob.js"></script>
+    <script src="../bower_components/blueimp-canvas-to-blob/js/canvas-to-blob.js"></script>
     <script src="../bower_components/file-saver/FileSaver.js"></script>
 
     <!-- load code to test -->
@@ -68,11 +90,10 @@
         if (SL.Operations) {
           // prepare the Importer
           if (SL.Operations.canRun('ImportDrawing', { file: true })) {
-            $('.controls.import').show();
-            $('#import-button').on('click', (clickEvent) => {
+            $('#import').show().find('.import-button').on('click', (clickEvent) => {
               clickEvent.preventDefault();
               let importButton = $(clickEvent.target);
-              let fileInput = $('#import-file').first();
+              let fileInput = $(importButton).closest('#import').find('.import-file').first();
               let file = (fileInput && fileInput.length && fileInput[0].files && fileInput[0].files.length && fileInput[0].files[0]);
               if (file) {
                 $(importButton).prop('disabled', true);
@@ -92,13 +113,25 @@
 
           // prepare the Exporter
           if (SL.Operations.canRun('ExportDrawing', { download: true })) {
-            $('.controls.export').show();
-            $('#export-button').on('click', (clickEvent) => {
+            $('#export').show().find('.export-button').on('click', (clickEvent) => {
               clickEvent.preventDefault();
               let exportButton = $(clickEvent.target);
               $(exportButton).prop('disabled', true);
               SL.Operations.run('ExportDrawing', { download: true }).then((result) => {
                 $(exportButton).prop('disabled', false);
+              });
+              return false;
+            });
+          }
+
+          // prepare the Save Image
+          if (SL.Operations.canRun('SaveDrawing', { download: true })) {
+            $('#save-image').show().find('.save-image-button').on('click', (clickEvent) => {
+              clickEvent.preventDefault();
+              let saveImageButton = $(clickEvent.target);
+              $(saveImageButton).prop('disabled', true);
+              SL.Operations.run('SaveDrawing', { download: true }).then((result) => {
+                $(saveImageButton).prop('disabled', false);
               });
               return false;
             });
