@@ -206,13 +206,6 @@ export default class StampPalette extends Palette {
     }
   }
   refreshItem(item, args) {
-    if (item && item.data && item.data.label) {
-      this.assertItemLabel(item);
-      this.refreshItemLabel(item);
-    }
-    else if (item.data.paperLabel) {
-      this.removeItemLabel(item);
-    }
   }
   importStamp(item, args) {
     if (item && item.data && item.data.id) {
@@ -273,65 +266,12 @@ export default class StampPalette extends Palette {
     }
   }
 
-  // @TODO: item label stuff can be removed in favour of the LabelConnector tool
-  assertItemLabel(item) {
-    if (item && item.data && !item.data.paperLabel) {
-      let labelData = {
-        Source: this,
-        Type: 'StampLabel',
-        Class: 'ContentAddon',
-        Layer: ((item.data && item.data.Layer) ? item.data.Layer : 'CONTENT'),
-        ParentItem: item,
-        position: {x: 0, y: 0} // @TODO: is labelData.position needed?
-      };
-      // @TODO: configure Stamp.Label (position, font)
-      item.data.paperLabel = this.SL.Paper.generatePaperItem(labelData, paper.PointText, item.bounds.center);
-      item.data.paperLabel.fillColor = '#000000';
-      item.data.paperLabel.fontSize = '12pt';
-      this.SL.Paper.Item.addChild(item, item.data.paperLabel);
-    }
-  }
-  refreshItemLabel(item) {
-    if (item && item.data && item.data.paperLabel) {
-      item.data.paperLabel.content = item.data.label;
-      item.data.paperLabel.insertAbove(item);
-      let Geo = this.SL.Utils.get('Geo');
-      if (Geo && item.data.paperLabel.data && item.data.paperLabel.data.position) {
-        let rotation = item.rotation;
-        let rotationPoint = item.bounds.center;
-        if (rotation) {
-          item.rotate(-rotation, rotationPoint);
-        }
-        let point = Geo.Normalize.pointFromRectangle(item.data.paperLabel.data.position, item.bounds);
-        if (rotation) {
-          item.rotate(rotation, rotationPoint);
-          point = point.rotate(rotation, rotationPoint);
-        }
-        item.data.paperLabel.position.set(point);
-      }
-    }
-  }
-  removeItemLabel(item) {
-    if (item && item.data && item.data.paperLabel) {
-      this.SL.Paper.Item.removeChild(item, item.data.paperLabel);
-      this.SL.Paper.destroyPaperItem(item.data.paperLabel);
-      item.data.paperLabel = undefined;
-      delete item.data.paperLabel;
-    }
-  }
-
   stampSelected(stamp) {
     if (stamp && stamp.data && stamp.data.Type == 'Stamp') {
-      if (stamp.data.paperLabel) {
-        stamp.data.paperLabel.insertAbove(stamp);
-      }
     }
   }
   stampUnselected(stamp) {
     if (stamp && stamp.data && stamp.data.Type == 'Stamp') {
-      if (stamp.data.paperLabel) {
-        stamp.data.paperLabel.insertAbove(stamp);
-      }
     }
   }
   snapItem(item, config={}) {
@@ -373,11 +313,6 @@ export default class StampPalette extends Palette {
         }
       }, 'Stamp.Unselected');
     }
-    if (!this.eventHandlers.ItemDestroyed) {
-      this.eventHandlers.ItemDestroyed = this.SL.Paper.on('Destroy', StampFilter, (args, stamp) => {
-        this.removeItemLabel(stamp);
-      }, 'Stamp.Destroyed');
-    }
     if (!this.eventHandlers.ContentImport) {
       this.eventHandlers.ContentImport = this.SL.Paper.on('Content.Import', StampFilter, (args, item) => {
         this.importStamp(item, args);
@@ -402,11 +337,6 @@ export default class StampPalette extends Palette {
       this.SL.Paper.off('SelectionItemUnselected', this.eventHandlers.ItemUnselected.id);
       delete this.eventHandlers.ItemUnselected;
       this.eventHandlers.ItemUnselected = undefined;
-    }
-    if (this.eventHandlers.ItemDestroyed) {
-      this.SL.Paper.off('Destroy', this.eventHandlers.ItemDestroyed.id);
-      delete this.eventHandlers.ItemDestroyed;
-      this.eventHandlers.ItemDestroyed = undefined;
     }
     if (this.eventHandlers.ContentImport) {
       this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);

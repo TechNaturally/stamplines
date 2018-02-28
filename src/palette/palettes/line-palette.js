@@ -122,13 +122,6 @@ export default class LinePalette extends Palette {
     return line;
   }
   refreshItem(item, args) {
-    if (item && item.data && item.data.label) {
-      this.assertItemLabel(item);
-      this.refreshItemLabel(item);
-    }
-    else if (item.data.paperLabel) {
-      this.removeItemLabel(item);
-    }
   }
   importLine(item, args) {
     if (item && item.data && item.data.id && item.data.points && item.data.points.length >= 2) {
@@ -188,71 +181,12 @@ export default class LinePalette extends Palette {
     }
   }
 
-  // @TODO: item label stuff can be removed in favour of the LabelConnector tool
-  assertItemLabel(item) {
-    if (item && item.data && !item.data.paperLabel) {
-      let labelData = {
-        Source: this,
-        Type: 'LineLabel',
-        Class: 'ContentAddon',
-        Layer: ((item.data && item.data.Layer) ? item.data.Layer : 'CONTENT'),
-        ParentItem: item,
-        position: {x: 0, y: 0} // @TODO: is labelData.position needed?
-      };
-      // @TODO: configure Line.Label (position, font)
-      item.data.paperLabel = this.SL.Paper.generatePaperItem(labelData, paper.PointText, item.bounds.center);
-      item.data.paperLabel.fillColor = '#000000';
-      item.data.paperLabel.fontSize = '12pt';
-      this.SL.Paper.Item.addChild(item, item.data.paperLabel);
-    }
-  }
-  refreshItemLabel(item) {
-    if (item && item.data && item.data.paperLabel) {
-      item.data.paperLabel.content = item.data.label;
-      item.data.paperLabel.insertAbove(item);
-      let Geo = this.SL.Utils.get('Geo');
-      if (Geo && item.data.paperLabel.data) {
-        let rotation = item.rotation;
-        let rotationPoint = item.bounds.center;
-        if (rotation) {
-          item.rotate(-rotation, rotationPoint);
-        }
-        let position = ((item.data.labelPosition == 'bottom') ? -1.0 : 1.0);
-        let distance = (item.data.labelDistance || 0.5);
-        var space = (item.data.labelSpace || 15);
-        let normal = Geo.Normalize.pointOnLine(item, distance, true);
-        normal.vector = normal.vector.rotate(-90);
-        normal.vector.length = space*position;
-        let point = normal.point.add(normal.vector);
-        if (rotation) {
-          item.rotate(rotation, rotationPoint);
-          point = point.rotate(rotation, rotationPoint);
-        }
-        item.data.paperLabel.position.set(point);
-      }
-    }
-  }
-  removeItemLabel(item) {
-    if (item && item.data && item.data.paperLabel) {
-      this.SL.Paper.Item.removeChild(item, item.data.paperLabel);
-      this.SL.Paper.destroyPaperItem(item.data.paperLabel);
-      item.data.paperLabel = undefined;
-      delete item.data.paperLabel;
-    }
-  }
-
   lineSelected(line) {
     if (line && line.data && line.data.Type == 'Line') {
-      if (line.data.paperLabel) {
-        line.data.paperLabel.insertAbove(line);
-      }
     }
   }
   lineUnselected(line) {
     if (line && line.data && line.data.Type == 'Line') {
-      if (line.data.paperLabel) {
-        line.data.paperLabel.insertAbove(line);
-      }
     }
   }
   snapItem(item, config={}) {
@@ -299,11 +233,6 @@ export default class LinePalette extends Palette {
         }
       }, 'Line.Unselected');
     }
-    if (!this.eventHandlers.ItemDestroyed) {
-      this.eventHandlers.ItemDestroyed = this.SL.Paper.on('Destroy', ItemFilter, (args, item) => {
-        this.removeItemLabel(item);
-      }, 'Item.Destroyed');
-    }
     if (!this.eventHandlers.ContentImport) {
       this.eventHandlers.ContentImport = this.SL.Paper.on('Content.Import', ItemFilter, (args, item) => {
         this.importLine(item, args);
@@ -328,11 +257,6 @@ export default class LinePalette extends Palette {
       this.SL.Paper.off('SelectionItemUnselected', this.eventHandlers.ItemUnselected.id);
       delete this.eventHandlers.ItemUnselected;
       this.eventHandlers.ItemUnselected = undefined;
-    }
-    if (this.eventHandlers.ItemDestroyed) {
-      this.SL.Paper.off('Destroy', this.eventHandlers.ItemDestroyed.id);
-      delete this.eventHandlers.ItemDestroyed;
-      this.eventHandlers.ItemDestroyed = undefined;
     }
     if (this.eventHandlers.ContentImport) {
       this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);
