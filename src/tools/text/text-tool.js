@@ -203,15 +203,35 @@ export class TextTool extends Tool {
         this.importTextItem(item, args);
       }, 'Text.Import');
     }
+    if (!this.eventHandlers.ContentExport) {
+      this.eventHandlers.ContentExport = this.SL.Paper.on('Content.Export', {Type: 'Text'}, (args, item) => {
+        this.exportTextItem(item, args);
+      }, 'Text.Export');
+    }
   }
   resetEventHandlers() {
     if (!this.initialized || !this.eventHandlers) {
       return;
     }
+    if (this.eventHandlers.ItemSelected) {
+      this.SL.Paper.off('SelectionItemSelected', this.eventHandlers.ItemSelected.id);
+      delete this.eventHandlers.ItemSelected;
+      this.eventHandlers.ItemSelected = undefined;
+    }
+    if (this.eventHandlers.ItemUnselected) {
+      this.SL.Paper.off('SelectionItemUnselected', this.eventHandlers.ItemUnselected.id);
+      delete this.eventHandlers.ItemUnselected;
+      this.eventHandlers.ItemUnselected = undefined;
+    }
     if (this.eventHandlers.ContentImport) {
       this.SL.Paper.off('Content.Import', this.eventHandlers.ContentImport.id);
       delete this.eventHandlers.ContentImport;
       this.eventHandlers.ContentImport = undefined;
+    }
+    if (this.eventHandlers.ContentExport) {
+      this.SL.Paper.off('Content.Export', this.eventHandlers.ContentExport.id);
+      delete this.eventHandlers.ContentExport;
+      this.eventHandlers.ContentExport = undefined;
     }
   }
 
@@ -699,8 +719,39 @@ export class TextTool extends Tool {
         if (Snap) {
           Snap.Item(textItem, {context: 'import', size: true, position: true});
         }
+        if (args && Array.isArray(args.Imported)) {
+          args.Imported.push(textItem);
+        }
       }
       this.deactivate();
+    }
+  }
+  exportTextItem(item, args={}) {
+    if (item && item.data && item.data.Type == 'Text' && args && args.into) {
+      let rotation = item.rotation;
+      let rotationPoint = item.bounds.center;
+      if (rotation) {
+        item.rotate(-rotation, rotationPoint);
+      }
+      args.into.Content = {
+        Type: 'Text',
+        content: item.content,
+        font: {
+          fontFamily: item.fontFamily,
+          fontSize: item.fontSize,
+          fontWeight: item.fontWeight,
+          fontDecoration: item.fontDecoration
+        },
+        point: {
+          x: item.bounds.leftCenter.x,
+          y: item.bounds.leftCenter.y
+        },
+        rotation: rotation
+      };
+      // rotate item back
+      if (rotation) {
+        item.rotate(rotation, rotationPoint);
+      }
     }
   }
   snapTextItem(item, args={}) {
