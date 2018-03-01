@@ -103,6 +103,7 @@ export class Select extends Tool {
           item.data.parentOrig.addChild(item);
           item.data.parentOrig = undefined;
         }
+        this.refreshUI();
         this.Belt.onSelectionItemUnselected({ item: item });
         this.SL.Paper.emit('SelectionItemUnselected', { item: item }, item);
       }
@@ -119,6 +120,7 @@ export class Select extends Tool {
         unselected.push(item);
       }
       this.Items.length = 0;
+      this.refreshUI();
       this.Belt.onSelectionItemUnselected({ items: unselected });
       this.SL.Paper.emit('SelectionItemUnselected', { items: unselected });
     }
