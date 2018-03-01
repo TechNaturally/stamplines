@@ -373,7 +373,7 @@ export class Grid extends Util {
   renderGrid(style) {
     style = style || this.config.style || Grid.DEFAULT.style;
     let def = this.getCurrentDefinition();
-    let grid = this.SL.Paper.generatePaperItem({Class:'UI', Layer:'BG', Grid:'GRID', Source: this}, paper.Group);
+    let grid = this.SL.Paper.generatePaperItem({Class:'UI', Layer:this.SL.Paper.Layers['BG']+1, Grid:'GRID', Source: this}, paper.Group);
     let n, pt1, pt2;
     let strong = this.config.strong;
     let strongStyle = $.extend({}, style, 

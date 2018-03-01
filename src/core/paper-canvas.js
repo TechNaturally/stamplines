@@ -27,6 +27,7 @@ export default class PaperCanvas extends Component {
       'UI': 500,
       'UI_FG': 550
     };
+    this.Paper = {};
     this.defaultClass = 'Content';
     this.untrackable = ['template'];
     this.paperItems = {};
@@ -49,6 +50,7 @@ export default class PaperCanvas extends Component {
   }
   reset() {
     super.reset();
+    this.resetPaper();
     if (this.paperLayers) {
       for (let layer in this.paperLayers) {
         this.paperLayers[layer].remove();
@@ -117,6 +119,13 @@ export default class PaperCanvas extends Component {
       });
     }
 
+    if (!this.config.Paper) {
+      this.config.Paper = {};
+    }
+    if (!this.config.Paper.background) {
+      this.config.Paper.background = {};
+    }
+    this.configurePaper(this.config.Paper);
     this.registerHandlers(this.Handles);
 
     return this.config;
@@ -657,6 +666,32 @@ export default class PaperCanvas extends Component {
     keys.forEach((layer) => {
       this.paperLayers[layer].bringToFront();
     });
+  }
+
+  configurePaper(config) {
+    config = config || this.config.Paper;
+    if (config.background && config.background.style) {
+      if (!this.Paper.background) {
+        let view = this.view || paper.view;
+        let width = view.size.width || 0;
+        let height = view.size.height || 0;
+        this.Paper.background = this.generatePaperItem({Class:['BG', 'CONTENT'], Layer:'BG'}, paper.Shape.Rectangle, new paper.Rectangle(0, 0, width, height));
+      }
+      this.removeStyle(this.Paper.background, 'config', true);
+      this.applyStyle(this.Paper.background, $.extend({}, config.background.style, {Class: 'config'}), true);
+    }
+    else {
+      this.resetPaperBackground();
+    }
+  }
+  resetPaper() {
+    this.resetPaperBackground();
+  }
+  resetPaperBackground() {
+    if (this.Paper.background) {
+      this.destroyPaperItem(this.Paper.background);
+      this.Paper.background = undefined;
+    }
   }
 
   registerHandlers(handlers) {

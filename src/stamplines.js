@@ -22,6 +22,7 @@ export default class StampLines {
   }
   init() {
     this.reset();
+    this.configurePaper();
     this.initUtils();
     this.initUI();
     this.initTools();
@@ -36,6 +37,12 @@ export default class StampLines {
     this.resetTools();
     this.resetUI();
     this.resetUtils();
+  }
+  configurePaper() {
+    let config = this.config.Paper || {};
+    if (this.Paper) {
+      this.Paper.configurePaper(config);
+    }
   }
   initUtils() {
     let config = this.config.Utils || {};
@@ -162,6 +169,13 @@ StampLines.Palette = Palette;
 StampLines.DEFAULT = {
   coreTools: ['Select', 'Move', 'Rotate', 'Scale', 'Delete'],
   config: {
+    Paper: {
+      background: {
+        style: {
+          fillColor: 'white'
+        }
+      }
+    },
     Palettes: {
       Lines: {},
       Stamps: {},
