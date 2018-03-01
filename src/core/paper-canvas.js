@@ -51,6 +51,7 @@ export default class PaperCanvas extends Component {
   reset() {
     super.reset();
     this.resetPaper();
+    this.resetEventHandlers();
     if (this.paperLayers) {
       for (let layer in this.paperLayers) {
         this.paperLayers[layer].remove();
@@ -118,6 +119,8 @@ export default class PaperCanvas extends Component {
         }, 0);
       });
     }
+
+    this.initEventHandlers();
 
     if (!this.config.Paper) {
       this.config.Paper = {};
@@ -668,6 +671,73 @@ export default class PaperCanvas extends Component {
     });
   }
 
+  hideContent(args) {
+    if (args && args === Object(args)) {
+      if (!args.hidden) {
+        args.hidden = [];
+      }
+    }
+    let exclude = (args && args.exclude) || null;
+    let itemClasses = Object.keys(this.paperItems);
+    for (let itemClass of itemClasses) {
+      if (exclude && exclude.classes && exclude.classes.indexOf(itemClass) != -1) {
+        continue;
+      }
+      for (let item of this.paperItems[itemClass]) {
+        if (item) {
+          let hasExcludeClass = false;
+          if (exclude && exclude.classes && item && item.data.Class && Array.isArray(item.data.Class)) {
+            for (let checkClass of item.data.Class) {
+              if (exclude.classes.indexOf(checkClass) != -1) {
+                hasExcludeClass = true;
+                break;
+              }
+            }
+          }
+          if (hasExcludeClass || (exclude && exclude.types && item && item.data && item.data.Type && exclude.types.indexOf(item.data.Type) != -1)) {
+            continue;
+          }
+          item.visible = false;
+          if (args && args.hidden && args.hidden.indexOf(item) == -1) {
+            args.hidden.push(item);
+          }
+        }
+      }
+    }
+  }
+  unhideContent(args) {
+    if (args && Array.isArray(args.hidden)) {
+      for (let item of args.hidden) {
+        if (item) {
+          item.visible = true;
+        }
+      }
+      args.hidden.length = 0;
+    }
+  }
+
+  initEventHandlers() {
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ContentHide) {
+      this.eventHandlers.ContentHide = this.on('Content.Hide', undefined, (args, item) => {
+        this.hideContent(args);
+      }, 'Paper.Content.Hide');
+    }
+    if (!this.eventHandlers.ContentUnhide) {
+      this.eventHandlers.ContentUnhide = this.on('Content.Unhide', undefined, (args, item) => {
+        this.unhideContent(args);
+      }, 'Paper.Content.Unhide');
+    }
+
+  }
+  resetEventHandlers() {
+    if (!this.eventHandlers) {
+      return;
+    }
+  }
+
   configurePaper(config) {
     config = config || this.config.Paper;
     if (config.background && config.background.style) {
@@ -675,7 +745,7 @@ export default class PaperCanvas extends Component {
         let view = this.view || paper.view;
         let width = view.size.width || 0;
         let height = view.size.height || 0;
-        this.Paper.background = this.generatePaperItem({Class:['BG', 'CONTENT'], Layer:'BG'}, paper.Shape.Rectangle, new paper.Rectangle(0, 0, width, height));
+        this.Paper.background = this.generatePaperItem({Class:'BG', Layer:'BG'}, paper.Shape.Rectangle, new paper.Rectangle(0, 0, width, height));
       }
       this.removeStyle(this.Paper.background, 'config', true);
       this.applyStyle(this.Paper.background, $.extend({}, config.background.style, {Class: 'config'}), true);
