@@ -36,6 +36,9 @@ export class ExportDrawing extends Operation {
     }
     return false;
   }
+  contentToJSON(content, args) {
+    return JSON.stringify(content, null, (typeof args.pretty != 'undefined' ? args.pretty : this.config.format.defaultPretty));
+  }
   canExport(type) {
     return (type && this.config.Content.types.indexOf(type) != -1);
   }
@@ -109,8 +112,23 @@ export class ExportDrawing extends Operation {
       this.export(args).then((data) => {
         if (data) {
           let filename = 'StampLines'+(data.id ? `-${data.id}` : '') + '.json';
-          let content = JSON.stringify(data.content, null, (args.pretty || this.config.format.defaultPretty))+'\n';
+          let content = this.contentToJSON(data.content, args) + '\n';
           resolve(this.downloadFile(filename, content));
+        }
+        else {
+          reject('No data was exported.');
+        }
+      });
+    });
+  }
+  exportJSON(args) {
+    return new Promise((resolve, reject) => {
+      this.export(args).then((data) => {
+        if (data) {
+          resolve({
+            id: data.id,
+            json: this.contentToJSON(data.content, args)
+          });
         }
         else {
           reject('No data was exported.');
@@ -122,6 +140,9 @@ export class ExportDrawing extends Operation {
     if (args.download) {
       return this.exportDownload(args);
     }
-    return false;
+    if (args.json) {
+      return this.exportJSON(args);
+    }
+    return this.export(args);
   }
 }
