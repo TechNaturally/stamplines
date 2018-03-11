@@ -43,6 +43,7 @@
       }
       #import,
       #export,
+      #get-dataURL,
       #save-image {
         display: none;
       }
@@ -61,6 +62,11 @@
       <div id="export" class="controls export">
         <div class="control">
           <button type="button" class="export-button" name="export-button">Export</button>
+        </div>
+      </div>
+      <div id="get-dataURL" class="controls get-dataURL">
+        <div class="control">
+          <button type="button" class="get-dataURL-button" name="get-dataURL-button">Get dataURL</button>
         </div>
       </div>
       <div id="save-image" class="controls save-image">
@@ -119,6 +125,20 @@
               $(exportButton).prop('disabled', true);
               SL.Operations.run('ExportDrawing', { download: true }).then((result) => {
                 $(exportButton).prop('disabled', false);
+              });
+              return false;
+            });
+          }
+
+          // prepare the Get DataURL
+          if (SL.Operations.canRun('SaveDrawing', { dataURL: true })) {
+            $('#get-dataURL').show().find('.get-dataURL-button').on('click', (clickEvent) => {
+              clickEvent.preventDefault();
+              let getDataURLbutton = $(clickEvent.target);
+              $(getDataURLbutton).prop('disabled', true);
+              SL.Operations.run('SaveDrawing', { dataURL: true }).then((result) => {
+                $(getDataURLbutton).prop('disabled', false);
+                console.log('DataURL:', result);
               });
               return false;
             });
