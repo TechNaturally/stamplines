@@ -15,7 +15,7 @@ export class Bounds extends Util {
 
     this.setPadding(config.padding);
 
-    this.elemenet = $(config.element);
+    this.element = $(config.element);
 
     this.registerSnappers();
 
