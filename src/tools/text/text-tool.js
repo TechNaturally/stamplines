@@ -719,6 +719,9 @@ export class TextTool extends Tool {
         if (Snap) {
           Snap.Item(textItem, {context: 'import', size: true, position: true});
         }
+        if (item.data.rotation) {
+          textItem.rotate(item.data.rotation);
+        }
         if (args && Array.isArray(args.Imported)) {
           args.Imported.push(textItem);
         }
