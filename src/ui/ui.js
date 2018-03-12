@@ -51,6 +51,7 @@ export default class UI extends Component {
     this.PaperDOM.activate();
     this.Mouse.activate();
     this.Keyboard.activate();
+    this.SL.Paper.emit('UI:Activated', {}, this);
   }
   deactivate() {
     if (this.DOM.wrapper) {
@@ -60,6 +61,7 @@ export default class UI extends Component {
     this.PaperDOM.deactivate();
     this.Mouse.deactivate();
     this.Keyboard.deactivate();
+    this.SL.Paper.emit('UI:Deactivated', {}, this);
   }
 
   configure(config) {

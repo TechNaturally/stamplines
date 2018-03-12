@@ -123,6 +123,9 @@ export default class StampLines {
       this.UI.activate();
     }
     StampLines.ACTIVE = this;
+    if (this.Paper) {
+      this.Paper.emit('StampLines:Activated', {}, this);
+    }
   }
   deactivate() {
     if (StampLines.ACTIVE===this) {
@@ -130,6 +133,9 @@ export default class StampLines {
     }
     if (this.UI) {
       this.UI.deactivate();
+    }
+    if (this.Paper) {
+      this.Paper.emit('StampLines:Deactivated', {}, this);
     }
   }
   isActive() {

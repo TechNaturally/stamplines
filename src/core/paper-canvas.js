@@ -10,7 +10,7 @@ export default class PaperCanvas extends Component {
     super(SL, config);
     this.Handles = {
       onResize: (event) => {
-        console.log('PaperCanvas.onResize =>', event);
+        //console.log('PaperCanvas.onResize =>', event);
       },
       onFrame: (event) => {
         this.emit('Frame', event);
@@ -38,11 +38,13 @@ export default class PaperCanvas extends Component {
   activate() {
     if (this.paperProject && paper.project != this.paperProject) {
       this.paperProject.activate();
+      this.emit('Paper:Activated', {}, this);
     }
   }
   deactivate() {
     if (this.SL.Paper && this.isActive()) {
       this.SL.Paper.activate();
+      this.emit('Paper:Deactivated', {}, this);
     }
   }
   isActive () {
@@ -730,11 +732,20 @@ export default class PaperCanvas extends Component {
         this.unhideContent(args);
       }, 'Paper.Content.Unhide');
     }
-
   }
   resetEventHandlers() {
     if (!this.eventHandlers) {
       return;
+    }
+    if (this.eventHandlers.ContentHide) {
+      this.off('Content.Hide', this.eventHandlers.ContentHide.id);
+      delete this.eventHandlers.ContentHide;
+      this.eventHandlers.ContentHide = undefined;
+    }
+    if (this.eventHandlers.ContentUnhide) {
+      this.off('Content.Unhide', this.eventHandlers.ContentUnhide.id);
+      delete this.eventHandlers.ContentUnhide;
+      this.eventHandlers.ContentUnhide = undefined;
     }
   }
 
