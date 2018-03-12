@@ -3,10 +3,13 @@ export class Grid extends Util {
   constructor(SL, config) {
     super(SL, config);
     this.name = 'Grid';
+    this.Paper = {};
+    this.initialized = true;
     this.configure();
   }
   reset() {
     super.reset();
+    this.resetEventHandlers();
     this.unregisterSnappers();
   }
 
@@ -38,10 +41,37 @@ export class Grid extends Util {
     this.definition.rows = config.rows || this.definition.rows;
 
     // set things up
+    this.initEventHandlers();
     this.registerSnappers();
     this.renderGrid();
 
     return this.config;
+  }
+
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ViewTransformed) {
+      this.eventHandlers.ViewTransformed = this.SL.Paper.on('View.Transformed', undefined, (args, view) => {
+        if (!args || !args.temporary) {
+          this.redrawGrid();
+        }
+      }, 'Grid.ViewTransformed');
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ViewTransformed) {
+      this.SL.Paper.off('View.Transformed', this.eventHandlers.ViewTransformed.id);
+      delete this.eventHandlers.ViewTransformed;
+      this.eventHandlers.ViewTransformed = undefined;
+    }
   }
 
   getCurrentDefinition() {
@@ -370,10 +400,27 @@ export class Grid extends Util {
     return item;
   }
 
+  redrawGrid() {
+    this.resetGrid();
+    this.renderGrid();
+  }
+  resetGrid() {
+    if (this.Paper && this.Paper.grid) {
+      let children = this.Paper.grid.children.slice(0);
+      for (let child of children) {
+        this.SL.Paper.destroyPaperItem(child);
+      }
+      this.SL.Paper.destroyPaperItem(this.Paper.grid);
+      this.Paper.grid = undefined;
+    }
+  }
   renderGrid(style) {
     style = style || this.config.style || Grid.DEFAULT.style;
+    if (!this.Paper.grid) {
+      this.Paper.grid = this.SL.Paper.generatePaperItem({Class:'UI', Layer:this.SL.Paper.Layers['BG']+1, Grid:'GRID', Source: this}, paper.Group);
+    }
     let def = this.getCurrentDefinition();
-    let grid = this.SL.Paper.generatePaperItem({Class:'UI', Layer:this.SL.Paper.Layers['BG']+1, Grid:'GRID', Source: this}, paper.Group);
+    let grid = this.Paper.grid;
     let n, pt1, pt2;
     let strong = this.config.strong;
     let strongStyle = $.extend({}, style, 
@@ -386,7 +433,7 @@ export class Grid extends Util {
     pt2 = new paper.Point(def.offset.x, def.offset.y+def.height);
     while (n <= def.cols) {
       pt2.x = pt1.x;
-      let gridLine = this.SL.Paper.generatePaperItem({Class:['UI','UI.Grid'], Layer:'GROUPED', Grid:'COL-'+n}, paper.Path.Line, pt1, pt2);
+      let gridLine = this.SL.Paper.generatePaperItem({Class:['UI','UI.Grid'], Layer:'GROUPED', Grid:'COL-'+n, Source: this}, paper.Path.Line, pt1, pt2);
       let applyStyle = style;
       if (strong && n % strong == 0) {
         applyStyle = strongStyle;
@@ -403,7 +450,7 @@ export class Grid extends Util {
     pt2 = new paper.Point(def.offset.x+def.width, def.offset.y);
     while (n <= def.rows) {
       pt2.y = pt1.y;
-      let gridLine = this.SL.Paper.generatePaperItem({Class:['UI','UI.Grid'], Layer:'GROUPED', Grid:'ROW-'+n}, paper.Path.Line, pt1, pt2);
+      let gridLine = this.SL.Paper.generatePaperItem({Class:['UI','UI.Grid'], Layer:'GROUPED', Grid:'ROW-'+n, Source: this}, paper.Path.Line, pt1, pt2);
       let applyStyle = style;
       if (strong && n % strong == 0) {
         applyStyle = strongStyle;
@@ -413,7 +460,6 @@ export class Grid extends Util {
       pt1.y += def.cell.height;
       n++;
     }
-
     return grid;
   }
 }

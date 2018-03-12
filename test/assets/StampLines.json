@@ -128,6 +128,12 @@
       "strongStyle": {
         "opacity": 0.3
       }
+    },
+    "Zoom": {
+      "fit": {
+        "width": 1280,
+        "height": 960
+      }
     }
   },
   "Operations": {

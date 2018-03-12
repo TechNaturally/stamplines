@@ -41,15 +41,20 @@ export class SaveDrawing extends Operation {
       let saving = false;
       try {
         if (this.SL && this.SL.canvas && this.SL.canvas.length && this.SL.canvas[0]) {
-          let eventArgs = {
+          let eventArgsHide = {
             hidden: [],
             exclude: $.extend({}, (args.Content || this.config.Content))
+          };
+          let eventArgsNaturalize = {
+            denaturalize: [],
+            temporary: true
           };
           let Select = this.SL.Tools.Belt.Select;
           if (Select) {
             Select.Unselect();
           }
-          this.SL.Paper.emit('Content.Hide', eventArgs);
+          this.SL.Paper.emit('Canvas.Naturalize', eventArgsNaturalize);
+          this.SL.Paper.emit('Content.Hide', eventArgsHide);
           saving = true;
           let type = (args.type || 'png');
           let mimeType = (args.mimeType || 'image/png');
@@ -77,7 +82,8 @@ export class SaveDrawing extends Operation {
               .then(() => {
                 result.type = type;
                 result.mimeType = mimeType;
-                this.SL.Paper.emit('Content.Unhide', eventArgs);
+                this.SL.Paper.emit('Content.Unhide', eventArgsHide);
+                this.SL.Paper.emit('Canvas.Denaturalize', eventArgsNaturalize);
                 resolve(result);
               })
               .catch(() => {

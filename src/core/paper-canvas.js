@@ -717,6 +717,14 @@ export default class PaperCanvas extends Component {
       args.hidden.length = 0;
     }
   }
+  refreshBackground() {
+    if (this.Paper.background) {
+      let view = this.view || paper.view;
+      let width = view.size.width || 0;
+      let height = view.size.height || 0;
+      this.Paper.background.bounds.set(0, 0, width, height);
+    }
+  }
 
   initEventHandlers() {
     if (!this.eventHandlers) {
@@ -732,6 +740,13 @@ export default class PaperCanvas extends Component {
         this.unhideContent(args);
       }, 'Paper.Content.Unhide');
     }
+    if (!this.eventHandlers.ViewTransformed) {
+      this.eventHandlers.ViewTransformed = this.on('View.Transformed', undefined, (args, view) => {
+        if (view == this.view) {
+          this.refreshBackground();
+        }
+      }, 'Paper.View.Transformed');
+    }
   }
   resetEventHandlers() {
     if (!this.eventHandlers) {
@@ -746,6 +761,11 @@ export default class PaperCanvas extends Component {
       this.off('Content.Unhide', this.eventHandlers.ContentUnhide.id);
       delete this.eventHandlers.ContentUnhide;
       this.eventHandlers.ContentUnhide = undefined;
+    }
+    if (this.eventHandlers.ViewTransformed) {
+      this.off('View.Transformed', this.eventHandlers.ViewTransformed.id);
+      delete this.eventHandlers.ViewTransformed;
+      this.eventHandlers.ViewTransformed = undefined;
     }
   }
 
