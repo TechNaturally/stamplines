@@ -5,6 +5,7 @@ export default class StampPalette extends Palette {
     this.id = 'Stamps';
     this.symbols = {};
     this.PaperItems = [];
+    this.PreviewItems = {};
     this.svgCache = {};
     this.initialized = true;
     this.configure();
@@ -178,7 +179,12 @@ export default class StampPalette extends Palette {
     }
     return stampButton;
   }
-  getPreviewItem(item, config={}) {
+  generatePreviewID(item, config={}) {
+    if (item && item.data && item.data.Stamp) {
+      return 'Stamp-'+item.data.Stamp.id;
+    }
+  }
+  generatePreviewItem(item, config={}) {
     if (item && item.data && item.data.Stamp) {
       let symbol = this.getStampSymbol(item.data.Stamp);
       if (symbol) {
@@ -196,6 +202,7 @@ export default class StampPalette extends Palette {
         return preview;
       }
     }
+    return null;
   }
   placeStamp(item, position) {
     let symbol = this.getStampSymbol(item).clone();

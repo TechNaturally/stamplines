@@ -7,6 +7,7 @@ export default class Palette extends Component {
   }
   reset() {
     super.reset();
+    this.resetPreviewItems();
     this.destroyDOM();
   }
   get type() {
@@ -28,8 +29,49 @@ export default class Palette extends Component {
   generateDOMItem(item) {
     // sub-classes should implement this
   }
-  getPreviewItem(item) {
-    // sub-classes should implement this
+  getPreviewID(item, config={}) {
+    if (this.PreviewItems && typeof this.generatePreviewID == 'function') {
+      let previewID = this.generatePreviewID(item, config);
+      if (config && config.Source && config.Source.id) {
+        previewID += '-'+config.Source.id;
+      }
+      if (config && (typeof config.width != 'undefined' || typeof config.height != 'undefined')) {
+        previewID += '-';
+        previewID += (typeof config.width != 'undefined' ? config.width : '_');
+        previewID += 'x';
+        previewID += (typeof config.height != 'undefined' ? config.height : '_');
+      }
+      return previewID;
+    }
+  }
+  getPreviewItem(item, config={}) {
+    if (this.PreviewItems && typeof this.generatePreviewID == 'function' && typeof this.generatePreviewItem == 'function') {
+      let previewID = this.getPreviewID(item, config);
+      if (previewID) {
+        if (!this.PreviewItems[previewID]) {
+          let previewItem = this.generatePreviewItem(item, config);
+          if (previewItem) {
+            this.PreviewItems[previewID] = previewItem;
+            if (previewItem.data) {
+              previewItem.data.ID = previewID;
+            }
+          }
+        }
+        return this.PreviewItems[previewID];
+      }
+    }
+  }
+  resetPreviewItems() {
+    if (this.PreviewItems) {
+      let previewIDs = Object.keys(this.PreviewItems);
+      for (let previewID of previewIDs) {
+        if (this.PreviewItems[previewID]) {
+          this.PreviewItems[previewID].remove();
+          this.PreviewItems[previewID] = undefined;
+          delete this.PreviewItems[previewID];
+        }
+      }
+    }
   }
 
   configure(config) {

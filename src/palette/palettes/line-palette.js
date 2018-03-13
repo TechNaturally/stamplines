@@ -4,6 +4,7 @@ export default class LinePalette extends Palette {
     super(SL, config);
     this.id = 'Lines';
     this.PaperItems = [];
+    this.PreviewItems = {};
     this.previewImagePaths = {};
     this.initialized = true;
     this.configure();
@@ -98,7 +99,12 @@ export default class LinePalette extends Palette {
     }
     return lineButton;
   }
-  getPreviewItem(item, config={}) {
+  generatePreviewID(item, config={}) {
+    if (item && item.data && item.data.Line) {
+      return 'Line-'+item.data.Line.id;
+    }
+  }
+  generatePreviewItem(item, config) {
     if (item && item.data && item.data.Line) {
       let width = config.width || 50;
       let height = config.height || 50;
@@ -113,6 +119,7 @@ export default class LinePalette extends Palette {
     }
     return null;
   }
+
   createLine(from, to, lineDef) {
     let line = this.SL.Paper.generatePaperItem({Source: this, Type: 'Line', Line: lineDef}, paper.Path.Line, from.point, to.point);
     this.SL.Paper.Item.addCustomMethod(line, 'refresh', this.refreshItem, this);
