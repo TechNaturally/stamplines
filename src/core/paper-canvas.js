@@ -673,6 +673,20 @@ export default class PaperCanvas extends Component {
     });
   }
 
+  resetContent(args) {
+    let resetClasses = (args && args.ContentClasses) || ['Content', 'ContentAddon'];
+    let destroyItems = [];
+    for (let resetClass of resetClasses) {
+      this.SL.Paper.Item.forEachOfClass(resetClass, (item) => {
+        if (destroyItems.indexOf(item) == -1) {
+          destroyItems.push(item);
+        }
+      });
+    }
+    for (let item of destroyItems) {
+      this.destroyPaperItem(item);
+    }
+  }
   hideContent(args) {
     if (args && args === Object(args)) {
       if (!args.hidden) {
@@ -730,6 +744,11 @@ export default class PaperCanvas extends Component {
     if (!this.eventHandlers) {
       this.eventHandlers = {};
     }
+    if (!this.eventHandlers.ContentReset) {
+      this.eventHandlers.ContentReset = this.on('Content.Reset', undefined, (args, item) => {
+        this.resetContent(args);
+      }, 'Paper.Content.Reset');
+    }
     if (!this.eventHandlers.ContentHide) {
       this.eventHandlers.ContentHide = this.on('Content.Hide', undefined, (args, item) => {
         this.hideContent(args);
@@ -751,6 +770,11 @@ export default class PaperCanvas extends Component {
   resetEventHandlers() {
     if (!this.eventHandlers) {
       return;
+    }
+    if (this.eventHandlers.ContentReset) {
+      this.off('Content.Reset', this.eventHandlers.ContentReset.id);
+      delete this.eventHandlers.ContentReset;
+      this.eventHandlers.ContentReset = undefined;
     }
     if (this.eventHandlers.ContentHide) {
       this.off('Content.Hide', this.eventHandlers.ContentHide.id);

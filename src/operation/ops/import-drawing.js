@@ -94,6 +94,9 @@ export class ImportDrawing extends Operation {
   }
   run(args) {
     if (args) {
+      if (!args.noReset) {
+        this.SL.Paper.emit('Content.Reset');
+      }
       if (args.input) {
         return this.import(args.input);
       }
