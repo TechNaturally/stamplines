@@ -80,11 +80,14 @@ export class ExportDrawing extends Operation {
           }
         }
       });
+      let configs = {};
+      this.SL.Paper.emit('Config.Export', {into: configs}, configs);
 
       // build the content object
       let content = {
         Content: [],
-        Definitions: definitions
+        Definitions: definitions,
+        Config: configs
       };
       let contentTypes = (this.config && this.config.Content && this.config.Content.types) || Object.keys(contentItems);
       if (contentTypes) {

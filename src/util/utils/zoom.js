@@ -27,6 +27,15 @@ export class Zoom extends Util {
     super.reset();
     this.resetEventHandlers();
   }
+  exportConfig(into, args) {
+    into.Zoom = $.extend(true, {}, this.config);
+    return into.Zoom;
+  }
+  importConfig(from, args) {
+    if (from && from.Zoom) {
+      this.configure(from.Zoom);
+    }
+  }
 
   positionView(args) {
     if (this.SL.Paper && this.SL.Paper.view) {
@@ -144,6 +153,16 @@ export class Zoom extends Util {
         this.denaturalizeCanvas(args);
       }, 'Zoom.CanvasDenaturalize');
     }
+    if (!this.eventHandlers.ConfigExport) {
+      this.eventHandlers.ConfigExport = this.SL.Paper.on('Config.Export', undefined, (args, into) => {
+        this.exportConfig(into || args.into, args);
+      }, 'Zoom.ConfigExport');
+    }
+    if (!this.eventHandlers.ConfigImport) {
+      this.eventHandlers.ConfigImport = this.SL.Paper.on('Config.Import', undefined, (args, from) => {
+        this.importConfig(from, args);
+      }, 'Zoom.ConfigImport');
+    }
   }
   resetEventHandlers() {
     if (!this.initialized || !this.eventHandlers) {
@@ -163,6 +182,16 @@ export class Zoom extends Util {
       this.SL.Paper.off('Canvas.Denaturalize', this.eventHandlers.CanvasDenaturalize.id);
       delete this.eventHandlers.CanvasDenaturalize;
       this.eventHandlers.CanvasDenaturalize = undefined;
+    }
+    if (this.eventHandlers.ConfigExport) {
+      this.SL.Paper.off('Config.Export', this.eventHandlers.ConfigExport.id);
+      delete this.eventHandlers.ConfigExport;
+      this.eventHandlers.ConfigExport = undefined;
+    }
+    if (this.eventHandlers.ConfigImport) {
+      this.SL.Paper.off('Config.Import', this.eventHandlers.ConfigImport.id);
+      delete this.eventHandlers.ConfigImport;
+      this.eventHandlers.ConfigImport = undefined;
     }
   }
 }

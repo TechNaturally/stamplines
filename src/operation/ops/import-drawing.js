@@ -33,6 +33,10 @@ export class ImportDrawing extends Operation {
   }
   import(input) {
     if (input === Object(input)) {
+      let configs = input.Config;
+      let configArgs = {};
+      this.SL.Paper.emit('Config.Import', configArgs, configs);
+      
       let definitions = input.Definitions;
       if (Array.isArray(input.Content)) {
         let def_cache = {};
@@ -61,8 +65,8 @@ export class ImportDrawing extends Operation {
           }
           this.SL.Paper.emit('Content.Import', args, {data: item});
         }
-        return true;
       }
+      return true;
     }
   }
   importFile(file) {
