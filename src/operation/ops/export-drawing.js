@@ -62,6 +62,7 @@ export class ExportDrawing extends Operation {
             if (!contentItems[itemType]) {
               contentItems[itemType] = [];
             }
+            into.Content.index = ((item.index || item.index === 0) ? item.index : -1);
             contentItems[itemType].push(into.Content);
           }
           if (into.Definition) {
@@ -97,6 +98,11 @@ export class ExportDrawing extends Operation {
           }
         }
       }
+      content.Content.sort((item1, item2) => {
+        let index1 = ((item1.index || item1.index === 0) ? item1.index : -1);
+        let index2 = ((item2.index || item2.index === 0) ? item2.index : -1);
+        return (index1 - index2);
+      });
       result.content = content;
 
       // wait for loaders to finish before resolving
