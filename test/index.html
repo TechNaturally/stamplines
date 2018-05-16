@@ -127,6 +127,10 @@
                   $(importButton).prop('disabled', false);
                   $(fileInput).prop('disabled', false);
                   $(fileInput).val(null);
+
+                  if (layout) {
+                    $(`#orientation .orientation-radio[value="${layout.state.orientation}"]`).prop('checked', true);
+                  }
                 });
               }
               else {

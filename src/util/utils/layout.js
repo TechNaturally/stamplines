@@ -42,9 +42,33 @@ export class Layout extends Util {
     super.reset();
     this.resetEventHandlers();
   }
-
   applyConfig() {
     this.setSize();
+  }
+  exportConfig(into, args) {
+    into.Layout = {
+      config: $.extend(true, {}, this.config),
+      state: $.extend(true, {}, this.state)
+    };
+    return into.Layout;
+  }
+  importConfig(from, args) {
+    if (from && from.Layout) {
+      if (from.Layout.config) {
+        this.configure(from.Layout.config);
+      }
+      if (from.Layout.state) {
+        if (from.Layout.state.dimensions) {
+          this.resizeCanvas(from.Layout.state.dimensions.width, from.Layout.state.dimensions.height);
+        }
+        if (from.Layout.state.size) {
+          this.setSize(from.Layout.state.size);
+        }
+        if (from.Layout.state.orientation) {
+          this.setOrientation(from.Layout.state.orientation);
+        }
+      }
+    }
   }
 
   getDimensions() {
@@ -97,6 +121,7 @@ export class Layout extends Util {
     this.state.size = size;
 
     let dimensions = this.getDimensions();
+    this.state.dimensions = dimensions;
     if (this.state.size.orientations) {
       if (this.state.size.orientations.includes('portrait') && dimensions.width <= dimensions.height) {
         this.state.orientation = 'portrait';
@@ -171,6 +196,16 @@ export class Layout extends Util {
         }
       }, 'Layout.CanvasResized');
     }
+    if (!this.eventHandlers.ConfigExport) {
+      this.eventHandlers.ConfigExport = this.SL.Paper.on('Config.Export', undefined, (args, into) => {
+        this.exportConfig(into || args.into, args);
+      }, 'Layout.ConfigExport');
+    }
+    if (!this.eventHandlers.ConfigImport) {
+      this.eventHandlers.ConfigImport = this.SL.Paper.on('Config.Import', undefined, (args, from) => {
+        this.importConfig(from, args);
+      }, 'Layout.ConfigImport');
+    }
   }
   resetEventHandlers() {
     if (!this.initialized || !this.eventHandlers) {
@@ -185,6 +220,16 @@ export class Layout extends Util {
       this.SL.Paper.off('Canvas:Resized', this.eventHandlers.CanvasResized.id);
       delete this.eventHandlers.CanvasResized;
       this.eventHandlers.CanvasResized = undefined;
+    }
+    if (this.eventHandlers.ConfigExport) {
+      this.SL.Paper.off('Config.Export', this.eventHandlers.ConfigExport.id);
+      delete this.eventHandlers.ConfigExport;
+      this.eventHandlers.ConfigExport = undefined;
+    }
+    if (this.eventHandlers.ConfigImport) {
+      this.SL.Paper.off('Config.Import', this.eventHandlers.ConfigImport.id);
+      delete this.eventHandlers.ConfigImport;
+      this.eventHandlers.ConfigImport = undefined;
     }
   }
 }
