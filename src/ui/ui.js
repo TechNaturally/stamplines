@@ -8,10 +8,13 @@ export default class UI extends Component {
     super(SL, config);
     this.DOM = SL.DOM;
     this.PaperCanvas = control.paper;
+    this.eventHandlers = {};
+    this.initialized = true;
     this.configure();
   }
   reset() {
     super.reset();
+    this.resetEventHandlers();
     this.destroyDock();
     this.destroyPaperDOM();
     this.destroyMouse();
@@ -87,7 +90,40 @@ export default class UI extends Component {
     this.config.Keyboard = this.config.Keyboard || {};
     this.Keyboard = new Keyboard(this.SL, this.config.Keyboard, this);
 
+    this.initEventHandlers();
+
     return this.config;
+  }
+
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ViewTransformed) {
+      this.eventHandlers.ViewTransformed = this.SL.Paper.on('View.Transformed', undefined, (args, view) => {
+        if (!args || !args.temporary) {
+          if (this.DOM.wrapper) {
+            var canvasStyle = window.getComputedStyle(this.DOM.canvas[0]);
+            if (canvasStyle.width) {
+              this.DOM.wrapper.css('width', canvasStyle.width);
+            }
+          }
+        }
+      }, 'UI.ViewTransformed');
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ViewTransformed) {
+      this.SL.Paper.off('View.Transformed', this.eventHandlers.ViewTransformed.id);
+      delete this.eventHandlers.ViewTransformed;
+      this.eventHandlers.ViewTransformed = undefined;
+    }
   }
 
   classify(id) {
