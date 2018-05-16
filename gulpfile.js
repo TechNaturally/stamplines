@@ -121,7 +121,24 @@ function bundleJS(pkg, destPath, destFile, minify) {
   }
   else {
     // minifying - output the transpiled source, sourcemaps, and minified code
-    bundle = bundle.pipe(gulp.dest(PKG.path.dest.build))
+    bundle = bundle.pipe(replace({
+            usePrefix: false,
+            patterns: [
+              {
+                match: '$(',
+                replacement: 'jQuery('
+              },
+              {
+                match: '$.ajax(',
+                replacement: 'jQuery.ajax('
+              },
+              {
+                match: '$.extend(',
+                replacement: 'jQuery.extend('
+              }
+            ]
+          }))
+          .pipe(gulp.dest(PKG.path.dest.build))
           .pipe(uglify())
           .pipe(rename({ extname: '.min.js' }))
           .pipe(sourcemaps.write(PKG.path.dest.maps))
