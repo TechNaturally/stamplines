@@ -30,7 +30,7 @@ import {default as CursorManager} from '../../src/ui/cursor-manager.js';
 import {default as PaperDOM} from '../../src/ui/paper-dom.js';
 
 import {default as Utils} from '../../src/util/utils.js';
-import {Bounds, Geo, Grid, RemoteLoader, Snap, ConfigParser, Identity, URL} from '../../src/util/utils/_index.js';
+import {Bounds, Geo, Grid, Layout, RemoteLoader, Snap, Zoom, ConfigParser, Identity, URL} from '../../src/util/utils/_index.js';
 import {default as NamedObjectMap} from '../../src/util/classes/named-object-map.js';
 
 export default {
@@ -99,8 +99,10 @@ export default {
     Bounds: Bounds,
     Geo: Geo,
     Grid: Grid,
+    Layout: Layout,
     RemoteLoader: RemoteLoader,
     Snap: Snap,
+    Zoom: Zoom,
     ConfigParser: ConfigParser,
     Identity: Identity,
     URL: URL

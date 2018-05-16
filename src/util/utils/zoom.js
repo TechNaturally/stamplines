@@ -50,7 +50,27 @@ export class Zoom extends Util {
   }
 
   getFitSize() {
-    return ((this.config.fit && (typeof this.config.fit.width != 'undefined' || typeof this.config.fit.height != 'undefined')) ? this.config.fit : undefined);
+    let fitSize = ((this.config.fit && (typeof this.config.fit.width != 'undefined' || typeof this.config.fit.height != 'undefined')) ? this.config.fit : undefined);
+    if (fitSize) {
+      fitSize = $.extend(true, {}, fitSize);
+      let Layout = this.SL.Utils.get('Layout');
+      if (Layout) {
+        let shouldLandscape = (Layout.getOrientation() == 'landscape');
+        let swapDimensions = false;
+        if (shouldLandscape && typeof fitSize.width != 'undefined' && (typeof fitSize.height == 'undefined' || fitSize.height > fitSize.width)) {
+          swapDimensions = true;
+        }
+        else if (!shouldLandscape && typeof fitSize.width != 'undefined' && typeof fitSize.height != 'undefined' && fitSize.width > fitSize.height) {
+          swapDimensions = true;
+        }
+        if (swapDimensions) {
+          let tmpHeight = fitSize.height;
+          fitSize.height = fitSize.width;
+          fitSize.width = tmpHeight;
+        }
+      }
+    }
+    return fitSize;
   }
   fitToSize(width, height, args) {
     if (this.SL.Paper && this.SL.Paper.canvas && this.SL.Paper.canvas.length) {

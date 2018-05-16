@@ -120,6 +120,9 @@ export default class PaperCanvas extends Component {
           }
         }, 0);
       });
+      this.canvas.on('resize.stamplines', (event, size) => {
+        this.emit('Canvas:Resized', size, this);
+      });
     }
 
     this.initEventHandlers();

@@ -3,6 +3,7 @@ export class Snap extends Util {
   constructor(SL, config) {
     super(SL, config);
     this.name = 'Snap';
+    this.eventHandlers = {};
     this.Snappers = {};
     this.Snaps = {
       item: { map: {}, order: [] },
@@ -12,19 +13,50 @@ export class Snap extends Util {
       rectangle: { map: {}, order: [] },
       rotation: { map: {}, order: [] }
     };
+    this.initialized = true;
     this.configure();
   }
   configure(config) {
     config = super.configure(config);
+    this.initEventHandlers();
     this.registerSnappers();
     return config;
   }
   reset() {
     super.reset();
+    this.resetEventHandlers();
     this.unregisterSnappers();
     for (let type in this.Snaps) {
       this.Snaps[type].map = {};
       this.Snaps[type].order = [];
+    }
+  }
+
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ViewTransformed) {
+      this.eventHandlers.ViewTransformed = this.SL.Paper.on('View.Transformed', undefined, (args, view) => {
+        if (!args || !args.temporary) {
+          this.SL.Paper.Item.forEachOfClass('Content', (item, data) => {
+            this.Item(item);
+          }, {});
+        }
+      }, 'Snap.ViewTransformed');
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ViewTransformed) {
+      this.SL.Paper.off('View.Transformed', this.eventHandlers.ViewTransformed.id);
+      delete this.eventHandlers.ViewTransformed;
+      this.eventHandlers.ViewTransformed = undefined;
     }
   }
 
