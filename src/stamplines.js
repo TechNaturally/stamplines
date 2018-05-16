@@ -248,7 +248,8 @@ StampLines.DEFAULT = {
           strokeWidth: 1.0,
           opacity: 0.3
         }
-      }
+      },
+      Layout: {}
     },
     Operations: {
       Ops: {

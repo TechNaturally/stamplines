@@ -74,6 +74,12 @@
           <button type="button" class="save-image-button" name="save-image-button">Save Image</button>
         </div>
       </div>
+      <div id="orientation" class="controls orientation">
+        <div class="control">
+          <label><input type="radio" class="orientation-radio orientation-portrait" name="orientation" value="portrait" /> Portrait</label>
+          <label><input type="radio" class="orientation-radio orientation-landscape" name="orientation" value="landscape" /> Landscape</label>
+        </div>
+      </div>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -93,6 +99,19 @@
       let SL = new StampLines('#canvas');
       let slLoaded = SL.loadConfig('assets/StampLines.json');
       slLoaded.then(() => {
+        // read the canvas orientation
+        let layout = SL.Utils.get('Layout');
+        if (layout) {
+          $('#orientation .orientation-radio').each((index, element) => {
+            if (element.value == layout.state.orientation) {
+              $(element).prop('checked', true).click();
+            }
+            $(element).on('click', (clickEvent) => {
+              layout.setOrientation(element.value);
+            });
+          });
+        }
+
         if (SL.Operations) {
           // prepare the Importer
           if (SL.Operations.canRun('ImportDrawing', { file: true })) {
