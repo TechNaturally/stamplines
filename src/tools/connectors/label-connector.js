@@ -106,6 +106,7 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.ContentExport) {
         this.eventHandlers.ContentExport = this.SL.Paper.on('Content.Export', {Type: ['Text']}, (args, item) => {
           if (item && item.data && item.data.labeling && item.data.labeling.length && args && args.into && args.into.Content && args.into.Content.Type == 'Text') {
+            let Snap = this.SL.Utils.get('Snap');
             let connection = item.data.labeling[0];
             if (connection && connection.offset && connection.target && connection.target.item) {
               this.SL.Paper.removeStyle(item, 'labelStyle', true);
@@ -119,7 +120,13 @@ export class LabelConnector extends Connector {
 
               let point = this.connectionPoint(connection.target, connection.target.item, {offset: connection.offset});
               if (point) {
-                args.into.Content.LabelPoint = { x: point.x, y: point.y };
+                let x = point.x;
+                let y = point.y;
+                if (Snap && args.roundTo !== undefined) {
+                  x = Snap.Round(x, args.roundTo);
+                  y = Snap.Round(y, args.roundTo);
+                }
+                args.into.Content.LabelPoint = { x, y };
               }
             }
           }

@@ -15,6 +15,9 @@ export class ExportDrawing extends Operation {
     if (!config.format) {
       config.format = {};
     }
+    if (config.format.roundTo == undefined) {
+      config.format.roundTo = 5;
+    }
     if (config.format.defaultPretty == undefined) {
       config.format.defaultPretty = 0;
     }
@@ -57,7 +60,11 @@ export class ExportDrawing extends Operation {
         let itemType = (item && item.data && item.data.Type);
         if (itemType && this.canExport(itemType)) {
           let into = {};
-          this.SL.Paper.emit('Content.Export', {into}, item);
+          let args = {
+            roundTo: this.config.format.roundTo,
+            into
+          };
+          this.SL.Paper.emit('Content.Export', args, item);
           if (into.Content) {
             if (!contentItems[itemType]) {
               contentItems[itemType] = [];

@@ -240,21 +240,31 @@ export default class StampPalette extends Palette {
   }
   exportStamp(item, args) {
     if (item && item.data && item.data.Type == 'Stamp' && args && args.into) {
+      let Snap = this.SL.Utils.get('Snap');
       let rotation = item.rotation;
       let rotationPoint = item.bounds.center;
       if (rotation) {
         item.rotate(-rotation, rotationPoint);
       }
+      let rotationRounded = rotation;
+      let bounds = {
+        x: item.bounds.topLeft.x,
+        y: item.bounds.topLeft.y,
+        width: item.bounds.width,
+        height: item.bounds.height
+      };
+      if (Snap && args.roundTo !== undefined) {
+        bounds.x = Snap.Round(bounds.x, args.roundTo);
+        bounds.y = Snap.Round(bounds.y, args.roundTo);
+        bounds.width = Snap.Round(bounds.width, args.roundTo);
+        bounds.height = Snap.Round(bounds.height, args.roundTo);
+        rotationRounded = Snap.Round(rotationRounded, args.roundTo);
+      }
       args.into.Content = {
         Type: 'Stamp',
         id: (item.data.Stamp && item.data.Stamp.id),
-        bounds: {
-          x: item.bounds.topLeft.x,
-          y: item.bounds.topLeft.y,
-          width: item.bounds.width,
-          height: item.bounds.height
-        },
-        rotation: rotation
+        bounds,
+        rotation: rotationRounded
       };
       args.into.Definition = $.extend({}, item.data.Stamp);
       if (args.into.Definition.symbol) {

@@ -171,11 +171,18 @@ export default class LinePalette extends Palette {
   }
   exportLine(item, args) {
     if (item && item.data && item.data.Type == 'Line' && args && args.into) {
+      let Snap = this.SL.Utils.get('Snap');
       let points = [];
       if (item.segments) {
         for (let segment of item.segments) {
           if (segment.point) {
-            points.push({ x: segment.point.x, y: segment.point.y });
+            let x = segment.point.x;
+            let y = segment.point.y;
+            if (Snap && args.roundTo !== undefined) {
+              x = Snap.Round(x, args.roundTo);
+              y = Snap.Round(y, args.roundTo);
+            }
+            points.push({ x, y });
           }
         }
       }

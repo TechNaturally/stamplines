@@ -145,6 +145,7 @@
           "types": ["Stamp", "Line", "Text"]
         },
         "format": {
+          "roundTo": 5,
           "defaultPretty": 2
         }
       },

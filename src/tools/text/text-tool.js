@@ -731,25 +731,35 @@ export class TextTool extends Tool {
   }
   exportTextItem(item, args={}) {
     if (item && item.data && item.data.Type == 'Text' && args && args.into) {
+      let Snap = this.SL.Utils.get('Snap');
       let rotation = item.rotation;
       let rotationPoint = item.bounds.center;
       if (rotation) {
         item.rotate(-rotation, rotationPoint);
+      }
+      let x = item.bounds.leftCenter.x;
+      let y = item.bounds.leftCenter.y;
+      let rotationRounded = rotation;
+      let fontSize = item.fontSize;
+      let fontWeight = item.fontWeight;
+      if (Snap && args.roundTo !== undefined) {
+        x = Snap.Round(x, args.roundTo);
+        y = Snap.Round(y, args.roundTo);
+        rotationRounded = Snap.Round(rotationRounded, args.roundTo);
+        fontSize = Snap.Round(fontSize, args.roundTo);
+        fontWeight = Snap.Round(fontWeight, args.roundTo);
       }
       args.into.Content = {
         Type: 'Text',
         content: item.content,
         font: {
           fontFamily: item.fontFamily,
-          fontSize: item.fontSize,
-          fontWeight: item.fontWeight,
+          fontSize: fontSize,
+          fontWeight: fontWeight,
           fontDecoration: item.fontDecoration
         },
-        point: {
-          x: item.bounds.leftCenter.x,
-          y: item.bounds.leftCenter.y
-        },
-        rotation: rotation
+        point: { x, y },
+        rotation: rotationRounded
       };
       // rotate item back
       if (rotation) {
