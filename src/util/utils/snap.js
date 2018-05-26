@@ -1,4 +1,5 @@
 import Util from '../../core/util.js';
+
 export class Snap extends Util {
   constructor(SL, config) {
     super(SL, config);
@@ -68,6 +69,12 @@ export class Snap extends Util {
   }
   Equal(value1, value2, threshold=1.0/10000000.0) {
     return (this.Around(value2, value1, threshold) == value2);
+  }
+  Round(value, precision) {
+    if (typeof Math.betterRound == 'function') {
+      return Math.betterRound(value, precision);
+    }
+    return Math.round(value, precision);
   }
   Item(item, config={}) {
     if (!this.SL.Paper.Item.canTransform(item, 'snapItem')) {
