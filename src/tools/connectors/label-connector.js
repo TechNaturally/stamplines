@@ -30,13 +30,21 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.SelectionItemSelected) {
         this.eventHandlers.SelectionItemSelected = this.SL.Paper.on('SelectionItemSelected', undefined, (args) => {
           if (args && args.item) {
-            this.bringLabelsToFront(args.item);
+            this.LiftConnections(args.item, {aboveParent: true});
           }
           this.refreshTargets(args, 'SelectionItemSelected');
         }, 'LabelConnector.SelectionItemSelected');
       }
       if (!this.eventHandlers.SelectionItemUnselected) {
         this.eventHandlers.SelectionItemUnselected = this.SL.Paper.on('SelectionItemUnselected', undefined, (args) => {
+          if (args && args.item) {
+            this.LiftConnections(args.item);
+          }
+          else if (args && args.items) {
+            for (let item of args.items) {
+              this.LiftConnections(item);
+            }
+          }
           this.refreshTargets(args, 'SelectionItemUnselected');
         }, 'LabelConnector.SelectionItemUnselected');
       }
@@ -308,13 +316,18 @@ export class LabelConnector extends Connector {
     }
   }
 
-  bringLabelsToFront(item) {
-    let Select = this.Belt.Belt.Select;
-    if (Select && Select.Group && this.itemHasLabels(item)) {
+  LiftConnections(item, config={}) {
+    if (this.itemHasLabels(item)) {
+      let liftTarget = this.getLiftTarget(item, config);
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
           if (connection && connection.label) {
-            connection.label.moveAbove(Select.Group);
+            if (liftTarget.above) {
+              connection.label.moveAbove(liftTarget.above);
+            }
+            else if (liftTarget.below) {
+              connection.label.moveBelow(liftTarget.below);
+            }
           }
         }
       }

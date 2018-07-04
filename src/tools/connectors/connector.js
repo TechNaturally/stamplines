@@ -173,6 +173,31 @@ export class Connector extends Tool {
   DisconnectPoint(target, config) {
     // implementing class should override this
   }
+  getLiftTarget(item, config) {
+    let liftTarget = {};
+    if (config && config.aboveTarget) {
+      liftTarget.above = config.aboveTarget;
+    }
+    else if (config && config.belowTarget) {
+      liftTarget.below = config.belowTarget;
+    }
+    else if (config && config.aboveParent) {
+      liftTarget.above = item.parent;
+    }
+    else if (config && config.belowParent) {
+      liftTarget.below = item.parent;
+    }
+    else if (config && config.belowItem) {
+      liftTarget.below = item;
+    }
+    else {
+      liftTarget.above = item;
+    }
+    return liftTarget;
+  }
+  LiftConnections(item, config={}) {
+    // implementing class should override this
+  }
 
   resetUI() {
     this.resetUITargets();

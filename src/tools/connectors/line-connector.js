@@ -15,6 +15,23 @@ export class LineConnector extends Connector {
           this.InitConnections(stamp);
         }, 'LineConnector.Generate.Stamp');
       }
+      if (!this.eventHandlers.SelectStamp) {
+        this.eventHandlers.SelectStamp = this.SL.Paper.on('SelectionItemSelected', {Type: 'Stamp'}, (args, stamp) => {
+          this.LiftConnections(stamp);
+        }, 'LineConnector.Select.Stamp');
+      }
+      if (!this.eventHandlers.UnselectItem) {
+        this.eventHandlers.UnselectItem = this.SL.Paper.on('SelectionItemUnselected', undefined, (args) => {
+          if (args && args.item) {
+            this.LiftConnections(args.item);
+          }
+          else if (args && args.items) {
+            for (let item of args.items) {
+              this.LiftConnections(item);
+            }
+          }
+        }, 'LineConnector.Unselect.Item');
+      }
       if (!this.eventHandlers.DestroyItem) {
         this.eventHandlers.DestroyItem = this.SL.Paper.on('Destroy', {Type: ['Stamp', 'Line']}, (args, item) => {
           this.DisconnectItem(item);
@@ -59,6 +76,16 @@ export class LineConnector extends Connector {
       this.SL.Paper.off('Generate', this.eventHandlers.GenerateStamp.id);
       delete this.eventHandlers.GenerateStamp;
       this.eventHandlers.GenerateStamp = undefined;
+    }
+    if (this.eventHandlers.SelectStamp) {
+      this.SL.Paper.off('SelectionItemSelected', this.eventHandlers.SelectStamp.id);
+      delete this.eventHandlers.SelectStamp;
+      this.eventHandlers.SelectStamp = undefined;
+    }
+    if (this.eventHandlers.UnselectItem) {
+      this.SL.Paper.off('SelectionItemUnselected', this.eventHandlers.UnselectItem.id);
+      delete this.eventHandlers.UnselectItem;
+      this.eventHandlers.UnselectItem = undefined;
     }
     if (this.eventHandlers.DestroyItem) {
       this.SL.Paper.off('Destroy', this.eventHandlers.DestroyItem.id);
@@ -108,6 +135,24 @@ export class LineConnector extends Connector {
           lockX: connection.lockX,
           lockY: connection.lockY
         });
+      }
+    }
+  }
+
+  LiftConnections(item, config={}) {
+    if (this.itemHasConnections(item)) {
+      let liftTarget = this.getLiftTarget(item, config);
+      for (let Connection of item.data.Connections) {
+        for (let connection of Connection.connected) {
+          if (connection.segment && connection.segment.path) {
+            if (liftTarget.above) {
+              connection.segment.path.moveAbove(liftTarget.above);
+            }
+            else if (liftTarget.below) {
+              connection.segment.path.moveBelow(liftTarget.below);
+            }
+          }
+        }
       }
     }
   }
