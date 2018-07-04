@@ -758,6 +758,7 @@ export class TextTool extends Tool {
           fontWeight: fontWeight,
           fontDecoration: item.fontDecoration
         },
+        index: item.index,
         point: { x, y },
         rotation: rotationRounded
       };

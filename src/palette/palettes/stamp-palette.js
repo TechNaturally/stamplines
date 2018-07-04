@@ -263,6 +263,7 @@ export default class StampPalette extends Palette {
       args.into.Content = {
         Type: 'Stamp',
         id: (item.data.Stamp && item.data.Stamp.id),
+        index: item.index,
         bounds,
         rotation: rotationRounded
       };

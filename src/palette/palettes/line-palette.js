@@ -189,6 +189,7 @@ export default class LinePalette extends Palette {
       args.into.Content = {
         Type: 'Line',
         id: (item.data.Line && item.data.Line.id),
+        index: item.index,
         points
       };
       args.into.Definition = $.extend({}, item.data.Line);
