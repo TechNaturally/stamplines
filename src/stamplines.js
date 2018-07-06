@@ -66,10 +66,12 @@ export default class StampLines {
   }
   initTools() {
     let config = this.config.Tools || {};
-    if (!config.enable) {
-      config.enable = [];
-    }
+    let configEnable = config.enable || [];
+    config.enable = [];
     for (let enable of StampLines.DEFAULT.coreTools) {
+      config.enable.push(enable);
+    }
+    for (let enable of configEnable) {
       if (config.enable.indexOf(enable)==-1) {
         config.enable.push(enable);
       }
