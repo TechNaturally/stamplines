@@ -525,6 +525,29 @@ export default class PaperCanvas extends Component {
     }
     return item;
   }
+  getPaperLayer(layer, createMissing=true) {
+    if (layer && typeof layer == 'string') {
+      // map string Layer id to numerical Layer id
+      layer = this.Layers[layer];
+    }
+    if (!this.paperLayers[layer] && createMissing) {
+      // assert this paperScope
+      let activeProject = paper.project;
+      if (this.paperProject && activeProject != this.paperProject) {
+        this.paperProject.activate();
+      }
+
+      // create the new layer
+      this.paperLayers[layer] = new paper.Layer();
+      this.sortLayers();
+
+      // flip back active project if different
+      if (activeProject && activeProject != this.paperProject) {
+        activeProject.activate();
+      }
+    }
+    return this.paperLayers[layer];
+  }
   trackItemByLayer(item) {
     if (item) {
       if (!this.canTrackItem(item)) {
@@ -533,27 +556,10 @@ export default class PaperCanvas extends Component {
       if (!item.data || item.data.Layer == undefined) {
         throw 'Cannot track PaperItem without Layer attribute!';
       }
-      if (item.data.Layer && typeof item.data.Layer == 'string') {
-        // map string Layer id to numerical Layer id
-        item.data.Layer = this.Layers[item.data.Layer];
+      let PaperLayer = this.getPaperLayer(item.data.Layer);
+      if (PaperLayer) {
+        PaperLayer.appendTop(item);
       }
-      if (!this.paperLayers[item.data.Layer]) {
-        // assert this paperScope
-        let activeProject = paper.project;
-        if (this.paperProject && activeProject != this.paperProject) {
-          this.paperProject.activate();
-        }
-
-        // create the new layer
-        this.paperLayers[item.data.Layer] = new paper.Layer();
-        this.sortLayers();
-
-        // flip back active project if different
-        if (activeProject && activeProject != this.paperProject) {
-          activeProject.activate();
-        }
-      }
-      this.paperLayers[item.data.Layer].appendTop(item);
     }
     return item;
   }
