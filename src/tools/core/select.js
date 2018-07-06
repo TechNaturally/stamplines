@@ -3,7 +3,9 @@ export class Select extends Tool {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
     this.Items = [];
-    this.Group = this.SL.Paper.generatePaperItem({Source: this, Class: 'SELECTED', Layer: 'CONTENT_ACTIVE'}, paper.Group);
+    this.Groups = {
+      'default': this.SL.Paper.generatePaperItem({Source: this, Class: 'SELECTED', Layer: 'CONTENT_ACTIVE'}, paper.Group)
+    };
     this.State = {
       multi: false
     };
@@ -12,9 +14,11 @@ export class Select extends Tool {
   }
   destroy() {
     super.destroy();
-    this.SL.Paper.destroyPaperItem(this.Group);
-    this.Group = undefined;
-    delete this.Group;
+    for (let groupID in this.Groups) {
+      this.SL.Paper.destroyPaperItem(this.Groups[groupID]);
+      delete this.Groups[groupID];
+      this.Groups[groupID] = undefined;
+    }
   }
   get activationPriority() {
     if (this.State.multi && this.Belt.State.Mouse.Hover.targetItem) {
@@ -63,6 +67,13 @@ export class Select extends Tool {
   resetState() {
     this.State.multi = false;
   }
+  addGroup(group, groupID) {
+    // TODO: allow generated groupID
+    if (!this.Groups[groupID]) {
+      this.Groups[groupID] = group;
+    }
+    return groupID;
+  }
   isSelectable(item) {
     let selectable = false;
     this.SL.Paper.Item.forEachClass(item, (itemClass) => {
@@ -76,7 +87,7 @@ export class Select extends Tool {
   isSelected(item) {
     return !!(item && this.Items.indexOf(item) != -1);
   }
-  Select(item) {
+  Select(item, groupID='default') {
     if (item.constructor == Array) {
       for (let select_item of item) {
         this.Select(select_item);
@@ -87,7 +98,10 @@ export class Select extends Tool {
       this.Items.push(item);
       item.selected = true;
       item.data.parentOrig = item.parent;
-      this.Group.appendBottom(item);
+      if (!groupID || !this.Groups[groupID]) {
+        groupID = 'default';
+      }
+      this.Groups[groupID].appendBottom(item);
       this.refreshUI();
       this.Belt.onSelectionItemSelected({ item: item });
       this.SL.Paper.emit('SelectionItemSelected', { item: item }, item);
@@ -153,6 +167,50 @@ export class Select extends Tool {
     }
     return !allBlocked;
   }
+  getBounds(padding=true) {
+    let bounds = {
+      from: undefined,
+      to: undefined
+    };
+    for (let groupID in this.Groups) {
+      let Group = this.Groups[groupID];
+      if (!Group || Group.isEmpty()) {
+        continue;
+      }
+      if (!bounds.from) {
+        bounds.from = new paper.Point(Group.bounds.topLeft);
+      }
+      if (!bounds.to) {
+        bounds.to = new paper.Point(Group.bounds.bottomRight);
+      }
+      if (Group.bounds.left < bounds.from.x) {
+        bounds.from.x = Group.bounds.left;
+      }
+      if (Group.bounds.top < bounds.from.y) {
+        bounds.from.y = Group.bounds.top;
+      }
+      if (Group.bounds.right > bounds.to.x) {
+        bounds.to.x = Group.bounds.right;
+      }
+      if (Group.bounds.bottom > bounds.to.y) {
+        bounds.to.y = Group.bounds.bottom;
+      }
+    }
+    if (padding === true) {
+      padding = this.config.padding;
+    }
+    if (padding && !isNaN(padding)) {
+      if (bounds.from) {
+        bounds.from.x -= padding;
+        bounds.from.y -= padding;
+      }
+      if (bounds.to) {
+        bounds.to.x += padding;
+        bounds.to.y += padding;
+      }      
+    }
+    return new paper.Rectangle(bounds);
+  }
   refreshUI() {
     if (this.isActive()) {
       let cursor = 'crosshair';
@@ -177,12 +235,13 @@ export class Select extends Tool {
   }
   refreshUIOutline() {
     if (this.Items.length) {
+      let bounds = this.getBounds();
       if (!this.UI.outline) {
         this.UI.outline = this.SL.Paper.generatePaperItem({Source: this, Class:'UI'}, paper.Shape.Rectangle);
         this.UI.outline.selected = true;
       }
       this.UI.outline.selectedColor = ((this.Items.length > 1) ? this.config.colorMulti : this.config.colorSingle);
-      this.UI.outline.set({position: this.Group.bounds.center, size: this.Group.bounds.size.add(this.config.padding*2.0)});
+      this.UI.outline.set({position: bounds.center, size: bounds.size});
     }
     else {
       this.resetUIOutline();

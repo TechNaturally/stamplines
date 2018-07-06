@@ -186,7 +186,7 @@ export class Rotate extends Tool {
     }
   }
   get circleCenter() {
-    return (this.UI.circle ? this.UI.circle.bounds.center : this.Belt.Belt.Select.Group.bounds.center);
+    return (this.UI.circle ? this.UI.circle.bounds.center : this.Belt.Belt.Select.getBounds().center);
   }
   get circleRadius() {
     return (this.UI.circle ? this.UI.circle.strokeBounds.width/2.0 : this.config.ui.circle.radius);
@@ -210,7 +210,7 @@ export class Rotate extends Tool {
     let Select = this.Belt.Belt.Select;
     if (Select && Select.hasItems() && Select.canTransform('rotate')) {
       let radius = this.config.ui.circle.radius;
-      let position = Select.Group.bounds.center;
+      let position = Select.getBounds().center;
       if (!this.UI.circle) {
         this.UI.circle = this.SL.Paper.generatePaperItem({Source: this, Class:['UI','Tool'], Layer:this.SL.Paper.Layers['UI']-1}, paper.Shape.Circle, position, radius);
       }
