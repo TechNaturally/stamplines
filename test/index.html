@@ -179,6 +179,19 @@
               return false;
             });
           }
+
+          // add auto_save callbacks
+          SL.Operations.addTimerCallback('auto_save', (result) => {
+            console.log('SL.Operations [auto_save] has completed => ', result);
+          });
+          setTimeout(() => {
+            console.log('App is Starting the timers now...');
+            SL.Operations.startTimers();
+            setTimeout(() => {
+              console.log('App is Stopping the timers now...');
+              SL.Operations.stopTimers();
+            }, 3*30*1000);
+          }, 2500);
         }
       });
     });

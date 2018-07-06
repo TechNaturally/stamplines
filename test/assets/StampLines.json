@@ -154,6 +154,23 @@
           "classes": ["BG", "Content", "ContentAddon"]
         }
       }
+    },
+    "Timer": {
+      "Timers": {
+        "auto_save": {
+          "interval": 10000,
+          "operations": [
+            {
+              "Op": "ExportDrawing",
+              "args": { }
+            },
+            {
+              "Op": "SaveDrawing",
+              "args": { }
+            }
+          ]
+        }
+      }
     }
   }
 }
