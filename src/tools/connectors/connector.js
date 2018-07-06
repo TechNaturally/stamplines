@@ -6,6 +6,7 @@ export class Connector extends Tool {
     this.UI = {
       Targets: []
     };
+    this.TargetLayer = this.SL.Paper.Layers['UI_FG']+5;
     this.initialized = true;
     this.configure(config);
   }
@@ -175,14 +176,27 @@ export class Connector extends Tool {
   }
   getLiftTarget(item, config) {
     let liftTarget = {};
+    if (config && config.toGroup) {
+      if (typeof config.toGroup == 'object' && config.toGroup.constructor.name == 'Group') {
+        liftTarget.toGroup = config.toGroup;
+      }
+    }
+    if (config && config.toLayer) {
+      if (typeof config.toLayer == 'object' && config.toLayer.constructor.name == 'Layer') {
+        liftTarget.toLayer = config.toLayer;
+      }
+      else {
+        liftTarget.toLayer = this.SL.Paper.getPaperLayer(config.toLayer);
+      }
+    }
     if (config && config.aboveTarget) {
       liftTarget.above = config.aboveTarget;
     }
-    else if (config && config.belowTarget) {
-      liftTarget.below = config.belowTarget;
-    }
     else if (config && config.aboveParent) {
       liftTarget.above = item.parent;
+    }
+    if (config && config.belowTarget) {
+      liftTarget.below = config.belowTarget;
     }
     else if (config && config.belowParent) {
       liftTarget.below = item.parent;
@@ -190,13 +204,21 @@ export class Connector extends Tool {
     else if (config && config.belowItem) {
       liftTarget.below = item;
     }
-    else {
+    if (!liftTarget.above && !liftTarget.below && !liftTarget.toLayer) {
       liftTarget.above = item;
+    }
+    if (config && config.selected) {
+      liftTarget.selected = this.getLiftTarget(item, config.selected);
     }
     return liftTarget;
   }
   LiftConnections(item, config={}) {
-    // implementing class should override this
+    throw new Error(`Abstract method: ${this.constructor.name}::LiftConnections is not implemented!`);
+  }
+  LiftConnectionsOnContent(config={}) {
+    this.SL.Paper.Item.forEachOfClass('Content', (item, config) => {
+      this.LiftConnections(item, config);
+    }, config);
   }
 
   resetUI() {
@@ -357,8 +379,7 @@ export class Connector extends Tool {
       pointsB.unshift(endAt.point.add(vector));
 
       // create the target item using pointsA + pointsB
-      let layer = ((item.data && item.data.Layer != null) ? item.data.Layer+1 : this.SL.Paper.Layers['UI_FG']+5);
-      targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:layer}, paper.Path, pointsA.concat(pointsB));
+      targetUI = this.SL.Paper.generatePaperItem({Source: this, Class: 'UI', Layer: this.TargetLayer}, paper.Path, pointsA.concat(pointsB));
       targetUI.closed = true;
 
       if (targetUI) {
@@ -434,8 +455,7 @@ export class Connector extends Tool {
     }
 
     // create the target point
-    let layer = ((item.data && item.data.Layer != null) ? item.data.Layer+1 : this.SL.Paper.Layers['UI_FG']+5);
-    let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class:'UI', Layer:layer}, targetShape, targetConfig);
+    let targetUI = this.SL.Paper.generatePaperItem({Source: this, Class: 'UI', Layer: this.TargetLayer}, targetShape, targetConfig);
     this.SL.Paper.applyStyle(targetUI, targetStyle);
 
     // the cornerRadius style would mess up width and height, so fix it here

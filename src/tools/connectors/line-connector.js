@@ -17,7 +17,7 @@ export class LineConnector extends Connector {
       }
       if (!this.eventHandlers.SelectStamp) {
         this.eventHandlers.SelectStamp = this.SL.Paper.on('SelectionItemSelected', {Type: 'Stamp'}, (args, stamp) => {
-          this.LiftConnections(stamp);
+          this.LiftConnections(stamp, {belowParent: true});
         }, 'LineConnector.Select.Stamp');
       }
       if (!this.eventHandlers.UnselectItem) {

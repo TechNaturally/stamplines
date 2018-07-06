@@ -2,6 +2,9 @@ import {Connector} from './connector.js';
 export class LabelConnector extends Connector {
   constructor(SL, config, Belt) {
     super(SL, config, Belt);
+    this.LabelLayer = this.TargetLayer + 1;
+    this.LabelSelectGroup = this.SL.Paper.generatePaperItem({Source: this, Class: 'SELECTED', Layer: this.LabelLayer}, paper.Group);
+    Belt.Belt.Select.addGroup(this.LabelSelectGroup, 'SelectedLabels');
   }
   configureUI(config={}) {
     super.configureUI(config);
@@ -30,7 +33,8 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.SelectionItemSelected) {
         this.eventHandlers.SelectionItemSelected = this.SL.Paper.on('SelectionItemSelected', undefined, (args) => {
           if (args && args.item) {
-            this.LiftConnections(args.item, {aboveParent: true});
+            // lift any labels on a selected item (above the targets)
+            this.LiftConnections(args.item, {toLayer: this.LabelLayer});
           }
           this.refreshTargets(args, 'SelectionItemSelected');
         }, 'LabelConnector.SelectionItemSelected');
@@ -38,6 +42,7 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.SelectionItemUnselected) {
         this.eventHandlers.SelectionItemUnselected = this.SL.Paper.on('SelectionItemUnselected', undefined, (args) => {
           if (args && args.item) {
+            // lift any labels on an unselected item (above the item)
             this.LiftConnections(args.item);
           }
           else if (args && args.items) {
@@ -51,6 +56,7 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.TextToolActivated) {
         this.eventHandlers.TextToolActivated = this.SL.Paper.on('ToolActivated', undefined, (args, item) => {
           if (item && item.constructor && item.constructor.name == 'TextTool') {
+            this.LiftConnectionsOnContent({toLayer: this.LabelLayer});
             this.refreshTargets(args, 'TextTool.Activated');
           }
         }, 'LabelConnector.TextTool.Activated');
@@ -58,6 +64,7 @@ export class LabelConnector extends Connector {
       if (!this.eventHandlers.TextToolDeactivated) {
         this.eventHandlers.TextToolDeactivated = this.SL.Paper.on('ToolDeactivated', undefined, (args, item) => {
           if (item && item.constructor && item.constructor.name == 'TextTool') {
+            this.LiftConnectionsOnContent();
             this.refreshTargets(args, 'TextTool.Deactivated');
           }
         }, 'LabelConnector.TextTool.Deactivated');
@@ -316,19 +323,43 @@ export class LabelConnector extends Connector {
     }
   }
 
+  LiftConnection(connection, liftTarget) {
+    let Select = this.Belt.Belt.Select;
+    if (liftTarget && connection && connection.label) {
+      let lift = liftTarget;
+      if (Select && Select.isSelected(connection.label)) {
+        if (!liftTarget.selected && connection.target && connection.target.item) {
+          liftTarget.selected = this.getLiftTarget(connection.target.item, { toGroup: this.LabelSelectGroup });
+        }
+        if (liftTarget.selected) {
+          lift = liftTarget.selected;
+        }
+      }
+      if (lift.toGroup) {
+        lift.toGroup.appendTop(connection.label);
+      }
+      else if (lift.toLayer) {
+        lift.toLayer.appendTop(connection.label);
+      }
+      else if (lift.above) {
+        connection.label.moveAbove(lift.above);
+      }
+      else if (lift.below) {
+        connection.label.moveBelow(lift.below);
+      }
+    }
+  }
   LiftConnections(item, config={}) {
     if (this.itemHasLabels(item)) {
+      if (!config.selected) {
+        config.selected = {
+          toGroup: this.LabelSelectGroup
+        };
+      }
       let liftTarget = this.getLiftTarget(item, config);
       for (let Label of item.data.Labels) {
         for (let connection of Label.connected) {
-          if (connection && connection.label) {
-            if (liftTarget.above) {
-              connection.label.moveAbove(liftTarget.above);
-            }
-            else if (liftTarget.below) {
-              connection.label.moveBelow(liftTarget.below);
-            }
-          }
+          this.LiftConnection(connection, liftTarget);
         }
       }
     }
@@ -355,10 +386,32 @@ export class LabelConnector extends Connector {
   }
   drawItemTargets(item) {
     if (this.itemHasLabels(item)) {
+      let liftTarget = this.getLiftTarget(item, {toLayer: this.LabelLayer}); // above any UI.Targets
       for (let labelSlot of item.data.Labels) {
         this.drawItemTarget(item, labelSlot);
+        for (let connection of labelSlot.connected) {
+          this.LiftConnection(connection, liftTarget);
+        }
       }
     }
+  }
+  hideTargets() {
+    super.hideTargets();
+    let Select = this.Belt.Belt.Select;
+    this.SL.Paper.Item.forEachOfClass('Content', (item, args) => {
+      if (this.itemHasLabels(item)) {
+        let liftConfig = undefined;
+        if (Select && Select.isSelected(item)) {
+          liftConfig = { aboveParent: true };
+        }
+        let liftTarget = this.getLiftTarget(item, liftConfig);
+        for (let labelSlot of item.data.Labels) {
+          for (let connection of labelSlot.connected) {
+            this.LiftConnection(connection, liftTarget);
+          }
+        }
+      }
+    });
   }
   getLabelTargetConnectionIndex(label, target) {
     if (target && this.itemIsLabel(label)) {
