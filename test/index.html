@@ -161,7 +161,7 @@
               $(getDataURLbutton).prop('disabled', true);
               SL.Operations.run('SaveDrawing', { dataURL: true }).then((result) => {
                 $(getDataURLbutton).prop('disabled', false);
-                console.log('DataURL:', result);
+                console.log('DataURL:', result.dataURL);
               });
               return false;
             });

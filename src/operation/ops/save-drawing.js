@@ -120,7 +120,7 @@ export class SaveDrawing extends Operation {
     return new Promise((resolve, reject) => {
       this.save(args).then((data) => {
         if (data) {
-          resolve(data.dataURL);
+          resolve(data);
         }
         else {
           reject('No data was exported.');
@@ -135,6 +135,6 @@ export class SaveDrawing extends Operation {
     if (args.dataURL) {
       return this.getDataURL(args);
     }
-    return false;
+    return this.save(args);
   }
 }
