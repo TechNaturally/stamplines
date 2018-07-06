@@ -154,7 +154,9 @@ export class TextTool extends Tool {
     if (this.State) {
       if (this.State.textItem) {
         this.removeTemporaryStraighten(this.State.textItem, 'textItem');
-        if (!this.State.textItem.content.trim()) {
+        this.resetToHome(this.State.textItem);
+        this.State.textItem.content = this.State.textItem.content.trim();
+        if (!this.State.textItem.content) {
           this.SL.Paper.destroyPaperItem(this.State.textItem);
         }
       }
@@ -382,7 +384,23 @@ export class TextTool extends Tool {
       this.resetStateTextItem();
       this.State.textItem = targetItem;
       this.addTemporaryStraighten(this.State.textItem, 'textItem');
+      this.bringToFront(targetItem);
       this.refreshUITarget();
+    }
+  }
+  bringToFront(item) {
+    if (item && item.data) {
+      item.data.textOrig = item.parent;
+    }
+    let Layer = this.SL.Paper.getPaperLayer(this.SL.Paper.Layers['CONTENT_ACTIVE']+5);
+    if (Layer) {
+      Layer.appendTop(item);
+    }
+  }
+  resetToHome(item) {
+    if (item.data && item.data.textOrig) {
+      item.data.textOrig.appendTop(item);
+      item.data.textOrig = undefined;
     }
   }
 
