@@ -159,7 +159,7 @@
     "Timer": {
       "Timers": {
         "auto_save": {
-          "interval": 10000,
+          "interval": 60000,
           "operations": [
             {
               "Op": "ExportDrawing",
