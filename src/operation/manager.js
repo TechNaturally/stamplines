@@ -4,6 +4,7 @@ export default class OperationManager extends Component {
   constructor(SL, config) {
     super(SL, config);
     this.Timers = {};
+    this.initialized = true;
     this.configure(config);
   }
   configure(config) {
@@ -20,11 +21,42 @@ export default class OperationManager extends Component {
     if (!config.Timer.Timers) {
       config.Timer.Timers = {};
     }
+    this.initEventHandlers();
   }
   reset() {
     super.reset();
+    this.resetEventHandlers();
     this.resetTimers(undefined, true);
   }
+
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ResetAutoTimers) {
+      this.eventHandlers.ResetAutoTimers = this.SL.Paper.on('Ops.ResetAutoTimers', undefined, (args, item) => {
+        this.resetTimers();
+        if (args && args.restart) {
+          this.startTimers();
+        }
+      }, 'OpsResetAutoTimers');
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ResetAutoTimers) {
+      this.SL.Paper.off('Ops.ResetAutoTimers', this.eventHandlers.ResetAutoTimers.id);
+      delete this.eventHandlers.ResetAutoTimers;
+      this.eventHandlers.ResetAutoTimers = undefined;
+    }
+  }
+
+
   canRun(operation, args={}) {
     return (Ops[operation] && Ops[operation].canRun(args) && (!this.config.Ops[operation] || !this.config.Ops[operation].disabled));
   }
