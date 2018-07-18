@@ -381,7 +381,17 @@ export default class PaperCanvas extends Component {
   }
   emit(type, args, item) {
     if (type && this.paperEvents[type]) {
-      let priorities = Object.keys(this.paperEvents[type]).sort();
+      let priorities = Object.keys(this.paperEvents[type]).sort((a, b) => {
+        var A = parseInt(a);
+        var B = parseInt(b);
+        if (isNaN(A)) {
+          A = 9999;
+        }
+        if (isNaN(B)) {
+          B = 9999;
+        }
+        return (A - B);
+      });
       for (let priority of priorities) {
         let keys = Object.keys(this.paperEvents[type][priority]);
         for (let id of keys) {
