@@ -149,6 +149,7 @@
           "defaultPretty": 2
         }
       },
+      "ResetDrawing": {},
       "SaveDrawing": {
         "Content": {
           "classes": ["BG", "Content", "ContentAddon"]

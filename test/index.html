@@ -74,6 +74,11 @@
           <button type="button" class="save-image-button" name="save-image-button">Save Image</button>
         </div>
       </div>
+      <div id="reset-drawing" class="controls reset-drawing">
+        <div class="control">
+          <button type="button" class="reset-drawing-button" name="reset-drawing-button">Reset Drawing</button>
+        </div>
+      </div>
       <div id="orientation" class="controls orientation">
         <div class="control">
           <label><input type="radio" class="orientation-radio orientation-portrait" name="orientation" value="portrait" /> Portrait</label>
@@ -175,6 +180,19 @@
               $(saveImageButton).prop('disabled', true);
               SL.Operations.run('SaveDrawing', { download: true }).then((result) => {
                 $(saveImageButton).prop('disabled', false);
+              });
+              return false;
+            });
+          }
+
+          // prepare the Get DataURL
+          if (SL.Operations.canRun('ResetDrawing', {})) {
+            $('#reset-drawing').show().find('.reset-drawing-button').on('click', (clickEvent) => {
+              clickEvent.preventDefault();
+              let resetDrawingButton = $(clickEvent.target);
+              $(resetDrawingButton).prop('disabled', true);
+              SL.Operations.run('ResetDrawing', {}).then((result) => {
+                $(resetDrawingButton).prop('disabled', false);
               });
               return false;
             });

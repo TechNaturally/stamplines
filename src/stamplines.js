@@ -261,6 +261,7 @@ StampLines.DEFAULT = {
             types: ['Stamp', 'Line', 'Text']
           }
         },
+        ResetDrawing: {},
         SaveDrawing: {
           Content: {
             classes: ['BG', 'Content', 'ContentAddon']
