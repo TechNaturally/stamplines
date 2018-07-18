@@ -11,6 +11,7 @@ export class Select extends Tool {
     };
     this.UI = {};
     this.initialized = true;
+    this.initEventHandlers();
   }
   destroy() {
     super.destroy();
@@ -53,10 +54,12 @@ export class Select extends Tool {
     if (config.singleSelectedTypes.indexOf('Line') == -1) {
       config.singleSelectedTypes.push('Line');
     }
+    this.initEventHandlers();
     return config;
   }
   reset() {
     super.reset();
+    this.resetEventHandlers();
     if (!this.initialized) {
       return;
     }
@@ -67,6 +70,32 @@ export class Select extends Tool {
   resetState() {
     this.State.multi = false;
   }
+
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ResetContent) {
+      this.eventHandlers.ResetContent = this.SL.Paper.on('Content.Reset', undefined, (args, item) => {
+        this.SL.Tools.Belt.Select.Unselect();
+      }, 'Select.ResetContent', 5);
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ResetContent) {
+      this.SL.Paper.off('Content.Reset', this.eventHandlers.ResetContent.id);
+      delete this.eventHandlers.ResetContent;
+      this.eventHandlers.ResetContent = undefined;
+    }
+  }
+
+
   addGroup(group, groupID) {
     // TODO: allow generated groupID
     if (!this.Groups[groupID]) {
