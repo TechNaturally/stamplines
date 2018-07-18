@@ -10,13 +10,21 @@ export default class ToolBelt extends Component {
         Hover: {}
       }
     };
+    this.initialized = true;
+    this.configure();
     if (config.enable) {
       this.enableTool(config.enable);
     }
     this.checkActiveTool();
   }
+  configure(config) {
+    config = super.configure(config);
+    this.initEventHandlers();
+    return config;
+  }
   reset() {
     super.reset();
+    this.resetEventHandlers();
     for (let type in this.Belt) {
       this.Belt[type].destroy();
       this.Belt[type] = undefined;
@@ -24,6 +32,30 @@ export default class ToolBelt extends Component {
     this.State.activeTool = undefined;
     this.State.Mouse.Hover = {};
   }
+  initEventHandlers() {
+    if (!this.initialized) {
+      return;
+    }
+    if (!this.eventHandlers) {
+      this.eventHandlers = {};
+    }
+    if (!this.eventHandlers.ToolBeltReset) {
+      this.eventHandlers.ToolBeltReset = this.SL.Paper.on('ToolBelt.Reset', undefined, (args, item) => {
+        this.deactivateTool(false);
+      }, 'ToolBelt.Reset');
+    }
+  }
+  resetEventHandlers() {
+    if (!this.initialized || !this.eventHandlers) {
+      return;
+    }
+    if (this.eventHandlers.ToolBeltReset) {
+      this.SL.Paper.off('ToolBelt.Reset', this.eventHandlers.ToolBeltReset.id);
+      delete this.eventHandlers.ToolBeltReset;
+      this.eventHandlers.ToolBeltReset = undefined;
+    }
+  }
+
 
   enableTool(type) {
     if (type.constructor === Array) {
