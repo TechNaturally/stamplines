@@ -13,7 +13,7 @@ The goal of this project is to provide a simple, configurable drawing utility wi
 ## Install bower and npm packages.
 From project directory run:
 ```
-npm install && bower install
+npm install
 ```
 
 ## Development Environment
